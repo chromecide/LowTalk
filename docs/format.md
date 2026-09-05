@@ -18,6 +18,7 @@ Lines before the first node are directives, `key: value`, one per line.
 | `speaker:` | Default speaker name for bare lines. Defaults to the NPC's in-game name. |
 | `title:` | Shown in the window header. Defaults to the speaker. |
 | `scope:` | Variable namespace shared with other files. Defaults to the file name. |
+| `portrait:` | An image shown beside the text, as a path inside `Common/UI/Custom/` of any loaded asset pack, e.g. `Portraits/elder.png` from your own pack. |
 
 Comments start with `#` and run to the end of the line.
 
@@ -33,7 +34,9 @@ letters, digits, and underscores. The body is a sequence of statements.
 
 ## Statements
 
-**Line.** Text the NPC says. Shown one at a time with a Continue button.
+**Line.** Text the NPC says. A line is shown together with the options that
+follow it; when one line follows another, the first gets a Continue button.
+The last line of a conversation gets a Leave button.
 
 ```
 Well met, traveler.
@@ -59,7 +62,8 @@ are shown together as buttons. The indented body runs when chosen.
 ```
 
 A trailing `<<if expr>>` hides the option unless the expression is true. Use
-`<<show if expr>>` instead to show it greyed out. If an option's body does not
+`<<show if expr>>` instead to show it greyed out. A choice can show at most
+eight options at once. If an option's body does not
 `jump` or `end`, the node's options are shown again, which makes hubs easy.
 
 **Conditional.**

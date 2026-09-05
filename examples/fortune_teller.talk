@@ -1,0 +1,54 @@
+# Text input, chance, and variables that follow the player between NPCs.
+# Binds to every Klops merchant. Spawn one with:  /npc spawn Klops_Merchant
+
+npc: Klops_Merchant
+title: Madame Klops
+speaker: Madame Klops
+portrait: Pages/RespawnPageSkull@2x.png
+
+start: known when $player.true_name
+start: stranger
+
+== stranger
+The cards told me a stranger would come today. They did not tell me your name.
+<<input $tmp.answer "What do they call you?">>
+<<if $tmp.answer == "">>
+  A silent one. The cards dislike silence.
+  <<jump reading>>
+<<endif>>
+<<set $player.true_name = $tmp.answer>>
+So. {$player.true_name}. Every merchant in these lands will know it by nightfall.
+<<jump reading>>
+
+== known
+Ah, {$player.true_name}. The cards have been restless since you left.
+<<jump reading>>
+
+== reading
+<<set $npc.readings = $npc.readings + 1>>
+-> Read my fortune.
+    <<jump fortune>>
+-> Who else have you read for?
+    <<if $npc.readings > 1>>
+      You are the {$npc.readings}th to sit at this table. The others did not all leave smiling.
+    <<else>>
+      You are my first today. A fresh deck for a fresh face.
+    <<endif>>
+-> What do you sell?
+    Charms, trinkets, and things best not asked about.
+    <<shop>>
+-> Enough of this.
+    The cards will wait. They always do.
+    <<end>>
+
+== fortune
+<<if chance(0.5)>>
+  Fortune smiles. A gift, so the cards remember me kindly.
+  <<give Food_Popcorn 2>>
+<<else>>
+  The cards are dark today. Keep your coin and your courage close.
+<<endif>>
+-> Read them again.
+    <<jump fortune>>
+-> That's enough.
+    <<jump reading>>

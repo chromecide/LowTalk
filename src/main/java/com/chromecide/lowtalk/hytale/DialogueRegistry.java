@@ -30,7 +30,7 @@ public class DialogueRegistry {
 
     public record LoadReport(int files, int loaded, int errors, int warnings, List<String> messages) {}
 
-    private static final String[] BUNDLED_EXAMPLES = {"rootling_merchant.talk", "village_elder.talk"};
+    private static final String[] BUNDLED_EXAMPLES = {"rootling_merchant.talk", "village_elder.talk", "fortune_teller.talk"};
 
     private final Path folder;
     private final HytaleLogger logger;

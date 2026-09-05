@@ -1,10 +1,27 @@
 $C = "../../Common.ui";
+$Sounds = "../../Sounds.ui";
+
+// Options look like the game's own choice lists: plain text that lights up on hover.
+@OptionStyle = (
+  Default: (
+    LabelStyle: (FontSize: 16, TextColor: #d6e2f0, HorizontalAlignment: Left, VerticalAlignment: Center)
+  ),
+  Hovered: (
+    LabelStyle: (FontSize: 16, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Left, VerticalAlignment: Center),
+    Background: #ffffff(0.08)
+  ),
+  Pressed: (
+    LabelStyle: (FontSize: 16, TextColor: #ffd37a, RenderBold: true, HorizontalAlignment: Left, VerticalAlignment: Center),
+    Background: #ffffff(0.12)
+  ),
+  Sounds: $Sounds.@ButtonsLight
+);
 
 $C.@PageOverlay {
   LayoutMode: Middle;
 
   $C.@DecoratedContainer {
-    Anchor: (Width: 640, Height: 500);
+    Anchor: (Width: 680, Height: 520);
 
     #Title {
       $C.@Title #NpcTitle {
@@ -16,19 +33,38 @@ $C.@PageOverlay {
       LayoutMode: Top;
       Padding: (Full: 16);
 
-      Label #Speaker {
-        Anchor: (Bottom: 6);
-        Style: (FontSize: 14, RenderBold: true, TextColor: #ffd37a);
-      }
-
-      Group #TextBox {
+      Group #Top {
+        LayoutMode: Left;
         FlexWeight: 1;
-        LayoutMode: TopScrolling;
-        ScrollbarStyle: $C.@DefaultScrollbarStyle;
-        Padding: (Right: 8);
 
-        Label #Text {
-          Style: (...$C.@DefaultLabelStyle, FontSize: 17, Wrap: true);
+        Group #PortraitBox {
+          Anchor: (Width: 96, Right: 14);
+          Visible: false;
+
+          Group #Portrait {
+            Anchor: (Width: 96, Height: 96, Top: 4);
+          }
+        }
+
+        Group {
+          LayoutMode: Top;
+          FlexWeight: 1;
+
+          Label #Speaker {
+            Anchor: (Bottom: 6);
+            Style: (FontSize: 14, RenderBold: true, RenderUppercase: true, TextColor: #ffd37a);
+          }
+
+          Group #TextBox {
+            FlexWeight: 1;
+            LayoutMode: TopScrolling;
+            ScrollbarStyle: $C.@DefaultScrollbarStyle;
+            Padding: (Right: 8);
+
+            Label #Text {
+              Style: (...$C.@DefaultLabelStyle, FontSize: 17, TextColor: #e8eef6, Wrap: true);
+            }
+          }
         }
       }
 
@@ -40,52 +76,61 @@ $C.@PageOverlay {
       Group #Options {
         LayoutMode: Top;
         Anchor: (Top: 10);
+        Padding: (Left: 4);
 
-        $C.@TextButton #Opt0 {
-          @Anchor = (Bottom: 6);
-          @Text = "";
+        TextButton #Opt0 {
+          Anchor: (Bottom: 4, Height: 36);
+          Padding: (Horizontal: 12);
+          Style: @OptionStyle;
           Visible: false;
         }
 
-        $C.@TextButton #Opt1 {
-          @Anchor = (Bottom: 6);
-          @Text = "";
+        TextButton #Opt1 {
+          Anchor: (Bottom: 4, Height: 36);
+          Padding: (Horizontal: 12);
+          Style: @OptionStyle;
           Visible: false;
         }
 
-        $C.@TextButton #Opt2 {
-          @Anchor = (Bottom: 6);
-          @Text = "";
+        TextButton #Opt2 {
+          Anchor: (Bottom: 4, Height: 36);
+          Padding: (Horizontal: 12);
+          Style: @OptionStyle;
           Visible: false;
         }
 
-        $C.@TextButton #Opt3 {
-          @Anchor = (Bottom: 6);
-          @Text = "";
+        TextButton #Opt3 {
+          Anchor: (Bottom: 4, Height: 36);
+          Padding: (Horizontal: 12);
+          Style: @OptionStyle;
           Visible: false;
         }
 
-        $C.@TextButton #Opt4 {
-          @Anchor = (Bottom: 6);
-          @Text = "";
+        TextButton #Opt4 {
+          Anchor: (Bottom: 4, Height: 36);
+          Padding: (Horizontal: 12);
+          Style: @OptionStyle;
           Visible: false;
         }
 
-        $C.@TextButton #Opt5 {
-          @Anchor = (Bottom: 6);
-          @Text = "";
+        TextButton #Opt5 {
+          Anchor: (Bottom: 4, Height: 36);
+          Padding: (Horizontal: 12);
+          Style: @OptionStyle;
           Visible: false;
         }
 
-        $C.@TextButton #Opt6 {
-          @Anchor = (Bottom: 6);
-          @Text = "";
+        TextButton #Opt6 {
+          Anchor: (Bottom: 4, Height: 36);
+          Padding: (Horizontal: 12);
+          Style: @OptionStyle;
           Visible: false;
         }
 
-        $C.@TextButton #Opt7 {
-          @Anchor = (Bottom: 6);
-          @Text = "";
+        TextButton #Opt7 {
+          Anchor: (Bottom: 4, Height: 36);
+          Padding: (Horizontal: 12);
+          Style: @OptionStyle;
           Visible: false;
         }
       }

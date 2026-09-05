@@ -15,7 +15,6 @@ import com.hypixel.hytale.server.core.command.system.basecommands.CommandBase;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
-import com.hypixel.hytale.server.core.util.TargetUtil;
 
 import javax.annotation.Nonnull;
 import java.util.Map;
@@ -238,8 +237,6 @@ public class LowTalkCommand extends AbstractCommandCollection {
     }
 
     static NpcInfo lookedAtNpc(Ref<EntityStore> playerEntity, Store<EntityStore> store, PlayerRef player, LowTalkPlugin plugin) {
-        Ref<EntityStore> target = TargetUtil.getTargetEntity(playerEntity, 8.0f, store);
-        if (target == null) return null;
-        return NpcInfo.of(target, store, player, plugin.getStore());
+        return NpcInfo.lookedAt(playerEntity, store, player, plugin.getStore());
     }
 }

@@ -1,5 +1,6 @@
 package com.chromecide.lowtalk;
 
+import com.chromecide.lowtalk.api.DialogueListener;
 import com.chromecide.lowtalk.hytale.DialogueRegistry;
 import com.chromecide.lowtalk.hytale.DialogueSession;
 import com.chromecide.lowtalk.hytale.EffectRegistry;
@@ -19,6 +20,8 @@ import com.hypixel.hytale.server.core.util.Config;
 
 import javax.annotation.Nonnull;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 
 /**
@@ -37,6 +40,7 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
     private FunctionRegistry functions;
     private EffectRegistry effects;
     private SessionManager sessions;
+    private final List<DialogueListener> listeners = new CopyOnWriteArrayList<>();
 
     public LowTalkPlugin(@Nonnull JavaPluginInit init) {
         super(init);
@@ -109,6 +113,9 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
     public HytaleLogger logger() { return getLogger(); }
 
     @Override
+    public List<DialogueListener> listeners() { return listeners; }
+
+    @Override
     public void sessionEnded(DialogueSession session) {
         sessions.removeEnded(session);
     }
@@ -122,4 +129,5 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
     public FunctionRegistry getFunctions() { return functions; }
     public EffectRegistry getEffects() { return effects; }
     public SessionManager getSessions() { return sessions; }
+    public List<DialogueListener> getListeners() { return listeners; }
 }

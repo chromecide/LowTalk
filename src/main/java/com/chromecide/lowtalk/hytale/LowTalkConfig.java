@@ -31,7 +31,7 @@ public class LowTalkConfig {
     private String roleBindingMode = MODE_REPLACE;
     private String tagBindingMode = MODE_REPLACE;
     private String infoColor = "#A0A0A0";
-    private boolean logConversations = true;
+    private boolean logConversations = false;
 
     private LowTalkConfig() {}
 

@@ -1,5 +1,6 @@
 package com.chromecide.lowtalk.hytale;
 
+import com.chromecide.lowtalk.api.DialogueContext;
 import com.chromecide.lowtalk.model.Dialogue;
 import com.chromecide.lowtalk.runtime.Context;
 import com.chromecide.lowtalk.runtime.RuntimeError;
@@ -12,7 +13,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /** The runtime Context backed by real players, NPCs, saved variables, and registered functions. */
-public class HytaleContext implements Context {
+public class HytaleContext implements Context, DialogueContext {
 
     private final Dialogue dialogue;
     private final PlayerRef player;
@@ -41,9 +42,10 @@ public class HytaleContext implements Context {
     }
 
     public Dialogue getDialogue() { return dialogue; }
-    public PlayerRef getPlayer() { return player; }
-    public UUID getNpcId() { return npcId; }
-    public String getNpcName() { return npcName; }
+    @Override public String getDialogueId() { return dialogue.id(); }
+    @Override public PlayerRef getPlayer() { return player; }
+    @Override public UUID getNpcId() { return npcId; }
+    @Override public String getNpcName() { return npcName; }
     public VariableStore getStore() { return store; }
 
     private VariableStore.Record recordFor(String scope) {

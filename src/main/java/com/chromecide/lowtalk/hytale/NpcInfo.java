@@ -9,6 +9,8 @@ import com.hypixel.hytale.server.core.modules.entity.component.DisplayNameCompon
 import com.hypixel.hytale.server.core.modules.i18n.I18nModule;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
+import com.hypixel.hytale.server.core.util.TargetUtil;
+import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 
 import javax.annotation.Nonnull;
@@ -32,6 +34,14 @@ public record NpcInfo(Ref<EntityStore> ref, UUID id, String role, String name, S
         String name = resolveName(ref, accessor, viewer, role == null ? "Stranger" : role.replace('_', ' '));
         Set<String> tags = store.tags(store.npc(uuid.getUuid()));
         return new NpcInfo(ref, uuid.getUuid(), role, name, tags);
+    }
+
+    /** The NPC the player is looking at within 8 blocks, or null. World thread only. */
+    @Nullable
+    public static NpcInfo lookedAt(@Nonnull Ref<EntityStore> playerEntity, @Nonnull Store<EntityStore> store,
+                                   @Nonnull PlayerRef viewer, @Nonnull VariableStore variables) {
+        Ref<EntityStore> target = TargetUtil.getTargetEntity(playerEntity, 8.0f, store);
+        return target == null ? null : of(target, store, viewer, variables);
     }
 
     /**

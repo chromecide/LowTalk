@@ -33,7 +33,8 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
     public static final int OPTION_SLOTS = 8;
     private static final int KEY_RETURN = 13;
     private static final int KEY_KP_ENTER = 1073741912;
-    private static final String DISABLED_PREFIX = "— ";
+    private static final String OPTION_PREFIX = "›  ";
+    private static final String DISABLED_PREFIX = "   ";
 
     public enum Action { CONTINUE, CHOOSE, OK, KEY, CLOSE }
 
@@ -54,16 +55,18 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
 
     private final DialogueSession session;
     private final String title;
+    private final String portrait;
     private Step current;
     /** For the current Choose step: slot number -> option index, or -1 for a disabled slot. */
     private final List<Integer> slotToOption = new ArrayList<>();
     private volatile boolean open = true;
     private volatile long openedAt = System.currentTimeMillis();
 
-    public DialoguePage(@Nonnull PlayerRef playerRef, @Nonnull DialogueSession session, @Nonnull String title) {
+    public DialoguePage(@Nonnull PlayerRef playerRef, @Nonnull DialogueSession session, @Nonnull String title, String portrait) {
         super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC);
         this.session = session;
         this.title = title;
+        this.portrait = portrait == null || portrait.isBlank() ? null : portrait.trim();
     }
 
     public boolean isOpen() {
@@ -87,6 +90,10 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
         cmd.append(LAYOUT);
         cmd.set("#NpcTitle.Text", title);
         cmd.set("#Narration.Text", "");
+        if (portrait != null) {
+            cmd.set("#Portrait.Background", portrait);
+            cmd.set("#PortraitBox.Visible", true);
+        }
         // Bind everything once; later steps only change text and visibility.
         evt.addEventBinding(CustomUIEventBindingType.Activating, "#CloseButton", new EventData().append("Action", Action.CLOSE), false);
         evt.addEventBinding(CustomUIEventBindingType.Activating, "#ContinueButton", new EventData().append("Action", Action.CONTINUE), false);
@@ -131,7 +138,7 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
                 int slot = 0;
                 for (Step.Shown o : choose.options()) {
                     if (slot >= OPTION_SLOTS) break;
-                    cmd.set("#Opt" + slot + ".Text", o.enabled() ? o.text() : DISABLED_PREFIX + o.text());
+                    cmd.set("#Opt" + slot + ".Text", (o.enabled() ? OPTION_PREFIX : DISABLED_PREFIX) + o.text());
                     cmd.set("#Opt" + slot + ".Visible", true);
                     slotToOption.add(o.enabled() ? o.index() : -1);
                     slot++;
@@ -182,7 +189,7 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
                 if (optionIndex < 0) return; // disabled option
                 if (current instanceof Step.Choose ch) {
                     for (Step.Shown o : ch.options()) {
-                        if (o.index() == optionIndex) session.log("chose \"" + o.text() + "\"");
+                        if (o.index() == optionIndex) session.choiceMade(o.text());
                     }
                 }
                 session.onChoose(optionIndex);

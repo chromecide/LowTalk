@@ -1,5 +1,6 @@
 package com.chromecide.lowtalk.hytale;
 
+import com.chromecide.lowtalk.api.DialogueListener;
 import com.chromecide.lowtalk.model.Dialogue;
 import com.chromecide.lowtalk.runtime.Conversation;
 import com.chromecide.lowtalk.runtime.Effect;
@@ -32,6 +33,7 @@ public class DialogueSession {
         EffectRegistry effects();
         VariableStore store();
         HytaleLogger logger();
+        List<DialogueListener> listeners();
         void sessionEnded(DialogueSession session);
     }
 
@@ -45,6 +47,7 @@ public class DialogueSession {
     private final Conversation conversation;
     private final DialoguePage page;
     private boolean ended = false;
+    private String lastNode;
 
     private DialogueSession(Host host, Dialogue dialogue, PlayerRef player, World world, UUID npcId, String npcName, HytaleContext context) {
         this.host = host;
@@ -56,7 +59,7 @@ public class DialogueSession {
         this.context = context;
         this.conversation = new Conversation(dialogue, context);
         String title = dialogue.title() != null ? dialogue.title() : (dialogue.speaker() != null ? dialogue.speaker() : npcName);
-        this.page = new DialoguePage(player, this, title);
+        this.page = new DialoguePage(player, this, title, dialogue.otherDirectives().get("portrait"));
     }
 
     /**
@@ -93,6 +96,9 @@ public class DialogueSession {
         if (host.config().isLogConversations()) {
             host.logger().at(Level.INFO).log("%s opened '%s' with %s", player.getUsername(), dialogue.id(), npcName);
         }
+        s.notify(l -> l.onStart(ctx));
+        s.lastNode = s.conversation.getCurrentNode();
+        if (s.lastNode != null) s.notify(l -> l.onNode(ctx, s.lastNode));
         return s;
     }
 
@@ -107,7 +113,9 @@ public class DialogueSession {
 
     /** Diagnostic line in the server log, prefixed with the player and dialogue. */
     void log(String message) {
-        host.logger().at(Level.INFO).log("[%s/%s] %s", player.getUsername(), dialogue.id(), message);
+        if (host.config().isLogConversations()) {
+            host.logger().at(Level.INFO).log("[%s/%s] %s", player.getUsername(), dialogue.id(), message);
+        }
     }
 
     // ---- page callbacks
@@ -117,10 +125,31 @@ public class DialogueSession {
     }
 
     void onChoose(int index) {
-        if (host.config().isLogConversations()) {
-            host.logger().at(Level.FINE).log("%s chose option %d in '%s'", player.getUsername(), index, dialogue.id());
-        }
         advance(() -> conversation.choose(index));
+    }
+
+    /** Called by the page with the button text, for listeners and the log. */
+    void choiceMade(String text) {
+        log("chose \"" + text + "\"");
+        notify(l -> l.onChoice(context, text));
+    }
+
+    private void notify(java.util.function.Consumer<DialogueListener> call) {
+        for (DialogueListener l : host.listeners()) {
+            try {
+                call.accept(l);
+            } catch (RuntimeException e) {
+                host.logger().at(Level.WARNING).log("A dialogue listener threw: %s", e.toString());
+            }
+        }
+    }
+
+    private void nodeChanged() {
+        String now = conversation.getCurrentNode();
+        if (now != null && !now.equals(lastNode)) {
+            lastNode = now;
+            notify(l -> l.onNode(context, now));
+        }
     }
 
     void onAnswer(String text) {
@@ -139,6 +168,7 @@ public class DialogueSession {
             ended = true;
             host.store().flush();
             host.sessionEnded(this);
+            notify(l -> l.onEnd(context));
         }
     }
 
@@ -156,6 +186,7 @@ public class DialogueSession {
         ended = true;
         host.store().flush();
         host.sessionEnded(this);
+        notify(l -> l.onEnd(context));
     }
 
     // ---- internals
@@ -169,6 +200,7 @@ public class DialogueSession {
             fail(e);
             return;
         }
+        nodeChanged();
         applyEffects(r.effects());
         if (ended) return; // an effect (e.g. shop) took over the screen
         if (r.step() instanceof Step.Finish) {
@@ -211,5 +243,6 @@ public class DialogueSession {
         page.closeNow();
         host.store().flush();
         host.sessionEnded(this);
+        notify(l -> l.onEnd(context));
     }
 }
