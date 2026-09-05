@@ -36,7 +36,16 @@ public final class Validator {
             Map.entry("objective", new int[] {1, 1}),
             Map.entry("anim", new int[] {1, 1}),
             Map.entry("sound", new int[] {1, 1}),
-            Map.entry("run", new int[] {1, 1})
+            Map.entry("run", new int[] {1, 1}),
+            Map.entry("reputation", new int[] {1, 2}),
+            Map.entry("notify", new int[] {1, 3}),
+            Map.entry("title", new int[] {1, 4}),
+            Map.entry("effect", new int[] {1, 1}),
+            Map.entry("cure", new int[] {1, 1}),
+            Map.entry("stat", new int[] {1, 2}),
+            Map.entry("heal", new int[] {0, 1}),
+            Map.entry("learn", new int[] {1, 1}),
+            Map.entry("teleport", new int[] {1, 3})
     );
 
     /** The dialogue window has this many option slots. */
@@ -45,7 +54,7 @@ public final class Validator {
     public static final Set<String> ATTITUDES = Set.of("ignore", "hostile", "neutral", "friendly", "revered");
 
     public static final Set<String> BUILTIN_FUNCTIONS = Set.of(
-            "player", "npc", "has", "count", "visited", "objective", "attitude", "perm", "hour", "random", "chance", "ordinal", "plural"
+            "player", "npc", "has", "count", "visited", "objective", "attitude", "perm", "hour", "random", "chance", "ordinal", "plural", "reputation", "rank", "stat", "max_stat", "effect", "knows"
     );
 
     private final Set<String> extraCommands;

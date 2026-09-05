@@ -102,6 +102,14 @@ eight options at once. If an option's body does not
 | `<<run "/command args">>` | Run a server command as the console. `{player}` is expanded. |
 | `<<input $var "Prompt">>` | Show a text box and store what the player types. |
 | `<<once>>` ... `<<endonce>>` | The block between runs at most once per player. |
+| `<<reputation +10>>`, `<<reputation -5 Group_Id>>` | Change the player's standing with this NPC's reputation group, or a named group. |
+| `<<notify "Text" ["Detail"] [success\|warning\|danger]>>` | A toast notification in the corner of the screen. |
+| `<<title "Primary" ["Secondary"] [major] [seconds]>>` | A cinematic title across the screen. |
+| `<<effect Effect_Id>>`, `<<cure Effect_Id>>` | Apply or remove an entity effect (regeneration, poison, speed, ...). |
+| `<<heal [amount]>>` | Restore health, fully or by an amount. |
+| `<<stat Health +20>>`, `<<stat Stamina 50>>`, `<<stat Health max>>` | Add to, set, or max out any stat. |
+| `<<learn Recipe_Id>>` | Teach the player a crafting recipe. |
+| `<<teleport warp_name>>`, `<<teleport x y z>>` | Move the player. Ends the conversation. |
 
 Plugins can register additional commands.
 
@@ -142,6 +150,11 @@ Used in `if`, `elseif`, option guards, `set`, and `start when`.
   - `hour()` in-game hour, 0 to 23
   - `random(n)` integer from 0 to n-1
   - `chance(p)` true with probability p, 0 to 1
+  - `reputation()` standing with this NPC's group; `reputation("Group_Id")` with a named group
+  - `rank()` / `rank("Group_Id")` the current rank id, e.g. "Friendly"
+  - `stat("Health")`, `max_stat("Health")` any entity stat
+  - `effect("Effect_Id")` the player currently has that entity effect
+  - `knows("Recipe_Id")` the player has learned that recipe
   - `ordinal(n)` "1st", "2nd", "3rd", "11th", "21st"
   - `plural(n, "loaf", "loaves")` the right word for the count; the third argument is optional and defaults to adding an s
 

@@ -8,6 +8,23 @@ import com.chromecide.lowtalk.hytale.functions.BuiltinFunctions;
 import com.chromecide.lowtalk.runtime.Effect;
 import com.chromecide.lowtalk.runtime.RuntimeError;
 import com.hypixel.hytale.builtin.adventure.objectives.ObjectivePlugin;
+import com.hypixel.hytale.builtin.adventure.reputation.ReputationPlugin;
+import com.hypixel.hytale.builtin.crafting.CraftingPlugin;
+import com.hypixel.hytale.builtin.teleport.TeleportPlugin;
+import com.hypixel.hytale.builtin.teleport.Warp;
+import com.hypixel.hytale.math.vector.Rotation3f;
+import com.hypixel.hytale.math.vector.Transform;
+import com.hypixel.hytale.protocol.packets.interface_.Notification;
+import com.hypixel.hytale.protocol.packets.interface_.NotificationStyle;
+import com.hypixel.hytale.protocol.packets.interface_.ShowEventTitle;
+import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
+import com.hypixel.hytale.server.core.modules.entitystats.asset.EntityStatType;
+import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
+import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
+import org.joml.Vector3d;
 import com.hypixel.hytale.builtin.adventure.shop.barter.BarterPage;
 import com.hypixel.hytale.builtin.adventure.shop.barter.BarterShopAsset;
 import com.hypixel.hytale.component.Ref;
@@ -135,6 +152,161 @@ public final class BuiltinEffects {
             return "New objective.";
         });
 
+
+        // ---- standing
+
+        effects.register("reputation", (session, effect) -> {
+            ReputationPlugin rep = ReputationPlugin.get();
+            if (rep == null) throw new RuntimeError(effect.pos(), "the reputation plugin is not loaded");
+            String raw = effect.args().get(0).trim();
+            int delta;
+            try {
+                delta = Integer.parseInt(raw.startsWith("+") ? raw.substring(1) : raw);
+            } catch (NumberFormatException e) {
+                throw new RuntimeError(effect.pos(), "<<reputation>> expects a number like +10 or -5, got " + raw);
+            }
+            Ref<EntityStore> ref = BuiltinFunctions.playerEntity(session.getContext());
+            Store<EntityStore> store = ref.getStore();
+            Player player = store.getComponent(ref, Player.getComponentType());
+            if (player == null) return null;
+            if (effect.args().size() > 1) {
+                rep.changeReputation(player, effect.args().get(1), delta, store);
+            } else {
+                Ref<EntityStore> npcRef = npcRef(session, store);
+                if (npcRef == null) throw new RuntimeError(effect.pos(), "<<reputation>> needs an NPC or a group name");
+                rep.changeReputation(player, npcRef, delta, store);
+            }
+            return delta >= 0 ? "Your standing improves." : "Your standing suffers.";
+        });
+
+        // ---- feedback
+
+        effects.register("notify", (session, effect) -> {
+            String text = effect.args().get(0);
+            String secondary = effect.args().size() > 1 ? effect.args().get(1) : null;
+            NotificationStyle style = NotificationStyle.Default;
+            if (effect.args().size() > 2) {
+                try {
+                    style = NotificationStyle.valueOf(capitalise(effect.args().get(2)));
+                } catch (IllegalArgumentException e) {
+                    throw new RuntimeError(effect.pos(), "notify style must be default, success, warning, or danger");
+                }
+            }
+            session.getPlayer().getPacketHandler().write(new Notification(
+                    Message.raw(text).getFormattedMessage(),
+                    secondary == null ? null : Message.raw(secondary).getFormattedMessage(),
+                    null, null, style, null));
+            return null;
+        });
+
+        effects.register("title", (session, effect) -> {
+            String primary = effect.args().get(0);
+            String secondary = effect.args().size() > 1 ? effect.args().get(1) : null;
+            boolean major = effect.args().size() > 2 && effect.args().get(2).equalsIgnoreCase("major");
+            float seconds = 3.0f;
+            if (effect.args().size() > 3) {
+                try {
+                    seconds = Float.parseFloat(effect.args().get(3));
+                } catch (NumberFormatException e) {
+                    throw new RuntimeError(effect.pos(), "title duration must be a number of seconds");
+                }
+            }
+            session.getPlayer().getPacketHandler().write(new ShowEventTitle(
+                    0.5f, 0.5f, seconds, null, major,
+                    Message.raw(primary).getFormattedMessage(),
+                    secondary == null ? null : Message.raw(secondary).getFormattedMessage()));
+            return null;
+        });
+
+        // ---- the player's body
+
+        effects.register("effect", (session, effect) -> {
+            String id = effect.args().get(0);
+            EntityEffect asset = EntityEffect.getAssetMap().getAsset(id);
+            if (asset == null) throw new RuntimeError(effect.pos(), "unknown entity effect " + id);
+            Ref<EntityStore> ref = BuiltinFunctions.playerEntity(session.getContext());
+            Store<EntityStore> store = ref.getStore();
+            EffectControllerComponent controller = store.getComponent(ref, EffectControllerComponent.getComponentType());
+            if (controller == null) return null;
+            controller.addEffect(ref, asset, store);
+            return null;
+        });
+
+        effects.register("cure", (session, effect) -> {
+            String id = effect.args().get(0);
+            int index = EntityEffect.getAssetMap().getIndex(id);
+            if (index < 0) throw new RuntimeError(effect.pos(), "unknown entity effect " + id);
+            Ref<EntityStore> ref = BuiltinFunctions.playerEntity(session.getContext());
+            Store<EntityStore> store = ref.getStore();
+            EffectControllerComponent controller = store.getComponent(ref, EffectControllerComponent.getComponentType());
+            if (controller != null) controller.removeEffect(ref, index, store);
+            return null;
+        });
+
+        effects.register("stat", (session, effect) -> {
+            String name = effect.args().get(0);
+            String raw = effect.args().size() > 1 ? effect.args().get(1).trim() : "max";
+            EntityStatValue value = BuiltinFunctions.stat(session.getContext(), name);
+            if (value == null) return null;
+            Ref<EntityStore> ref = BuiltinFunctions.playerEntity(session.getContext());
+            EntityStatMap stats = ref.getStore().getComponent(ref, EntityStatMap.getComponentType());
+            int index = EntityStatType.getAssetMap().getIndex(name);
+            if (stats == null) return null;
+            if (raw.equalsIgnoreCase("max")) {
+                stats.setStatValue(index, value.getMax());
+            } else if (raw.startsWith("+") || raw.startsWith("-")) {
+                stats.addStatValue(index, parseNumber(effect, raw));
+            } else {
+                stats.setStatValue(index, parseNumber(effect, raw));
+            }
+            return null;
+        });
+
+        effects.register("heal", (session, effect) -> {
+            EntityStatValue value = BuiltinFunctions.stat(session.getContext(), "Health");
+            if (value == null) return null;
+            Ref<EntityStore> ref = BuiltinFunctions.playerEntity(session.getContext());
+            EntityStatMap stats = ref.getStore().getComponent(ref, EntityStatMap.getComponentType());
+            int index = EntityStatType.getAssetMap().getIndex("Health");
+            if (stats == null) return null;
+            if (effect.args().isEmpty()) {
+                stats.setStatValue(index, value.getMax());
+            } else {
+                stats.addStatValue(index, Math.abs(parseNumber(effect, effect.args().get(0))));
+            }
+            return "You feel better.";
+        });
+
+        effects.register("learn", (session, effect) -> {
+            String recipe = effect.args().get(0);
+            Ref<EntityStore> ref = BuiltinFunctions.playerEntity(session.getContext());
+            boolean learned = CraftingPlugin.learnRecipe(ref, recipe, ref.getStore());
+            return learned ? "You learn a new recipe." : null;
+        });
+
+        // ---- movement
+
+        effects.register("teleport", (session, effect) -> {
+            Ref<EntityStore> ref = BuiltinFunctions.playerEntity(session.getContext());
+            Store<EntityStore> store = ref.getStore();
+            Transform target;
+            if (effect.args().size() >= 3) {
+                double x = parseNumber(effect, effect.args().get(0));
+                double y = parseNumber(effect, effect.args().get(1));
+                double z = parseNumber(effect, effect.args().get(2));
+                target = new Transform(new Vector3d(x, y, z));
+            } else {
+                String name = effect.args().get(0);
+                TeleportPlugin tp = TeleportPlugin.get();
+                Warp warp = tp == null ? null : tp.getWarps().get(name);
+                if (warp == null) throw new RuntimeError(effect.pos(), "no warp called '" + name + "' (use x y z for coordinates)");
+                target = warp.getTransform();
+            }
+            session.detach();
+            store.addComponent(ref, Teleport.getComponentType(), Teleport.createForPlayer(target));
+            return null;
+        });
+
         effects.register("anim", (session, effect) -> {
             Store<EntityStore> store = BuiltinFunctions.store(session.getContext());
             Ref<EntityStore> npcRef = npcRef(session, store);
@@ -175,6 +347,19 @@ public final class BuiltinEffects {
         if (npcRef == null) return null;
         NPCEntity npc = store.getComponent(npcRef, NPCEntity.getComponentType());
         return npc == null ? null : npc.getRoleName();
+    }
+
+    private static float parseNumber(Effect effect, String raw) {
+        try {
+            return Float.parseFloat(raw.startsWith("+") ? raw.substring(1) : raw);
+        } catch (NumberFormatException e) {
+            throw new RuntimeError(effect.pos(), "expected a number, got " + raw);
+        }
+    }
+
+    private static String capitalise(String s) {
+        if (s == null || s.isEmpty()) return s;
+        return Character.toUpperCase(s.charAt(0)) + s.substring(1).toLowerCase(Locale.ROOT);
     }
 
     private static int count(Effect effect, int defaultCount) {

@@ -8,6 +8,13 @@ import com.chromecide.lowtalk.runtime.Values;
 import com.hypixel.hytale.builtin.adventure.objectives.Objective;
 import com.hypixel.hytale.builtin.adventure.objectives.components.ObjectiveHistoryComponent;
 import com.hypixel.hytale.builtin.adventure.objectives.ObjectivePlugin;
+import com.hypixel.hytale.builtin.adventure.reputation.ReputationPlugin;
+import com.hypixel.hytale.builtin.adventure.reputation.assets.ReputationRank;
+import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
+import com.hypixel.hytale.server.core.modules.entitystats.asset.EntityStatType;
+import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatValue;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.asset.type.attitude.Attitude;
@@ -55,6 +62,31 @@ public final class BuiltinFunctions {
         });
         functions.register("objective", (ctx, args) -> objectiveState(ctx, string(args, 0, "objective")));
         functions.register("attitude", (ctx, args) -> currentAttitude(ctx));
+
+        functions.register("reputation", (ctx, args) -> (double) reputation(ctx, args.isEmpty() ? null : Values.text(args.get(0))));
+        functions.register("rank", (ctx, args) -> rank(ctx, args.isEmpty() ? null : Values.text(args.get(0))));
+        functions.register("stat", (ctx, args) -> {
+            EntityStatValue v = stat(ctx, string(args, 0, "stat"));
+            return v == null ? 0.0 : (double) v.get();
+        });
+        functions.register("max_stat", (ctx, args) -> {
+            EntityStatValue v = stat(ctx, string(args, 0, "max_stat"));
+            return v == null ? 0.0 : (double) v.getMax();
+        });
+        functions.register("effect", (ctx, args) -> {
+            String id = string(args, 0, "effect");
+            EntityEffect effect = EntityEffect.getAssetMap().getAsset(id);
+            if (effect == null) return false;
+            Ref<EntityStore> ref = playerEntity(ctx);
+            EffectControllerComponent effects = ref.getStore().getComponent(ref, EffectControllerComponent.getComponentType());
+            return effects != null && effects.hasEffect(effect);
+        });
+        functions.register("knows", (ctx, args) -> {
+            Ref<EntityStore> ref = playerEntity(ctx);
+            Player player = ref.getStore().getComponent(ref, Player.getComponentType());
+            Set<String> known = player == null ? null : player.getPlayerConfigData().getKnownRecipes();
+            return known != null && known.contains(string(args, 0, "knows"));
+        });
     }
 
     // ---- helpers shared with the effects
@@ -106,6 +138,55 @@ public final class BuiltinFunctions {
             return "complete";
         }
         return "none";
+    }
+
+    /** Reputation with this NPC's group, or with a named group. 0 when the plugin or group is missing. */
+    public static int reputation(HytaleContext ctx, String group) {
+        ReputationPlugin rep = ReputationPlugin.get();
+        if (rep == null) return 0;
+        Ref<EntityStore> playerRef = playerEntity(ctx);
+        Store<EntityStore> store = playerRef.getStore();
+        try {
+            if (group != null && !group.isBlank()) {
+                return rep.getReputationValue(store, playerRef, group);
+            }
+            Ref<EntityStore> npcRef = store.getExternalData().getRefFromUUID(ctx.getNpcId());
+            if (npcRef == null || !npcRef.isValid()) return 0;
+            return rep.getReputationValue(store, playerRef, npcRef);
+        } catch (RuntimeException e) {
+            return 0;
+        }
+    }
+
+    /** The reputation rank id ("Friendly", "Hostile", ...) with this NPC's group or a named group; "" if none. */
+    public static String rank(HytaleContext ctx, String group) {
+        ReputationPlugin rep = ReputationPlugin.get();
+        if (rep == null) return "";
+        Ref<EntityStore> playerRef = playerEntity(ctx);
+        Store<EntityStore> store = playerRef.getStore();
+        try {
+            ReputationRank r;
+            if (group != null && !group.isBlank()) {
+                r = rep.getReputationRank(store, playerRef, group);
+            } else {
+                Ref<EntityStore> npcRef = store.getExternalData().getRefFromUUID(ctx.getNpcId());
+                if (npcRef == null || !npcRef.isValid()) return "";
+                r = rep.getReputationRank(store, playerRef, npcRef);
+            }
+            return r == null ? "" : r.getId();
+        } catch (RuntimeException e) {
+            return "";
+        }
+    }
+
+    public static EntityStatValue stat(HytaleContext ctx, String name) {
+        Ref<EntityStore> ref = playerEntity(ctx);
+        Store<EntityStore> store = ref.getStore();
+        EntityStatMap stats = store.getComponent(ref, EntityStatMap.getComponentType());
+        if (stats == null) return null;
+        int index = EntityStatType.getAssetMap().getIndex(name);
+        if (index < 0) throw new RuntimeError("unknown stat " + name);
+        return stats.get(index);
     }
 
     public static String currentAttitude(HytaleContext ctx) {

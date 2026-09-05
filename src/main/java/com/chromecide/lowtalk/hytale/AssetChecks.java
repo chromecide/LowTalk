@@ -9,6 +9,11 @@ import com.hypixel.hytale.builtin.adventure.objectives.config.ObjectiveAsset;
 import com.hypixel.hytale.builtin.adventure.shop.barter.BarterShopAsset;
 import com.hypixel.hytale.server.core.asset.type.item.config.Item;
 import com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent;
+import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
+import com.hypixel.hytale.server.core.modules.entitystats.asset.EntityStatType;
+import com.hypixel.hytale.builtin.adventure.reputation.assets.ReputationGroup;
+import com.hypixel.hytale.server.core.asset.type.item.config.CraftingRecipe;
+import com.hypixel.hytale.builtin.teleport.TeleportPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +65,27 @@ public final class AssetChecks {
                 }
                 case "shop" -> {
                     if (BarterShopAsset.getAssetMap().getAsset(id) == null) out.add(where + "no barter shop called '" + id + "'");
+                }
+                case "effect", "cure" -> {
+                    if (EntityEffect.getAssetMap().getAsset(id) == null) out.add(where + "no entity effect called '" + id + "'");
+                }
+                case "stat" -> {
+                    if (EntityStatType.getAssetMap().getIndex(id) < 0) out.add(where + "no stat called '" + id + "'");
+                }
+                case "learn" -> {
+                    if (CraftingRecipe.getAssetMap().getAsset(id) == null) out.add(where + "no crafting recipe called '" + id + "'");
+                }
+                case "reputation" -> {
+                    if (c.args().size() > 1 && c.args().get(1).isStatic()) {
+                        String group = c.args().get(1).debugString();
+                        if (ReputationGroup.getAssetMap().getAsset(group) == null) out.add(where + "no reputation group called '" + group + "'");
+                    }
+                }
+                case "teleport" -> {
+                    if (c.args().size() == 1) {
+                        TeleportPlugin tp = TeleportPlugin.get();
+                        if (tp != null && tp.isWarpsLoaded() && !tp.getWarps().containsKey(id)) out.add(where + "no warp called '" + id + "'");
+                    }
                 }
                 default -> {}
             }

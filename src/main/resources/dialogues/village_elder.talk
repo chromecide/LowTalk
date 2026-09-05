@@ -1,4 +1,6 @@
 # A unique character. Tag one NPC in game with:  /lowtalk tag elder
+# Shows: tag binding, a portrait, once-blocks, per-NPC counters, an objective-gated start,
+# notifications, titles, healing, entity effects, and reputation.
 
 npc: @elder
 title: Elder Rootbark
@@ -18,6 +20,11 @@ Elder: The Scarak grow bold this season. We need hands, not words.
     <<jump offer>>
 -> Who are the Scarak?
     Elder: Chitin and hunger, mostly. They come from the deep tunnels when the moon is thin.
+-> I'm hurt, Elder. <<if stat("Health") < max_stat("Health")>>
+    Elder: Then hold still. The grove mends what it can.
+    <<heal>>
+    <<effect HealthRegen_Buff_T1>>
+    <<notify "The grove mends you" "Health restored" success>>
 -> Not today, Elder.
     Elder: Then go carefully.
     <<end>>
@@ -27,6 +34,7 @@ Elder: Gather ten fibres from the tall grass beyond the pond. Bring them here an
 -> I'll do it.
     <<objective Objective_Gather>>
     <<set $npc.helpers = $npc.helpers + 1>>
+    <<notify "Objective accepted" "Gather fibres beyond the pond">>
     Elder: Good. You are the {ordinal($npc.helpers)} to say so. Let's see if you're the first to return.
     <<end>>
 -> What's in it for me?
@@ -40,9 +48,11 @@ Elder: The grass is beyond the pond, {player}. Not here.
 == after_quest
 Elder: You returned. Few do.
 <<give Ingredient_Bar_Copper 1>>
+<<reputation +10>>
 <<set $rewarded = true>>
 <<attitude revered>>
 <<anim Wave>>
+<<title "The Grove Remembers" "Elder Rootbark counts you a friend" major 4>>
 Elder: The grove remembers its friends.
 -> It was nothing.
     <<end>>
