@@ -22,6 +22,8 @@ public class LowTalkConfig {
                     (c, v, e) -> c.logConversations = v, (c, e) -> c.logConversations).add()
             .append(new KeyedCodec<>("HoldNpcDuringDialogue", Codec.BOOLEAN),
                     (c, v, e) -> c.holdNpc = v, (c, e) -> c.holdNpc).add()
+            .append(new KeyedCodec<>("ClearSkyWeather", Codec.STRING),
+                    (c, v, e) -> c.clearSkyWeather = v, (c, e) -> c.clearSkyWeather).add()
             .build();
 
     /** How a binding opens: "crouch" = crouch and use; "replace" = plain use, native interaction suppressed. */
@@ -35,6 +37,8 @@ public class LowTalkConfig {
     private String infoColor = "#A0A0A0";
     private boolean logConversations = false;
     private boolean holdNpc = true;
+    /** Weather to show when <<weather clear>> finds no natural weather for the area (flat and void worlds have none). */
+    private String clearSkyWeather = "Default_Flat";
 
     private LowTalkConfig() {}
 
@@ -45,4 +49,5 @@ public class LowTalkConfig {
     public String getInfoColor() { return infoColor; }
     public boolean isLogConversations() { return logConversations; }
     public boolean isHoldNpcDuringDialogue() { return holdNpc; }
+    public String getClearSkyWeather() { return clearSkyWeather; }
 }

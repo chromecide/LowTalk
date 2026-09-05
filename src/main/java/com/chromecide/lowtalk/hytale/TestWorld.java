@@ -98,7 +98,12 @@ public final class TestWorld {
                 out.accept("The corridor has grown since it was built; extending it and respawning the stations.");
             }
             world.getWorldConfig().setSpawningNPC(false);
+            // A flat world has no natural weather, so give it a baseline sky for the weather station to return to.
+            world.getWorldConfig().setForcedWeather(plugin.getSettings().getClearSkyWeather());
             world.getWorldConfig().markChanged();
+            com.hypixel.hytale.builtin.weather.resources.WeatherResource weather =
+                    store.getResource(com.hypixel.hytale.builtin.weather.resources.WeatherResource.getResourceType());
+            if (weather != null) weather.setForcedWeather(plugin.getSettings().getClearSkyWeather());
             WorldTimeResource time = store.getResource(WorldTimeResource.getResourceType());
             if (time != null) time.setDayTime(0.5, world, store);
 

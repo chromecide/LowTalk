@@ -53,18 +53,23 @@ public final class WorldEffects {
             if (!clear && (index == Integer.MIN_VALUE || index == 0)) {
                 throw new RuntimeError(effect.pos(), "no weather called '" + id + "' (see Server/Weathers in the assets)");
             }
+            WeatherTracker tracker = store.getComponent(ref, WeatherTracker.getComponentType());
             if (playerOnly) {
-                WeatherTracker tracker = store.getComponent(ref, WeatherTracker.getComponentType());
                 if (tracker == null) return null;
                 if (clear) {
                     // Drop the override, then let the tracker's own routine pick what this player should see:
-                    // the world's forced weather, else the environment's, else none (index 0 clears the sky).
+                    // the world's forced weather, else the area's natural weather.
                     tracker.clearOverrideWeatherIndex();
                     TransformComponent transform = store.getComponent(ref, TransformComponent.getComponentType());
                     if (transform != null) {
                         tracker.updateWeather(session.getPlayer(), resource, transform, WEATHER_TRANSITION_SECONDS, store);
-                    } else {
-                        tracker.sendWeatherIndex(session.getPlayer(), resource.getForcedWeatherIndex(), WEATHER_TRANSITION_SECONDS);
+                    }
+                    if (naturalWeather(resource, tracker) <= 0) {
+                        // Nothing natural to fall back to (flat/void worlds): the client ignores "no weather", so
+                        // show the configured clear sky instead, as an override so the per-second tick keeps it.
+                        int sky = clearSkyIndex(plugin, effect);
+                        tracker.setOverrideWeatherIndex(sky);
+                        tracker.sendWeatherIndex(session.getPlayer(), sky, WEATHER_TRANSITION_SECONDS);
                     }
                 } else {
                     tracker.setOverrideWeatherIndex(index);
@@ -72,6 +77,11 @@ public final class WorldEffects {
                 }
             } else {
                 String forced = clear ? null : id;
+                if (clear && tracker != null && naturalWeather(resource, tracker) <= 0) {
+                    // No natural weather here, so "clear" means the configured clear sky for everyone.
+                    forced = plugin.getSettings().getClearSkyWeather();
+                    clearSkyIndex(plugin, effect); // validates the id
+                }
                 resource.setForcedWeather(forced);
                 if (world != null) {
                     world.getWorldConfig().setForcedWeather(forced);
@@ -116,6 +126,25 @@ public final class WorldEffects {
             }
             return null;
         });
+    }
+
+    /** The area's natural weather index for this player, 0 or less when the world has none. */
+    private static int naturalWeather(WeatherResource resource, WeatherTracker tracker) {
+        try {
+            int idx = resource.getWeatherIndexForEnvironment(tracker.getEnvironmentId());
+            return idx == Integer.MIN_VALUE ? 0 : idx;
+        } catch (RuntimeException e) {
+            return 0;
+        }
+    }
+
+    private static int clearSkyIndex(LowTalkPlugin plugin, com.chromecide.lowtalk.runtime.Effect effect) {
+        String id = plugin.getSettings().getClearSkyWeather();
+        int idx = Weather.getAssetMap().getIndex(id);
+        if (idx == Integer.MIN_VALUE || idx == 0) {
+            throw new RuntimeError(effect.pos(), "ClearSkyWeather '" + id + "' in lowtalk.json is not a weather id");
+        }
+        return idx;
     }
 
     /** "noon" -> 0.5, "19.5" (hours) -> 0.8125. */
