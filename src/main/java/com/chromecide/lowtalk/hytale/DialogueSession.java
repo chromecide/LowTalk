@@ -47,6 +47,8 @@ public class DialogueSession implements EffectHost {
     private final Conversation conversation;
     private final DialoguePage page;
     private boolean ended = false;
+    private boolean opened = false;
+    private Step firstStep;
     private String lastNode;
     /** Bumped on every step so a stale <<wait>> timer cannot advance a later step. */
     private int stepSerial = 0;
@@ -65,13 +67,13 @@ public class DialogueSession implements EffectHost {
     }
 
     /**
-     * Start a dialogue and open the window. World thread only.
-     * @return the session, or null if it ended immediately or could not start
+     * Build the session and its page without opening the window, for callers that open the page themselves
+     * (the game's OpenCustomUI interaction). Returns null if the dialogue ended before showing anything.
      */
     @Nullable
-    public static DialogueSession open(@Nonnull Host host, @Nonnull FunctionRegistry functions, @Nonnull Dialogue dialogue,
-                                       @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity, @Nonnull Store<EntityStore> store,
-                                       @Nonnull World world, @Nonnull UUID npcId, @Nonnull String npcName) {
+    public static DialogueSession prepare(@Nonnull Host host, @Nonnull FunctionRegistry functions, @Nonnull Dialogue dialogue,
+                                          @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity, @Nonnull Store<EntityStore> store,
+                                          @Nonnull World world, @Nonnull UUID npcId, @Nonnull String npcName) {
         HytaleContext ctx = new HytaleContext(dialogue, player, npcId, npcName, host.store(), functions);
         DialogueSession s = new DialogueSession(host, dialogue, player, world, npcId, npcName, ctx);
         Conversation.Result first;
@@ -88,32 +90,55 @@ public class DialogueSession implements EffectHost {
             return null;
         }
         s.page.show(first.step());
+        s.firstStep = first.step();
+        s.page.markOpened();
+        return s;
+    }
+
+    /**
+     * Start a dialogue and open the window. World thread only.
+     * @return the session, or null if it ended immediately or could not start
+     */
+    @Nullable
+    public static DialogueSession open(@Nonnull Host host, @Nonnull FunctionRegistry functions, @Nonnull Dialogue dialogue,
+                                       @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity, @Nonnull Store<EntityStore> store,
+                                       @Nonnull World world, @Nonnull UUID npcId, @Nonnull String npcName) {
+        DialogueSession s = prepare(host, functions, dialogue, player, playerEntity, store, world, npcId, npcName);
+        if (s == null) return null;
         Player playerComponent = store.getComponent(playerEntity, Player.getComponentType());
         if (playerComponent == null) {
             s.finish();
             return null;
         }
-        s.page.markOpened();
         playerComponent.getPageManager().openCustomPage(playerEntity, store, s.page);
+        s.afterOpen();
+        return s;
+    }
+
+    /** Logging, the NPC hold, listeners and the first pause timer. Call once the page is on its way to the client. */
+    public void afterOpen() {
+        if (opened || ended) return;
+        opened = true;
         if (host.config().isLogConversations()) {
             host.logger().at(Level.INFO).log("%s opened '%s' with %s", player.getUsername(), dialogue.id(), npcName);
         }
         if (host.config().isHoldNpcDuringDialogue() && npcId.getMostSignificantBits() != 0L) {
             NpcHold.hold(world, npcId, player.getUuid(), host.store());
         }
-        s.notify(l -> l.onStart(ctx));
-        s.lastNode = s.conversation.getCurrentNode();
-        if (s.lastNode != null) s.notify(l -> l.onNode(ctx, s.lastNode));
-        if (first.step() instanceof Step.Wait wait) {
-            int serial = ++s.stepSerial;
+        notify(l -> l.onStart(context));
+        lastNode = conversation.getCurrentNode();
+        if (lastNode != null) notify(l -> l.onNode(context, lastNode));
+        if (firstStep instanceof Step.Wait wait) {
+            int serial = ++stepSerial;
             long millis = Math.round(Math.min(30.0, wait.seconds()) * 1000.0);
             world.scheduleAfter(() -> {
-                if (s.ended || serial != s.stepSerial) return;
-                s.advance(s.conversation::next);
+                if (ended || serial != stepSerial) return;
+                advance(conversation::next);
             }, millis, java.util.concurrent.TimeUnit.MILLISECONDS);
         }
-        return s;
     }
+
+    public DialoguePage getPage() { return page; }
 
     @Override public PlayerRef getPlayer() { return player; }
     public Dialogue getDialogue() { return dialogue; }

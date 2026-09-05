@@ -20,6 +20,7 @@ Lines before the first node are directives, `key: value`, one per line.
 | `scope:` | Variable namespace shared with other files. Defaults to the file name. |
 | `portrait:` | An image shown beside the text, as a path inside `Common/UI/Custom/` of any loaded asset pack, e.g. `Portraits/elder.png` from your own pack. |
 | `include:` | Pull the nodes of another file into this one, e.g. `include: _shared`. See [Includes](#includes). Repeatable. |
+| `on:` | `on: join` opens this dialogue by itself when a player finishes loading into a world. It runs without an NPC, so `speaker:` names the voice. Gate repeats with a guarded `start:`, a once-block, or an early `<<end>>` (a dialogue that ends before saying anything never opens a window). |
 
 Comments start with `#` and run to the end of the line.
 
@@ -130,7 +131,7 @@ time. Any statements are allowed inside, not just lines.
 | `<<take Item_Id [count]>>` | Remove items. Fails the option if the player lacks them; guard with `has()`. |
 | `<<shop>>` | Open this NPC's native barter shop. |
 | `<<attitude friendly>>` | Set this NPC's attitude toward the player: ignore, hostile, neutral, friendly, revered. |
-| `<<objective Objective_Id>>` | Start a native objective for the player. |
+| `<<objective Objective_Id>>`, `<<objective cancel Id>>`, `<<objective line Line_Id>>`, `<<objective task Task_Id>>` | Start a native objective; abandon one; start an objective line (a chain of objectives); or advance a "talk to this NPC" task of an active objective, which plays the task's animation and may open the game's own completion dialog. |
 | `<<anim Id>>`, `<<anim Id Slot>>`, `<<sound Id>>` | Play an animation on the NPC (slot Emote by default; Status is what the game uses for its own greetings) or a sound at the NPC. |
 | `<<run "/command args">>` | Run a server command as the console. `{player}` is expanded. |
 | `<<input $var "Prompt">>` | Show a text box and store what the player types. |
@@ -145,6 +146,12 @@ time. Any statements are allowed inside, not just lines.
 | `<<stat Health +20>>`, `<<stat Stamina 50>>`, `<<stat Health max>>` | Add to, set, or max out any stat. |
 | `<<learn Recipe_Id>>` | Teach the player a crafting recipe. |
 | `<<teleport warp_name>>`, `<<teleport x y z>>` | Move the player. Ends the conversation. |
+| `<<weather Weather_Id>>`, `<<weather Weather_Id player>>`, `<<weather clear [player]>>` | Force a weather (an id from `Server/Weathers`, e.g. `Zone1_Cloudy_Medium`) for the whole world or for this player only; `clear` returns to the world's natural weather. Uses the game's weather system exactly as its own `/weather` command does. |
+| `<<time noon>>`, `<<time 19.5>>`, `<<time dusk 5>>`, `<<time pause>>`, `<<time resume>>` | Set the time of day by name (dawn, noon, dusk, midnight and their aliases) or hour; a second number fades there over that many seconds. Pause and resume the clock. |
+| `<<npc_name "Elder Mara">>`, `<<npc_name clear>>` | Rename this NPC (nameplate and display name, persisted with the NPC). |
+| `<<state Name [SubState]>>` | Put this NPC's role into one of the states defined in its role JSON. |
+| `<<despawn>>` | End the conversation and retire this NPC the way the game retires NPCs. |
+| `<<spawn Role_Id [right up forward]>>` | Spawn an NPC near the player, by default two blocks in front, facing them. Offsets are in blocks relative to where the player faces. |
 
 Plugins can register additional commands.
 
@@ -181,6 +188,9 @@ Used in `if`, `elseif`, option guards, `set`, and `start when`.
   - `count("Item_Id")` how many the player holds
   - `visited("node")` player has seen a node in this dialogue
   - `objective("Objective_Id")` returns `"none"`, `"active"`, or `"complete"`
+  - `objective_line("Line_Id")` true if the player can start that objective line now
+  - `weather()` the weather id this player currently sees
+  - `t("key")` a string from the server's language files in the player's language, so a dialogue can reuse the game's own translations or ship its own in `Server/Languages/<lang>/*.lang`
   - `attitude()` this NPC's attitude toward the player as a string
   - `perm("node.name")` player has a permission
   - `hour()` in-game hour, 0 to 23
@@ -221,6 +231,22 @@ Buying or selling?
 -> Neither.
     <<jump goodbye>>
 ```
+
+## Opening dialogues from the game's own systems
+
+LowTalk plugs into three official extension points, so map makers can start a
+dialogue without touching Java or `.talk` bindings:
+
+- **Trigger volumes.** Draw a volume with the in-game Trigger Volume Tool and
+  add an effect of type `LowTalkDialogue`; it appears in the tool's effect
+  list. JSON form: `{ "Type": "LowTalkDialogue", "Event": "Enter", "Dialogue": "cave_warning" }`.
+  The dialogue runs without an NPC.
+- **Interactions.** Any item, block or NPC role interaction can open a
+  dialogue through the stock `OpenCustomUI` interaction:
+  `{ "Type": "OpenCustomUI", "Page": { "Type": "LowTalk", "Dialogue": "elder_intro" } }`.
+  If the player is looking at an NPC it becomes the speaker.
+- **Choice pages.** A shop or other choice page can lead into a dialogue with
+  `"Interactions": [ { "Type": "LowTalkDialogue", "Dialogue": "haggle" } ]`.
 
 ## A complete example
 

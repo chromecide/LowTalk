@@ -60,6 +60,8 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
         this.effects = new EffectRegistry();
         BuiltinFunctions.register(functions);
         BuiltinEffects.register(effects, this);
+        com.chromecide.lowtalk.hytale.effects.WorldEffects.register(effects, this);
+        com.chromecide.lowtalk.hytale.effects.NpcEffects.register(effects, this);
         this.sessions = new SessionManager(this);
         this.registry = new DialogueRegistry(data.resolve(cfg.getDialoguesFolder()), getLogger(), effects.names(), functions.names());
 
@@ -74,8 +76,42 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
         this.getEntityStoreRegistry().registerSystem(new NpcGoneSystem(this));
         this.getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, e -> sessions.end(e.getPlayerRef().getUuid()));
         this.getCommandRegistry().registerCommand(new LowTalkCommand(this));
+        this.getEventRegistry().registerGlobal(com.hypixel.hytale.server.core.event.events.player.PlayerReadyEvent.class,
+                e -> com.chromecide.lowtalk.hytale.integrations.JoinTriggers.onPlayerReady(this, e));
+        registerGameHooks();
 
         getLogger().at(Level.INFO).log("LowTalk ready: %d dialogue(s) from %s", report.loaded(), registry.getFolder());
+    }
+
+    /**
+     * Plug LowTalk into the game's own extension points: a trigger-volume effect (shows up in the in-game Trigger
+     * Volume Tool), a page for the stock OpenCustomUI interaction, and a choice interaction for shop-style pages.
+     */
+    private void registerGameHooks() {
+        try {
+            com.hypixel.hytale.builtin.triggervolumes.TriggerVolumesPlugin.get().registerEffectType(
+                    com.chromecide.lowtalk.hytale.integrations.LowTalkTriggerEffect.TYPE_ID,
+                    com.chromecide.lowtalk.hytale.integrations.LowTalkTriggerEffect.class,
+                    com.chromecide.lowtalk.hytale.integrations.LowTalkTriggerEffect.CODEC);
+        } catch (RuntimeException e) {
+            getLogger().at(Level.WARNING).log("Could not register the LowTalkDialogue trigger effect: %s", e.toString());
+        }
+        try {
+            this.getCodecRegistry(com.hypixel.hytale.server.core.modules.interaction.interaction.config.server.OpenCustomUIInteraction.PAGE_CODEC)
+                    .register(com.chromecide.lowtalk.hytale.integrations.LowTalkPageSupplier.TYPE_ID,
+                            com.chromecide.lowtalk.hytale.integrations.LowTalkPageSupplier.class,
+                            com.chromecide.lowtalk.hytale.integrations.LowTalkPageSupplier.CODEC);
+        } catch (RuntimeException e) {
+            getLogger().at(Level.WARNING).log("Could not register the LowTalk page for OpenCustomUI interactions: %s", e.toString());
+        }
+        try {
+            com.hypixel.hytale.server.core.entity.entities.player.pages.choices.ChoiceInteraction.CODEC.register(
+                    com.chromecide.lowtalk.hytale.integrations.LowTalkChoiceInteraction.TYPE_ID,
+                    com.chromecide.lowtalk.hytale.integrations.LowTalkChoiceInteraction.class,
+                    com.chromecide.lowtalk.hytale.integrations.LowTalkChoiceInteraction.CODEC);
+        } catch (RuntimeException e) {
+            getLogger().at(Level.WARNING).log("Could not register the LowTalkDialogue choice interaction: %s", e.toString());
+        }
     }
 
     @Override

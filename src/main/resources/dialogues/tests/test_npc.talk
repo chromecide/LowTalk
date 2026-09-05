@@ -1,0 +1,30 @@
+# STATION 12: NPC control (rename, spawn, despawn) and objective extras (lines, cancel).
+npc: @test_npc
+title: Station 12 - NPC control and objectives
+speaker: Tester
+
+== start
+TEST 12: NPC control and objective extras. Objective_Gather is "{objective("Objective_Gather")}". Can you start ObjectiveLine_Test: {objective_line("ObjectiveLine_Test")}.
+-> Rename me to "Renamed Tester" (expect the nameplate above me to change, and to stay changed after a restart)
+    <<npc_name "Renamed Tester">>
+    <<jump start>>
+-> Give me my station name back
+    <<npc_name "12 - NPC control and objectives">>
+    <<jump start>>
+-> Spawn a Rootling Merchant two blocks to your right (expect a new NPC facing you; it may wander off)
+    <<spawn Kweebec_Merchant 2 0 0>>
+    <<jump start>>
+-> Start Objective_Gather, then cancel it (expect it to appear in your tracker and vanish again)
+    <<set $objective_runs = $objective_runs + 1>>
+    <<objective Objective_Gather>>
+    Started it. Press Continue to cancel it.
+    <<objective cancel Objective_Gather>>
+    <<jump start>>
+-> Start the objective line ObjectiveLine_Test (expect the line's first objective to appear in your tracker)
+    <<set $line_runs = $line_runs + 1>>
+    <<objective line ObjectiveLine_Test>>
+    <<jump start>>
+-> Despawn me (expect this window to close and the NPC to disappear; /lowtalk testworld respawn brings it back)
+    <<despawn>>
+-> Leave
+    <<end>>

@@ -116,11 +116,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
                 context.sendMessage(info(plugin, "No dialogue with id '" + id + "'. Try /lowtalk list."));
                 return;
             }
-            NpcInfo npc = lookedAtNpc(ref, store, player, plugin);
-            if (npc == null) {
-                npc = new NpcInfo(null, new java.util.UUID(0L, 0L), "none", d.speaker() != null ? d.speaker() : "Narrator", java.util.Set.of());
-            }
-            plugin.getSessions().open(d, player, ref, store, world, npc);
+            plugin.getSessions().openFor(d, player, ref, store, world, lookedAtNpc(ref, store, player, plugin));
         }
     }
 

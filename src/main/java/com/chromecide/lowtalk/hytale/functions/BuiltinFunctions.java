@@ -62,6 +62,9 @@ public final class BuiltinFunctions {
             return time == null ? 12.0 : (double) time.getGameDateTime().getHour();
         });
         functions.register("objective", (ctx, args) -> objectiveState(ctx, string(args, 0, "objective")));
+        functions.register("objective_line", (ctx, args) -> canStartLine(ctx, string(args, 0, "objective_line")));
+        functions.register("t", (ctx, args) -> translate(ctx, string(args, 0, "t")));
+        functions.register("weather", (ctx, args) -> currentWeather(ctx));
         functions.register("attitude", (ctx, args) -> currentAttitude(ctx));
 
         functions.register("reputation", (ctx, args) -> (double) reputation(ctx, args.isEmpty() ? null : Values.text(args.get(0))));
@@ -91,6 +94,57 @@ public final class BuiltinFunctions {
     }
 
     // ---- helpers shared with the effects
+
+    /** The player can start this objective line (it exists, is not active, and is not finished). */
+    public static boolean canStartLine(HytaleContext ctx, String lineId) {
+        ObjectivePlugin objectives = ObjectivePlugin.get();
+        if (objectives == null) return false;
+        Ref<EntityStore> ref = playerEntity(ctx);
+        Player player = ref.getStore().getComponent(ref, Player.getComponentType());
+        if (player == null) return false;
+        try {
+            return objectives.canPlayerDoObjectiveLine(player, lineId);
+        } catch (RuntimeException e) {
+            return false;
+        }
+    }
+
+    /**
+     * A translated string from the server's language files (Server/Languages/&lt;lang&gt;/*.lang in any asset pack),
+     * in the player's language with English as fallback. Keys are tried as given and with the "server." prefix
+     * that the game's server.lang file adds. Returns the key itself when nothing matches, so typos show up.
+     */
+    public static String translate(HytaleContext ctx, String key) {
+        com.hypixel.hytale.server.core.modules.i18n.I18nModule i18n = com.hypixel.hytale.server.core.modules.i18n.I18nModule.get();
+        if (i18n == null) return key;
+        String language = ctx.getPlayer().getLanguage();
+        for (String lang : new String[] {language, "en-US"}) {
+            if (lang == null) continue;
+            for (String k : new String[] {key, key.startsWith("server.") ? key.substring(7) : "server." + key}) {
+                try {
+                    String m = i18n.getMessage(lang, k);
+                    if (m != null && !m.isBlank()) return m;
+                } catch (RuntimeException ignored) {
+                    // fall through to the next candidate
+                }
+            }
+        }
+        return key;
+    }
+
+    /** The weather id this player currently sees ("" when unknown). */
+    public static String currentWeather(HytaleContext ctx) {
+        Ref<EntityStore> ref = playerEntity(ctx);
+        Store<EntityStore> store = ref.getStore();
+        com.hypixel.hytale.builtin.weather.components.WeatherTracker tracker =
+                store.getComponent(ref, com.hypixel.hytale.builtin.weather.components.WeatherTracker.getComponentType());
+        if (tracker == null) return "";
+        int index = tracker.getWeatherIndex();
+        if (index <= 0) return "";
+        com.hypixel.hytale.server.core.asset.type.weather.config.Weather w =
+                com.hypixel.hytale.server.core.asset.type.weather.config.Weather.getAssetMap().getAsset(index);
+        return w == null ? "" : w.getId();
+    }
 
     public static Ref<EntityStore> playerEntity(HytaleContext ctx) {
         Ref<EntityStore> ref = ctx.getPlayer().getReference();

@@ -33,7 +33,7 @@ public final class Validator {
             Map.entry("take", new int[] {1, 2}),
             Map.entry("shop", new int[] {0, 0}),
             Map.entry("attitude", new int[] {1, 1}),
-            Map.entry("objective", new int[] {1, 1}),
+            Map.entry("objective", new int[] {1, 2}),
             Map.entry("anim", new int[] {1, 2}),
             Map.entry("sound", new int[] {1, 1}),
             Map.entry("run", new int[] {1, 1}),
@@ -45,8 +45,15 @@ public final class Validator {
             Map.entry("stat", new int[] {1, 2}),
             Map.entry("heal", new int[] {0, 1}),
             Map.entry("learn", new int[] {1, 1}),
-            Map.entry("teleport", new int[] {1, 3})
+            Map.entry("teleport", new int[] {1, 3}),
+            Map.entry("weather", new int[] {1, 2}),
+            Map.entry("time", new int[] {1, 2}),
+            Map.entry("npc_name", new int[] {1, 1}),
+            Map.entry("state", new int[] {1, 2}),
+            Map.entry("despawn", new int[] {0, 0}),
+            Map.entry("spawn", new int[] {1, 4})
     );
+    public static final Set<String> OBJECTIVE_VERBS = Set.of("start", "cancel", "line", "task");
 
     /** The dialogue window has this many option slots. */
     public static final int MAX_OPTIONS = 8;
@@ -56,7 +63,7 @@ public final class Validator {
     public static final Set<String> REWARD_COMMANDS = Set.of("give", "reputation", "learn", "objective", "run");
 
     public static final Set<String> BUILTIN_FUNCTIONS = Set.of(
-            "player", "npc", "has", "count", "visited", "objective", "attitude", "perm", "hour", "random", "chance", "ordinal", "plural", "reputation", "rank", "stat", "max_stat", "effect", "knows"
+            "player", "npc", "has", "count", "visited", "objective", "attitude", "perm", "hour", "random", "chance", "ordinal", "plural", "reputation", "rank", "stat", "max_stat", "effect", "knows", "objective_line", "t", "weather"
     );
 
     private final Set<String> extraCommands;
@@ -282,6 +289,10 @@ public final class Validator {
                 case Statement.Command c -> {
                     if (REWARD_COMMANDS.contains(c.name())) {
                         if (c.name().equals("reputation") && !c.args().isEmpty() && c.args().get(0).debugString().startsWith("-")) continue;
+                        if (c.name().equals("objective") && c.args().size() == 2) {
+                            String verb = c.args().get(0).debugString().toLowerCase(java.util.Locale.ROOT);
+                            if (verb.equals("cancel") || verb.equals("task")) continue; // taking away, or progressing, not handing out
+                        }
                         return c.name();
                     }
                 }
@@ -355,6 +366,25 @@ public final class Validator {
                     Text c = cmd.args().get(1);
                     if (c.isStatic() && !c.debugString().matches("\\d+")) {
                         out.add(new Problem(cmd.pos(), true, "<<" + cmd.name() + ">> count must be a whole number, got '" + c.debugString() + "'"));
+                    }
+                }
+            }
+            case "objective" -> {
+                if (n == 2) {
+                    Text v = cmd.args().get(0);
+                    if (v.isStatic() && !OBJECTIVE_VERBS.contains(v.debugString().toLowerCase(java.util.Locale.ROOT))) {
+                        out.add(new Problem(cmd.pos(), true, "<<objective>> verb must be one of " + OBJECTIVE_VERBS + ", got '" + v.debugString() + "'"));
+                    }
+                }
+            }
+            case "time" -> {
+                Text v = cmd.args().get(0);
+                if (v.isStatic()) {
+                    String w = v.debugString().toLowerCase(java.util.Locale.ROOT);
+                    boolean named = Set.of("dawn", "day", "morning", "noon", "midday", "dusk", "night", "evening", "midnight", "pause", "stop", "resume", "start", "unpause").contains(w);
+                    boolean hour = w.matches("\\d+(\\.\\d+)?");
+                    if (!named && !hour) {
+                        out.add(new Problem(cmd.pos(), true, "<<time>> expects dawn, noon, dusk, midnight, an hour 0-24, pause or resume; got '" + w + "'"));
                     }
                 }
             }

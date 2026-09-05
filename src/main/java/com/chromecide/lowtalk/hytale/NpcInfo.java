@@ -20,6 +20,14 @@ import java.util.UUID;
 
 /** What LowTalk needs to know about an NPC entity: identity, role, display name, and tags. */
 public record NpcInfo(Ref<EntityStore> ref, UUID id, String role, String name, Set<String> tags) {
+    /** The zero UUID marks a conversation with no NPC (triggers, joins, /lowtalk open with nothing in view). */
+    public static final UUID NONE = new UUID(0L, 0L);
+
+    /** Stand-in for dialogues that run without an NPC; the dialogue's speaker: names the voice. */
+    public static NpcInfo narrator(com.chromecide.lowtalk.model.Dialogue d) {
+        return new NpcInfo(null, NONE, "none", d.speaker() != null ? d.speaker() : "Narrator", Set.of());
+    }
+
 
     /** Resolve an entity; null if it is not an NPC. World thread only. */
     @Nullable

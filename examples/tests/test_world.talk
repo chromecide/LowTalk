@@ -1,0 +1,32 @@
+# STATION 11: world control through the game's own systems: <<weather>>, <<time>>, and t() translations.
+npc: @test_world
+title: Station 11 - Weather, time, translation
+speaker: Tester
+
+== start
+TEST 11: World. In-game hour: {hour()}. The weather you see: "{weather()}". Translated line: "{t("lowtalk.test.hello")}" (expect: Hello from the language file).
+-> Cloudy weather for me only (expect the sky to change within a couple of seconds; other players are unaffected)
+    <<weather Zone1_Cloudy_Medium player>>
+    <<jump start>>
+-> Clear my personal weather (expect the sky to go back to normal)
+    <<weather clear player>>
+    <<jump start>>
+-> Force a storm on the whole world (expect stormy weather for everyone here)
+    <<weather Skylands_Rapid_Marsh_Stormy>>
+    <<jump start>>
+-> Clear the world weather
+    <<weather clear>>
+    <<jump start>>
+-> Jump to midnight (expect instant darkness; the hour above reads 0 on the next menu)
+    <<time midnight>>
+    <<jump start>>
+-> Fade to noon over 5 seconds (expect a smooth sunrise)
+    <<time noon 5>>
+    <<jump start>>
+-> Pause time, then resume (expect the sun to stop; it moves again after Continue)
+    <<time pause>>
+    Time is paused. Press Continue to resume it.
+    <<time resume>>
+    <<jump start>>
+-> Leave
+    <<end>>

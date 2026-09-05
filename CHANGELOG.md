@@ -21,6 +21,13 @@ First working version.
 - Format extras: `[a|b|c]` text variation, `<<random>>`/`<<or>>`/`<<endrandom>>`
   blocks, self-hiding `<<once>>` options, `cond ? a : b` expressions,
   `<<wait seconds>>` pauses, and `include:` of shared `_name.talk` files.
+- World and NPC control through the game's own systems: `weather`, `time`,
+  `npc_name`, `state`, `despawn`, `spawn`; objective lines, cancel and task
+  completion; `t()` translations, `weather()`, `objective_line()`.
+- Hooks into official extension points: a `LowTalkDialogue` trigger-volume
+  effect, a `LowTalk` page for `OpenCustomUI` interactions, a `LowTalkDialogue`
+  choice interaction, and `on: join` dialogues.
+- Conversations end cleanly when their NPC is removed.
 - Creator/admin permission split (`lowtalk.creator`, `lowtalk.admin`); runtime
   backstop against player text reaching `<<run>>`; validator warns about
   farmable reward options.

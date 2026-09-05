@@ -79,7 +79,7 @@ public class DialogueRegistry {
 
     private static final String[] TEST_DIALOGUES = {
             "test_basics.talk", "test_memory.talk", "test_input.talk", "test_items.talk", "test_feedback.talk",
-            "test_body.talk", "test_progress.talk", "test_travel.talk", "test_random.talk", "test_format.talk", "_shared.talk"
+            "test_body.talk", "test_progress.talk", "test_travel.talk", "test_random.talk", "test_format.talk", "_shared.talk", "test_world.talk", "test_npc.talk"
     };
 
     /** Copy the test-corridor dialogues into dialogues/tests/, overwriting, so they match this build. */
@@ -206,6 +206,11 @@ public class DialogueRegistry {
     }
 
     @Nullable
+    /** Every loaded dialogue, in load order. */
+    public List<Dialogue> all() {
+        return new ArrayList<>(byId.values());
+    }
+
     public Dialogue byId(String id) {
         return byId.get(id);
     }

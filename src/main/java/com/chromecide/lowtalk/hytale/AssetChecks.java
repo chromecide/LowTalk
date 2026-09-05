@@ -41,6 +41,7 @@ public final class AssetChecks {
                 }
                 case Statement.Conditional c -> c.branches().forEach(b -> walk(b.body(), d, out));
                 case Statement.Once o -> walk(o.body(), d, out);
+                case Statement.Random r -> r.alternatives().forEach(a -> walk(a, d, out));
                 default -> {}
             }
         }
@@ -57,7 +58,39 @@ public final class AssetChecks {
                 case "give", "take" -> {
                     if (Item.getAssetMap().getAsset(id) == null) out.add(where + "no item called '" + id + "'");
                 }
+                case "weather" -> {
+                    if (!id.equalsIgnoreCase("clear") && !id.equalsIgnoreCase("reset") && !id.equalsIgnoreCase("none")) {
+                        int idx = com.hypixel.hytale.server.core.asset.type.weather.config.Weather.getAssetMap().getIndex(id);
+                        if (idx == Integer.MIN_VALUE || idx == 0) out.add(where + "no weather called '" + id + "'");
+                    }
+                }
+                case "spawn" -> {
+                    try {
+                        if (!com.hypixel.hytale.server.npc.NPCPlugin.get().getRoleTemplateNames(false).contains(id)) {
+                            out.add(where + "no NPC role called '" + id + "'");
+                        }
+                    } catch (RuntimeException ignored) {
+                        // role names not available yet
+                    }
+                }
                 case "objective" -> {
+                    if (c.args().size() == 2) {
+                        Text second = c.args().get(1);
+                        if (!second.isStatic()) return;
+                        String target = second.debugString();
+                        switch (id.toLowerCase(java.util.Locale.ROOT)) {
+                            case "line" -> {
+                                if (com.hypixel.hytale.builtin.adventure.objectives.config.ObjectiveLineAsset.getAssetMap().getAsset(target) == null) {
+                                    out.add(where + "no objective line called '" + target + "'");
+                                }
+                            }
+                            case "start", "cancel" -> {
+                                if (ObjectiveAsset.getAssetMap().getAsset(target) == null) out.add(where + "no objective called '" + target + "'");
+                            }
+                            default -> {}
+                        }
+                        return;
+                    }
                     if (ObjectiveAsset.getAssetMap().getAsset(id) == null) out.add(where + "no objective called '" + id + "'");
                 }
                 case "sound" -> {

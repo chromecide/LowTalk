@@ -50,10 +50,18 @@ conversation. Each one remembers each player separately.
 - Memory: per-NPC variables (`$met`), per-player variables that follow the
   player between NPCs (`$player.stage`), per-NPC counters shared by everyone
   (`$npc.visitors`), and world state (`$world.season`).
-- Native hooks: `give`, `take`, `shop`, `objective`, `attitude`, `anim`,
-  `sound`, `run`; checks like `has()`, `count()`, `objective()`,
-  `attitude()`, `hour()`, `visited()`, `chance()`.
-- Binding by NPC role, or by tagging one specific NPC in game.
+- Native hooks: `give`, `take`, `shop`, `objective` (start, cancel, lines,
+  tasks), `reputation`, `attitude`, `anim`, `sound`, `notify`, `title`,
+  `effect`, `heal`, `stat`, `learn`, `teleport`, `weather`, `time`,
+  `npc_name`, `state`, `spawn`, `despawn`, `run`; checks like `has()`,
+  `count()`, `objective()`, `reputation()`, `rank()`, `stat()`, `hour()`,
+  `weather()`, `visited()`, `chance()`, and `t()` for the game's translations.
+- Writers' tools: `[a|b]` text variation, `<<random>>` blocks, self-hiding
+  `<<once>>` options, `cond ? a : b`, `<<wait>>` pauses, `include:` of
+  shared files.
+- Binding by NPC role, or by tagging one specific NPC in game; dialogues can
+  also start from the in-game Trigger Volume Tool, from any `OpenCustomUI`
+  interaction, from shop-style choice pages, or when a player joins.
 - A validator with file and line numbers, usable in game and from the shell.
 - An API for other plugins: add functions and commands, listen to
   conversations, open dialogues.

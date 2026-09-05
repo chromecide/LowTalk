@@ -43,6 +43,31 @@ public class SessionManager {
         return s;
     }
 
+    /** Open with an optional NPC; null means a narrator conversation. World thread only. */
+    @Nullable
+    public DialogueSession openFor(@Nonnull Dialogue dialogue, @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity,
+                                   @Nonnull Store<EntityStore> store, @Nonnull World world, @Nullable NpcInfo npc) {
+        return open(dialogue, player, playerEntity, store, world, npc == null ? NpcInfo.narrator(dialogue) : npc);
+    }
+
+    /**
+     * Build a session whose page the caller will open (the game's OpenCustomUI interaction does this). The session is
+     * registered and started as if open; the page is returned through {@link DialogueSession#getPage()}.
+     */
+    @Nullable
+    public DialogueSession prepareFor(@Nonnull Dialogue dialogue, @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity,
+                                      @Nonnull Store<EntityStore> store, @Nonnull World world, @Nullable NpcInfo npc) {
+        if (npc == null) npc = NpcInfo.narrator(dialogue);
+        DialogueSession existing = sessions.remove(player.getUuid());
+        if (existing != null) existing.end();
+        DialogueSession s = DialogueSession.prepare(plugin, plugin.getFunctions(), dialogue, player, playerEntity, store, world, npc.id(), npc.name());
+        if (s != null) {
+            sessions.put(player.getUuid(), s);
+            s.afterOpen();
+        }
+        return s;
+    }
+
     public void removeEnded(DialogueSession s) {
         sessions.remove(s.getPlayer().getUuid(), s);
     }

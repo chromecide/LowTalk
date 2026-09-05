@@ -136,21 +136,68 @@ public final class BuiltinEffects {
             return null;
         });
 
+        // <<objective Id>> (start), <<objective start Id>>, <<objective cancel Id>>, <<objective line LineId>>,
+        // <<objective task TaskId>> (advance a "talk to this NPC" task of an active objective)
         effects.register("objective", (session, effect) -> {
+            String verb = "start";
             String objectiveId = effect.args().get(0);
+            if (effect.args().size() > 1) {
+                verb = effect.args().get(0).trim().toLowerCase(Locale.ROOT);
+                objectiveId = effect.args().get(1);
+            }
             ObjectivePlugin objectives = ObjectivePlugin.get();
             if (objectives == null) throw new RuntimeError(effect.pos(), "the objectives plugin is not loaded");
             Ref<EntityStore> ref = BuiltinFunctions.playerEntity(session.getContext());
             Store<EntityStore> store = ref.getStore();
             Player player = store.getComponent(ref, Player.getComponentType());
             if (player == null) return null;
-            if (!objectives.canPlayerDoObjective(player, objectiveId)) {
-                return null; // already on it
+            java.util.UUID worldId = session.getWorld().getWorldConfig().getUuid();
+            switch (verb) {
+                case "start" -> {
+                    if (!objectives.canPlayerDoObjective(player, objectiveId)) return null; // already on it, or done
+                    if (objectives.startObjective(objectiveId, Set.of(session.getPlayer().getUuid()), worldId, null, store) == null) {
+                        throw new RuntimeError(effect.pos(), "could not start objective " + objectiveId + " (does it exist?)");
+                    }
+                    return "New objective.";
+                }
+                case "line" -> {
+                    if (!objectives.canPlayerDoObjectiveLine(player, objectiveId)) return null;
+                    if (objectives.startObjectiveLine(store, objectiveId, Set.of(session.getPlayer().getUuid()), worldId, null) == null) {
+                        throw new RuntimeError(effect.pos(), "could not start objective line " + objectiveId + " (does it exist?)");
+                    }
+                    return "New objective.";
+                }
+                case "cancel" -> {
+                    Set<java.util.UUID> active = player.getPlayerConfigData().getActiveObjectiveUUIDs();
+                    if (active == null || objectives.getObjectiveDataStore() == null) return null;
+                    for (java.util.UUID id : new java.util.ArrayList<>(active)) {
+                        com.hypixel.hytale.builtin.adventure.objectives.Objective o = objectives.getObjectiveDataStore().getObjective(id);
+                        if (o != null && objectiveId.equals(o.getObjectiveId())) {
+                            objectives.cancelObjective(id, store);
+                            return "Objective abandoned.";
+                        }
+                    }
+                    return null;
+                }
+                case "task" -> {
+                    if (session.getNpcId().getMostSignificantBits() == 0L) {
+                        throw new RuntimeError(effect.pos(), "<<objective task>> needs an NPC (this dialogue has none)");
+                    }
+                    String anim = com.hypixel.hytale.builtin.adventure.npcobjectives.NPCObjectivesPlugin
+                            .updateTaskCompletion(store, ref, session.getPlayer(), session.getNpcId(), objectiveId);
+                    Ref<EntityStore> npcRef = npcRef(session, store);
+                    if (anim != null && npcRef != null) {
+                        NPCEntity npc = store.getComponent(npcRef, NPCEntity.getComponentType());
+                        if (npc != null) npc.playAnimation(npcRef, AnimationSlot.Emote, anim, true, store);
+                    }
+                    // Completing the task may open the game's own dialog box; if it did, our window is gone.
+                    if (player.getPageManager().getCustomPage() != null && player.getPageManager().getCustomPage() != ((com.chromecide.lowtalk.hytale.DialogueSession) session).getPage()) {
+                        session.detach();
+                    }
+                    return null;
+                }
+                default -> throw new RuntimeError(effect.pos(), "<<objective>> expects start, cancel, line or task, got " + verb);
             }
-            if (objectives.startObjective(objectiveId, Set.of(session.getPlayer().getUuid()), session.getWorld().getWorldConfig().getUuid(), null, store) == null) {
-                throw new RuntimeError(effect.pos(), "could not start objective " + objectiveId + " (does it exist?)");
-            }
-            return "New objective.";
         });
 
 
@@ -357,7 +404,7 @@ public final class BuiltinEffects {
     }
 
     @Nullable
-    private static Ref<EntityStore> npcRef(EffectHost session, Store<EntityStore> store) {
+    static Ref<EntityStore> npcRef(EffectHost session, Store<EntityStore> store) {
         Ref<EntityStore> ref = store.getExternalData().getRefFromUUID(session.getNpcId());
         return ref != null && ref.isValid() ? ref : null;
     }
