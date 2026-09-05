@@ -68,6 +68,19 @@ public class SessionManager {
         return false;
     }
 
+    /** End every conversation with this NPC (it was removed or despawned). World thread of the NPC. */
+    public int endTalkingTo(UUID npcId) {
+        int n = 0;
+        for (DialogueSession s : new ArrayList<>(sessions.values())) {
+            if (!s.isEnded() && s.getNpcId().equals(npcId)) {
+                sessions.remove(s.getPlayer().getUuid(), s);
+                s.end();
+                n++;
+            }
+        }
+        return n;
+    }
+
     public int count() {
         return sessions.size();
     }

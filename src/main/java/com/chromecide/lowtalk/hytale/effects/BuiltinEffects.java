@@ -36,6 +36,7 @@ import com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent;
 import com.hypixel.hytale.server.core.command.system.CommandManager;
 import com.hypixel.hytale.server.core.console.ConsoleSender;
 import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.transaction.ItemStackTransaction;
 import com.hypixel.hytale.server.core.modules.entity.tracker.NetworkId;
@@ -91,7 +92,7 @@ public final class BuiltinEffects {
             Store<EntityStore> store = ref.getStore();
             Player player = store.getComponent(ref, Player.getComponentType());
             if (player == null) return null;
-            ItemStackTransaction tx = player.getInventory().getCombinedHotbarFirst().removeItemStack(new ItemStack(itemId, count), true, false);
+            ItemStackTransaction tx = InventoryComponent.getCombined(store, ref, InventoryComponent.HOTBAR_FIRST).removeItemStack(new ItemStack(itemId, count), true, false);
             if (!tx.succeeded()) {
                 plugin.getLogger().at(Level.INFO).log("<<take %s %d>> failed for %s: not enough in inventory", itemId, count, session.getPlayer().getUsername());
                 return "You don't have " + count + " " + prettyItem(itemId) + ".";

@@ -19,6 +19,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.asset.type.attitude.Attitude;
 import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.inventory.container.ItemContainer;
 import com.hypixel.hytale.server.core.modules.time.WorldTimeResource;
@@ -106,7 +107,7 @@ public final class BuiltinFunctions {
         Store<EntityStore> store = ref.getStore();
         Player player = store.getComponent(ref, Player.getComponentType());
         if (player == null) return 0;
-        ItemContainer container = player.getInventory().getCombinedHotbarFirst();
+        ItemContainer container = InventoryComponent.getCombined(store, ref, InventoryComponent.HOTBAR_FIRST);
         int[] total = {0};
         container.forEach((slot, stack) -> {
             if (stack != null && itemId.equals(stack.getItemId())) {

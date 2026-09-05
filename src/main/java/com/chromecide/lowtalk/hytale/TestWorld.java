@@ -13,6 +13,7 @@ import com.hypixel.hytale.builtin.adventure.reputation.assets.ReputationGroup;
 import com.hypixel.hytale.server.core.entity.Frozen;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
+import com.hypixel.hytale.server.core.inventory.InventoryComponent;
 import com.hypixel.hytale.server.core.inventory.ItemStack;
 import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
 import com.hypixel.hytale.server.core.modules.entitystats.asset.EntityStatType;
@@ -207,7 +208,7 @@ public final class TestWorld {
         }
 
         for (String item : TEST_ITEMS) {
-            var tx = player.getInventory().getCombinedHotbarFirst().removeItemStack(new ItemStack(item, 999), false, false);
+            var tx = InventoryComponent.getCombined(store, ref, InventoryComponent.HOTBAR_FIRST).removeItemStack(new ItemStack(item, 999), false, false);
             if (tx.succeeded()) done.add(item + " removed");
         }
 
