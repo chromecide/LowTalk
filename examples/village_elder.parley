@@ -1,0 +1,47 @@
+# A unique character. Tag one NPC in game with:  /parley tag elder
+
+npc: @elder
+title: Elder Rootbark
+speaker: Elder
+
+start: after_quest when objective("Objective_Gather") == "complete" and not $rewarded
+start: during_quest when objective("Objective_Gather") == "active"
+start: greeting
+
+== greeting
+<<once>>
+  Elder: You are new to the grove. Sit. There is much to tell, and my roots are tired.
+<<endif>>
+Elder: The Scarak grow bold this season. We need hands, not words.
+-> I can help. What do you need?
+    <<jump offer>>
+-> Who are the Scarak?
+    Elder: Chitin and hunger, mostly. They come from the deep tunnels when the moon is thin.
+-> Not today, Elder.
+    Elder: Then go carefully.
+    <<end>>
+
+== offer
+Elder: Gather ten fibres from the tall grass beyond the pond. Bring them here and I'll see you rewarded.
+-> I'll do it.
+    <<objective Objective_Gather>>
+    <<set $npc.helpers = $npc.helpers + 1>>
+    Elder: Good. You are the {$npc.helpers}th to say so. Let's see if you're the first to return.
+    <<end>>
+-> What's in it for me?
+    Elder: My gratitude, and a bar of good copper.
+    <<jump offer>>
+
+== during_quest
+Elder: The grass is beyond the pond, {player}. Not here.
+<<end>>
+
+== after_quest
+Elder: You returned. Few do.
+<<give Ingredient_Bar_Copper 1>>
+<<set $rewarded = true>>
+<<attitude revered>>
+<<anim Wave>>
+Elder: The grove remembers its friends.
+-> It was nothing.
+    <<end>>
