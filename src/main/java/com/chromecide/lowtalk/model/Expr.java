@@ -15,4 +15,6 @@ public sealed interface Expr {
     record Binary(String op, Expr left, Expr right) implements Expr {}
 
     record Call(String function, List<Expr> args) implements Expr {}
+    /** cond ? ifTrue : ifFalse */
+    record Ternary(Expr cond, Expr ifTrue, Expr ifFalse) implements Expr {}
 }

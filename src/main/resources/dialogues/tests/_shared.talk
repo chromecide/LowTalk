@@ -1,0 +1,6 @@
+# Shared nodes pulled into other files with "include: _shared".
+# Files whose name starts with _ are never loaded as dialogues on their own.
+
+== shared_goodbye
+Shared File: Farewell from the included file. Expected: this line comes from _shared.talk, and Leave closes the window.
+<<end>>

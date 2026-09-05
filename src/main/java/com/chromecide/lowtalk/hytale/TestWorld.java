@@ -67,11 +67,12 @@ public final class TestWorld {
             new Station(58, TESTER, "test_body", "6 - Body: heal, effects, stats"),
             new Station(68, TESTER, "test_progress", "7 - Objectives and reputation"),
             new Station(78, "Kweebec_Merchant", "test_travel", "8 - Shop and teleport"),
-            new Station(88, TESTER, "test_random", "9 - Random, chance, ordinal, time")
+            new Station(88, TESTER, "test_random", "9 - Random, chance, ordinal, time"),
+            new Station(98, TESTER, "test_format", "10 - Format extras")
     );
 
     private static final int CORRIDOR_START = -4;
-    private static final int CORRIDOR_END = 94;
+    private static final int CORRIDOR_END = 104;
     private static final int HALF_WIDTH = 2;       // floor spans z = -2 .. 2
     private static final int FLOOR_Y = 0;          // the flat world's single layer is y = 0
     private static final int WALL_HEIGHT = 3;
@@ -86,10 +87,13 @@ public final class TestWorld {
     public static void build(@Nonnull LowTalkPlugin plugin, @Nonnull Consumer<String> out) {
         withWorld(plugin, out, world -> world.execute(() -> {
             Store<EntityStore> store = world.getEntityStore().getStore();
-            if (Boolean.TRUE.equals(plugin.getStore().get(plugin.getStore().world(), WORLD_NAME, "built"))) {
+            boolean built = Boolean.TRUE.equals(plugin.getStore().get(plugin.getStore().world(), WORLD_NAME, "built"));
+            Object storedEnd = plugin.getStore().get(plugin.getStore().world(), WORLD_NAME, "end");
+            if (built && storedEnd instanceof Number n && n.intValue() == CORRIDOR_END) {
                 out.accept("The test corridor is already built. Use /lowtalk testworld go.");
                 return;
             }
+            if (built) out.accept("The corridor has grown since it was built; extending it and respawning the stations.");
             world.getWorldConfig().setSpawningNPC(false);
             world.getWorldConfig().markChanged();
             WorldTimeResource time = store.getResource(WorldTimeResource.getResourceType());
@@ -108,8 +112,10 @@ public final class TestWorld {
                 try {
                     int placed = placeBlocks(world);
                     out.accept("Placed " + placed + " blocks.");
+                    for (Ref<EntityStore> ref : corridorNpcs(store)) store.removeEntity(ref, RemoveReason.REMOVE);
                     int spawned = spawnStations(plugin, world, store, out);
                     plugin.getStore().set(plugin.getStore().world(), WORLD_NAME, "built", true);
+                    plugin.getStore().set(plugin.getStore().world(), WORLD_NAME, "end", (double) CORRIDOR_END);
                     plugin.getStore().flush();
                     out.accept("Test corridor ready with " + spawned + " station NPC(s). Run /lowtalk reload, then /lowtalk testworld go.");
                 } catch (RuntimeException e) {

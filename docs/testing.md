@@ -58,6 +58,7 @@ Walk east. Stations, in order:
 | 7 | Progress | `objective` start and `objective()` state, `reputation` and `rank()`. The base game defines no reputation groups or ranks, so LowTalk ships a `LowTalk_Testers` group (only the `LowTalk_Tester` role) and three ranks, `LowTalk_Disliked` (below 0), `LowTalk_Neutral` (0-19) and `LowTalk_Liked` (20+), under `Server/NPC/Reputation/`. Ranks are global in Hytale, so remove these files if your server defines its own ranks. |
 | 8 | Shop and travel | `<<shop>>` hand-off on a real merchant, `<<teleport>>` |
 | 9 | Random and time | `chance()`, `random()`, `ordinal()`, `hour()`, `$npc.` counters |
+| 10 | Format extras | `[a|b]` text variation, `<<random>>` blocks, `<<once>>` options, `? :` in text, `<<wait>>`, `include:` of `_shared.talk` |
 
 The station dialogues live in `examples/tests/` and are copied to
 `dialogues/tests/` by the build command, overwriting, so they always match the

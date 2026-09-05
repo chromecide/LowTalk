@@ -79,7 +79,7 @@ public class DialogueRegistry {
 
     private static final String[] TEST_DIALOGUES = {
             "test_basics.talk", "test_memory.talk", "test_input.talk", "test_items.talk", "test_feedback.talk",
-            "test_body.talk", "test_progress.talk", "test_travel.talk", "test_random.talk"
+            "test_body.talk", "test_progress.talk", "test_travel.talk", "test_random.talk", "test_format.talk", "_shared.talk"
     };
 
     /** Copy the test-corridor dialogues into dialogues/tests/, overwriting, so they match this build. */
@@ -134,11 +134,21 @@ public class DialogueRegistry {
             errors++;
         }
 
+        DialogueParser.IncludeResolver resolver = path -> {
+            try {
+                Path p = folder.resolve(path).normalize();
+                if (!p.startsWith(folder.normalize()) || !Files.isRegularFile(p)) return null;
+                return Files.readString(p, StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                return null;
+            }
+        };
         for (Path p : paths) {
+            if (p.getFileName().toString().startsWith("_")) continue; // shared nodes, only used through include:
             files++;
             String rel = folder.relativize(p).toString();
             try {
-                Dialogue d = DialogueParser.parse(rel, Files.readString(p, StandardCharsets.UTF_8));
+                Dialogue d = DialogueParser.parse(rel, Files.readString(p, StandardCharsets.UTF_8), resolver);
                 List<Validator.Problem> problems = validator.validate(d);
                 boolean bad = false;
                 for (Validator.Problem pr : problems) {

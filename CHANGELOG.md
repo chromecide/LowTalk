@@ -18,6 +18,12 @@ First working version.
 - `/lowtalk reload | list | open | tag | untag | tags | vars | reset | stop`.
 - Validator with line-numbered errors, also runnable from the command line;
   flags unreachable nodes and unset variables; reload checks asset ids.
+- Format extras: `[a|b|c]` text variation, `<<random>>`/`<<or>>`/`<<endrandom>>`
+  blocks, self-hiding `<<once>>` options, `cond ? a : b` expressions,
+  `<<wait seconds>>` pauses, and `include:` of shared `_name.talk` files.
+- Test corridor (`/lowtalk testworld`) with ten labelled stations; `respawn`
+  resets the player's test state. Ships a `LowTalk_Testers` reputation group
+  and three `LowTalk_*` ranks for testing, since the base game defines none.
 - `/lowtalk test` plays a dialogue headlessly with scripted choices.
 - Layout files are checked in the test suite against Hytale's own UI vocabulary.
 - NPCs stand still and face the player during a conversation.

@@ -11,6 +11,7 @@ import java.util.Set;
  * Recursive descent parser for the expression language.
  *
  * <pre>
+ *   ternary := or ( "?" ternary ":" ternary )?
  *   or      := and ( "or" and )*
  *   and     := not ( "and" not )*
  *   not     := "not" not | compare
@@ -39,7 +40,7 @@ public final class ExprParser {
 
     public static Expr parse(String source, Pos pos) {
         ExprParser p = new ExprParser(Lexer.tokenize(source, pos), pos);
-        Expr e = p.parseOr();
+        Expr e = p.parseTernary();
         if (!p.atEnd()) {
             throw new ParseException(pos, "unexpected '" + p.peek().text() + "' in expression: " + source);
         }
@@ -53,6 +54,18 @@ public final class ExprParser {
             return v;
         }
         throw new ParseException(pos, "expected a variable like $name, got: " + source);
+    }
+
+    private Expr parseTernary() {
+        Expr cond = parseOr();
+        if (peekOp("?")) {
+            next();
+            Expr a = parseTernary();
+            expectOp(":");
+            Expr b = parseTernary();
+            return new Expr.Ternary(cond, a, b);
+        }
+        return cond;
     }
 
     private Expr parseOr() {
@@ -139,10 +152,10 @@ public final class ExprParser {
                     next();
                     List<Expr> args = new ArrayList<>();
                     if (!peekOp(")")) {
-                        args.add(parseOr());
+                        args.add(parseTernary());
                         while (peekOp(",")) {
                             next();
-                            args.add(parseOr());
+                            args.add(parseTernary());
                         }
                     }
                     expectOp(")");
@@ -152,7 +165,7 @@ public final class ExprParser {
             }
             case OP -> {
                 if (t.text().equals("(")) {
-                    Expr inner = parseOr();
+                    Expr inner = parseTernary();
                     expectOp(")");
                     return inner;
                 }

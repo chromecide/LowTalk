@@ -117,6 +117,7 @@ public final class Validator {
                 case Statement.Choice c -> c.options().forEach(o -> collectJumps(o.body(), out));
                 case Statement.Conditional c -> c.branches().forEach(b -> collectJumps(b.body(), out));
                 case Statement.Once o -> collectJumps(o.body(), out);
+                case Statement.Random r -> r.alternatives().forEach(a -> collectJumps(a, out));
                 default -> {}
             }
         }
@@ -168,6 +169,10 @@ public final class Validator {
                     }
                 }
                 case Statement.Once o -> scanVars(o.body(), written, read);
+                case Statement.Random r -> r.alternatives().forEach(a -> scanVars(a, written, read));
+                case Statement.Wait w -> {
+                    for (Expr.Var v : vars(w.seconds())) read.putIfAbsent(key(v), w.pos());
+                }
                 case Statement.Jump j -> {}
                 case Statement.End e -> {}
             }
@@ -177,6 +182,7 @@ public final class Validator {
     private static void textVars(Text t, Pos pos, Map<String, Pos> read) {
         for (Text.Part p : t.parts()) {
             if (p instanceof Text.Part.Interp in) for (Expr.Var v : vars(in.expr())) read.putIfAbsent(key(v), pos);
+            else if (p instanceof Text.Part.Pick pk) pk.choices().forEach(c -> textVars(c, pos, read));
         }
     }
 
@@ -187,6 +193,7 @@ public final class Validator {
                 case Statement.Choice c -> c.options().forEach(o -> collectInputVars(o.body(), out));
                 case Statement.Conditional c -> c.branches().forEach(b -> collectInputVars(b.body(), out));
                 case Statement.Once o -> collectInputVars(o.body(), out);
+                case Statement.Random r -> r.alternatives().forEach(a -> collectInputVars(a, out));
                 default -> {}
             }
         }
@@ -219,6 +226,18 @@ public final class Validator {
                     }
                 }
                 case Statement.Once o -> checkBlock(o.body(), d, inputVars, out, inOption);
+                case Statement.Random r -> {
+                    if (r.alternatives().size() < 2) {
+                        out.add(new Problem(r.pos(), false, "<<random>> has only one alternative; separate alternatives with <<or>>"));
+                    }
+                    for (List<Statement> a : r.alternatives()) checkBlock(a, d, inputVars, out, inOption);
+                }
+                case Statement.Wait w -> {
+                    checkExpr(w.seconds(), w.pos(), out);
+                    if (w.seconds() instanceof Expr.Literal lit && lit.value() instanceof Double dd && (dd < 0 || dd > 30)) {
+                        out.add(new Problem(w.pos(), false, "<<wait>> of " + plainNumber(dd) + " seconds is outside 0 to 30"));
+                    }
+                }
                 case Statement.Set set -> {
                     checkExpr(set.value(), set.pos(), out);
                     if (set.target().scope().equals("tmp") && false) { /* reserved */ }
@@ -296,7 +315,11 @@ public final class Validator {
     private void checkText(Text t, Pos pos, List<Problem> out) {
         for (Text.Part p : t.parts()) {
             if (p instanceof Text.Part.Interp in) checkExpr(in.expr(), pos, out);
+            else if (p instanceof Text.Part.Pick pk) pk.choices().forEach(c -> checkText(c, pos, out));
         }
+    }
+    private static String plainNumber(double d) {
+        return d == Math.rint(d) ? String.valueOf((long) d) : String.valueOf(d);
     }
 
     private void checkExpr(Expr e, Pos pos, List<Problem> out) {
@@ -314,6 +337,11 @@ public final class Validator {
             }
             case Expr.Literal l -> {}
             case Expr.Var v -> {}
+            case Expr.Ternary t -> {
+                checkExpr(t.cond(), pos, out);
+                checkExpr(t.ifTrue(), pos, out);
+                checkExpr(t.ifFalse(), pos, out);
+            }
         }
     }
 
@@ -333,6 +361,11 @@ public final class Validator {
             }
             case Expr.Call c -> c.args().forEach(a -> collectVars(a, out));
             case Expr.Literal l -> {}
+            case Expr.Ternary t -> {
+                collectVars(t.cond(), out);
+                collectVars(t.ifTrue(), out);
+                collectVars(t.ifFalse(), out);
+            }
         }
     }
 }

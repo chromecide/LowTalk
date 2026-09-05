@@ -19,6 +19,7 @@ Lines before the first node are directives, `key: value`, one per line.
 | `title:` | Shown in the window header. Defaults to the speaker. |
 | `scope:` | Variable namespace shared with other files. Defaults to the file name. |
 | `portrait:` | An image shown beside the text, as a path inside `Common/UI/Custom/` of any loaded asset pack, e.g. `Portraits/elder.png` from your own pack. |
+| `include:` | Pull the nodes of another file into this one, e.g. `include: _shared`. See [Includes](#includes). Repeatable. |
 
 Comments start with `#` and run to the end of the line.
 
@@ -48,7 +49,17 @@ A line that happens to start with a word and a colon, like `Note: bring bread`,
 would be read as a speaker; put a backslash in front (`\Note: bring bread`) to
 keep it as text. The same escape works for a line that must start with `->`.
 Text may include `{player}` (the player's name), `{npc}` (the NPC's name), and
-`{$var}` (a variable's value).
+`{$var}` (a variable's value), or any expression such as
+`{$met ? "Back again" : "Hello"}`.
+
+**Variation.** `[one|of|these]` inside text picks one alternative at random
+each time the line is shown, so greetings do not repeat word for word:
+
+```
+[Well met|Greetings|Good to see you], {player}. [Fine weather.|Cold, isn't it?]
+```
+
+Alternatives may contain `{...}`. Write `[[` and `]]` for literal brackets.
 
 **Option.** A choice offered to the player. Options that follow one another
 are shown together as buttons. The indented body runs when chosen.
@@ -62,8 +73,16 @@ are shown together as buttons. The indented body runs when chosen.
 ```
 
 A trailing `<<if expr>>` hides the option unless the expression is true. Use
-`<<show if expr>>` instead to show it greyed out. A choice can show at most
-eight options at once. If an option's body does not
+`<<show if expr>>` instead to show it greyed out. A trailing `<<once>>` hides
+the option for good once the player has picked it (per player and NPC, like
+once-blocks); the modifiers can be combined in any order:
+
+```
+-> Tell me about the ruins. <<once>>
+-> Any work for me? <<once>> <<if $player.level >= 3>>
+```
+
+A choice can show at most eight options at once. If an option's body does not
 `jump` or `end`, the node's options are shown again, which makes hubs easy.
 
 **Conditional.**
@@ -86,6 +105,20 @@ eight options at once. If an option's body does not
 <<endonce>>
 ```
 
+**Random block.** Runs exactly one of its alternatives, chosen at random each
+time. Any statements are allowed inside, not just lines.
+
+```
+<<random>>
+  Busy day. Lots of travellers.
+<<or>>
+  Quiet day. You're the first I've seen.
+  <<set $tmp.quiet = true>>
+<<or>>
+  Same as every day.
+<<endrandom>>
+```
+
 **Command.** Anything in `<<...>>` that is not a conditional or once block.
 
 | Command | Effect |
@@ -102,6 +135,8 @@ eight options at once. If an option's body does not
 | `<<run "/command args">>` | Run a server command as the console. `{player}` is expanded. |
 | `<<input $var "Prompt">>` | Show a text box and store what the player types. |
 | `<<once>>` ... `<<endonce>>` | The block between runs at most once per player. |
+| `<<random>>` ... `<<or>>` ... `<<endrandom>>` | One alternative runs, chosen at random. |
+| `<<wait 2>>` | Pause that many seconds before what follows. The line before it shows without a Continue button and the next line appears by itself. Keep it short (0 to 30); the player can still Leave. |
 | `<<reputation +10>>`, `<<reputation -5 Group_Id>>` | Change the player's standing with this NPC's reputation group, or a named group. An NPC belongs to a group when a `Server/NPC/Reputation/Groups/*.json` asset lists one of its NPC groups; the base game ships none, so without such an asset (or a named group) this raises an error. |
 | `<<notify "Text" ["Detail"] [success\|warning\|danger]>>` | A toast notification in the corner of the screen. |
 | `<<title "Primary" ["Secondary"] [major] [seconds]>>` | A cinematic title across the screen. |
@@ -140,6 +175,7 @@ Used in `if`, `elseif`, option guards, `set`, and `start when`.
 
 - Literals: `1`, `2.5`, `"text"`, `true`, `false`
 - Operators: `+ - * /`, `== != < <= > >=`, `and or not`, parentheses
+- Conditional: `cond ? when_true : when_false`, e.g. `{$gold > 100 ? "rich" : "poor"}`
 - Functions:
   - `has("Item_Id", count = 1)` player holds at least that many
   - `count("Item_Id")` how many the player holds
@@ -159,6 +195,32 @@ Used in `if`, `elseif`, option guards, `set`, and `start when`.
   - `plural(n, "loaf", "loaves")` the right word for the count; the third argument is optional and defaults to adding an s
 
 Plugins can register additional functions.
+
+## Includes
+
+`include: name` merges the nodes of `name.talk`, found next to the including
+file, into this dialogue, so several NPCs can share a farewell, a rumour mill,
+or a shop pitch. Nodes defined in the including file win over included ones.
+Included files may include others; loops are reported as errors.
+
+Name shared files with a leading underscore, such as `_shared.talk`. Files
+starting with `_` are never loaded as dialogues on their own, so they need no
+header and produce no "no npc: binding" warning.
+
+```
+# _shared.talk
+== goodbye
+Safe travels, {player}.
+<<end>>
+
+# merchant.talk
+npc: Kweebec_Merchant
+include: _shared
+== start
+Buying or selling?
+-> Neither.
+    <<jump goodbye>>
+```
 
 ## A complete example
 

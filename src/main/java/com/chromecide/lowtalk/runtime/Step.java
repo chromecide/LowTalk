@@ -20,6 +20,8 @@ public sealed interface Step {
 
     /** A text box. */
     record Ask(String prompt) implements Step {}
+    /** Pause: show {@code line} (may be null) with no Continue button, then call next() after {@code seconds}. */
+    record Wait(Say line, double seconds) implements Step {}
 
     /** Close the window. */
     record Finish() implements Step {}

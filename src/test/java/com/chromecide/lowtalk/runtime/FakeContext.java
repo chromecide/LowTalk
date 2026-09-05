@@ -17,9 +17,12 @@ public class FakeContext implements Context {
     public String playerName = "Chromecide";
     public String npcName = "Rootling Merchant";
 
+    /** What random(n) returns in tests; set it to steer <<random>> and [a|b] picks. */
+    public int nextRandom = 0;
     public FakeContext() {
         functions.put("player", a -> playerName);
         functions.put("npc", a -> npcName);
+        functions.put("random", a -> (double) nextRandom);
     }
 
     @Override

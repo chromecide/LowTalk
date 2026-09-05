@@ -1,0 +1,29 @@
+# STATION 10: format extras: [a|b] text variation, <<random>> blocks, once-options,
+# "cond ? a : b" inline conditions, <<wait>>, and include: of a shared file.
+npc: @test_format
+title: Station 10 - Format extras
+speaker: Tester
+include: _shared
+
+== start
+<<set $visits = $visits + 1>>
+TEST 10: Format extras. [Greetings|Hello|Well met], {player}. This is visit {$visits}: {$visits > 1 ? "you have been here before" : "your first time"}. Expected: the greeting word varies between visits; the part after the colon changes after the first visit.
+<<random>>
+  Random block picked alternative ONE. Expected: one of three alternatives, a different one most times.
+<<or>>
+  Random block picked alternative TWO. Expected: one of three alternatives, a different one most times.
+<<or>>
+  Random block picked alternative THREE. Expected: one of three alternatives, a different one most times.
+<<endrandom>>
+-> Ask about the once-only secret (expect this button to vanish for good after you pick it; /lowtalk reset brings it back) <<once>>
+    The secret is that this button hides itself. Look at the menu: it is gone.
+    <<jump start>>
+-> Test a two second pause (expect a line with no Continue button, then the next line appears by itself) <<if true>>
+    Counting... one...
+    <<wait 2>>
+    ...two. The pause is over. Expected: about two seconds between the lines with no button press.
+    <<jump start>>
+-> Say the included goodbye (expect a line from the shared file _shared.talk, then Leave closes the window)
+    <<jump shared_goodbye>>
+-> Leave
+    <<end>>

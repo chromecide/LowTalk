@@ -71,7 +71,7 @@ final class Lexer {
                 if (two.equals("==") || two.equals("!=") || two.equals("<=") || two.equals(">=")) {
                     out.add(new Token(Token.Kind.OP, two));
                     i += 2;
-                } else if ("+-*/<>(),=".indexOf(c) >= 0) {
+                } else if ("+-*/<>(),=?:".indexOf(c) >= 0) {
                     out.add(new Token(Token.Kind.OP, String.valueOf(c)));
                     i++;
                 } else {

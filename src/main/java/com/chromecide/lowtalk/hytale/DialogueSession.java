@@ -48,6 +48,8 @@ public class DialogueSession implements EffectHost {
     private final DialoguePage page;
     private boolean ended = false;
     private String lastNode;
+    /** Bumped on every step so a stale <<wait>> timer cannot advance a later step. */
+    private int stepSerial = 0;
 
     private DialogueSession(Host host, Dialogue dialogue, PlayerRef player, World world, UUID npcId, String npcName, HytaleContext context) {
         this.host = host;
@@ -102,6 +104,14 @@ public class DialogueSession implements EffectHost {
         s.notify(l -> l.onStart(ctx));
         s.lastNode = s.conversation.getCurrentNode();
         if (s.lastNode != null) s.notify(l -> l.onNode(ctx, s.lastNode));
+        if (first.step() instanceof Step.Wait wait) {
+            int serial = ++s.stepSerial;
+            long millis = Math.round(Math.min(30.0, wait.seconds()) * 1000.0);
+            world.scheduleAfter(() -> {
+                if (s.ended || serial != s.stepSerial) return;
+                s.advance(s.conversation::next);
+            }, millis, java.util.concurrent.TimeUnit.MILLISECONDS);
+        }
         return s;
     }
 
@@ -222,6 +232,14 @@ public class DialogueSession implements EffectHost {
         page.show(r.step());
         log("step -> " + r.step().getClass().getSimpleName());
         page.refresh();
+        int serial = ++stepSerial;
+        if (r.step() instanceof Step.Wait wait) {
+            long millis = Math.round(Math.min(30.0, wait.seconds()) * 1000.0);
+            world.scheduleAfter(() -> {
+                if (ended || serial != stepSerial) return;
+                advance(conversation::next);
+            }, millis, java.util.concurrent.TimeUnit.MILLISECONDS);
+        }
     }
 
     private void applyEffects(List<Effect> effects) {

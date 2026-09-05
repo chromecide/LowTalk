@@ -93,6 +93,13 @@ public final class TestRunner implements EffectHost {
                         out.accept(ask.prompt() + "  > " + answer);
                         r = conv.answer(answer);
                     }
+                    case Step.Wait wait -> {
+                        if (wait.line() != null) {
+                            out.accept(wait.line().speaker() + ": " + wait.line().text());
+                        }
+                        out.accept("(pause " + wait.seconds() + " s)");
+                        r = conv.next();
+                    }
                     case Step.Finish f -> {
                         out.accept("(finished at node " + conv.getCurrentNode() + ")");
                         return true;

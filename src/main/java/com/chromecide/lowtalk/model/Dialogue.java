@@ -14,6 +14,7 @@ public record Dialogue(
         String title,
         String scope,
         Map<String, String> otherDirectives,
+        List<String> includes,
         LinkedHashMap<String, Node> nodes
 ) {
     /** A start directive; condition is null for the unguarded fallback. */

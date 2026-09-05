@@ -30,6 +30,10 @@ public sealed interface Statement {
     /** Ask the player for text and store it in the target variable. */
     record Input(Pos pos, Expr.Var target, Text prompt) implements Statement {}
 
+    /** <<random>> ... <<or>> ... <<endrandom>>: one alternative runs, chosen at random. */
+    record Random(Pos pos, List<List<Statement>> alternatives) implements Statement {}
+    /** <<wait seconds>>: the host pauses before showing what follows; no Continue button. */
+    record Wait(Pos pos, Expr seconds) implements Statement {}
     /** Any other <<command args>>. Built-ins (give, take, shop, ...) and plugin commands both land here. */
     record Command(Pos pos, String name, List<Text> args) implements Statement {}
 }

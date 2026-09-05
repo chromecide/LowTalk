@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,12 +29,19 @@ public final class DialogueParser {
     private static final Pattern SPEAKER = Pattern.compile("^([A-Za-z][A-Za-z0-9_' ]{0,30}?)\\s*:\\s+(.*)$");
     private static final Pattern OPTION = Pattern.compile("^->\\s*(.*)$");
     private static final Pattern COMMAND = Pattern.compile("^<<\\s*(.*?)\\s*>>$");
-    private static final Pattern TRAILING_GUARD = Pattern.compile("^(.*?)\\s*<<\\s*(if|show if)\\s+(.+?)\\s*>>\\s*$");
+    /** The last <<...>> on an option line, when it is a modifier; greedy group 1 leaves earlier ones for the next pass. */
+    private static final Pattern TRAILING_MODIFIER = Pattern.compile("^(.*)<<\\s*(if|show if|once)\\b\\s*([^<>]*?)\\s*>>\\s*$");
+    private static final Set<String> CLOSERS = Set.of("endif", "elseif", "else", "endonce", "or", "endrandom");
     private static final Pattern SET = Pattern.compile("^set\\s+(\\$[A-Za-z0-9_.]+)\\s*=\\s*(.+)$");
     private static final Pattern INPUT = Pattern.compile("^input\\s+(\\$[A-Za-z0-9_.]+)(?:\\s+(.+))?$");
 
     /** One logical source line with its indentation and original line number. */
     private record SrcLine(int number, int indent, String text) {}
+
+    /** Finds the source of an included file by its path (relative to the same root as the including file), or null. */
+    public interface IncludeResolver {
+        String read(String path);
+    }
 
     private final String file;
     private final List<SrcLine> lines;
@@ -46,6 +54,15 @@ public final class DialogueParser {
     }
 
     public static Dialogue parse(String file, String source) {
+        return parse(file, source, path -> null);
+    }
+
+    /** Parse with support for {@code include:} directives, whose files are found through {@code resolver}. */
+    public static Dialogue parse(String file, String source, IncludeResolver resolver) {
+        return parse(file, source, resolver, new ArrayList<>());
+    }
+
+    private static Dialogue parse(String file, String source, IncludeResolver resolver, List<String> chain) {
         List<SrcLine> lines = new ArrayList<>();
         String[] raw = source.split("\r?\n", -1);
         for (int i = 0; i < raw.length; i++) {
@@ -58,7 +75,32 @@ public final class DialogueParser {
             }
             lines.add(new SrcLine(i + 1, indent, stripped.trim()));
         }
-        return new DialogueParser(file, lines).parseFile();
+        Dialogue d = new DialogueParser(file, lines).parseFile();
+        if (d.includes().isEmpty()) return d;
+        chain.add(file);
+        LinkedHashMap<String, Node> nodes = new LinkedHashMap<>(d.nodes());
+        for (String inc : d.includes()) {
+            String path = resolveInclude(file, inc);
+            if (chain.contains(path)) {
+                throw new ParseException(new Pos(file, 1), "include: " + inc + " includes itself (" + String.join(" -> ", chain) + " -> " + path + ")");
+            }
+            String src = resolver.read(path);
+            if (src == null) {
+                throw new ParseException(new Pos(file, 1), "include: cannot find '" + inc + "' (looked for " + path + ")");
+            }
+            Dialogue other = parse(path, src, resolver, chain);
+            for (Node n : other.nodeList()) nodes.putIfAbsent(n.name(), n); // this file's nodes win
+        }
+        chain.remove(chain.size() - 1);
+        return new Dialogue(d.file(), d.id(), d.bindings(), d.starts(), d.speaker(), d.title(), d.scope(), d.otherDirectives(), d.includes(), nodes);
+    }
+
+    /** Included paths are relative to the including file's folder. */
+    static String resolveInclude(String file, String include) {
+        String name = include.endsWith(".talk") ? include : include + ".talk";
+        int slash = Math.max(file.lastIndexOf('/'), file.lastIndexOf('\\'));
+        String dir = slash < 0 ? "" : file.substring(0, slash + 1);
+        return dir + name;
     }
 
     /** Remove a # comment unless the # is inside quotes. */
@@ -90,6 +132,7 @@ public final class DialogueParser {
         String speaker = null;
         String title = null;
         String scope = null;
+        List<String> includes = new ArrayList<>();
         Map<String, String> other = new LinkedHashMap<>();
 
         // Header: directives until the first node.
@@ -111,6 +154,10 @@ public final class DialogueParser {
                 case "speaker" -> speaker = value;
                 case "title" -> title = value;
                 case "scope" -> scope = value;
+                case "include" -> {
+                    if (value.isEmpty()) throw new ParseException(pos(l), "include: needs a file name");
+                    includes.add(value);
+                }
                 default -> other.put(key, value);
             }
             idx++;
@@ -143,7 +190,7 @@ public final class DialogueParser {
         if (starts.isEmpty()) {
             starts.add(new Dialogue.Start(new Pos(file, 1), nodes.keySet().iterator().next(), null));
         }
-        return new Dialogue(file, id, List.copyOf(bindings), List.copyOf(starts), speaker, title, scope, other, nodes);
+        return new Dialogue(file, id, List.copyOf(bindings), List.copyOf(starts), speaker, title, scope, other, List.copyOf(includes), nodes);
     }
 
     private Dialogue.Start parseStart(String value, Pos pos) {
@@ -179,7 +226,7 @@ public final class DialogueParser {
             if (l.indent() < minIndent) break;
             String keyword = commandKeyword(l.text());
             if (closers != null && keyword != null && closers.contains(keyword)) break;
-            if (keyword != null && (keyword.equals("endif") || keyword.equals("elseif") || keyword.equals("else") || keyword.equals("endonce"))) {
+            if (keyword != null && CLOSERS.contains(keyword)) {
                 throw new ParseException(pos(l), "'" + keyword + "' without a matching opener");
             }
 
@@ -209,13 +256,32 @@ public final class DialogueParser {
         Pos p = pos(l);
         Expr guard = null;
         Expr showGuard = null;
+        boolean once = false;
         String textPart = rest;
-        Matcher g = TRAILING_GUARD.matcher(rest);
-        if (g.matches()) {
+        // Trailing modifiers, in any order: <<if expr>>, <<show if expr>>, <<once>>.
+        while (true) {
+            Matcher g = TRAILING_MODIFIER.matcher(textPart);
+            if (!g.matches()) break;
             textPart = g.group(1);
-            Expr e = ExprParser.parse(g.group(3), p);
-            if (g.group(2).equals("if")) guard = e;
-            else showGuard = e;
+            String kind = g.group(2);
+            String arg = g.group(3);
+            switch (kind) {
+                case "once" -> {
+                    if (!arg.isEmpty()) throw new ParseException(p, "<<once>> on an option takes no arguments");
+                    if (once) throw new ParseException(p, "<<once>> given twice");
+                    once = true;
+                }
+                case "if" -> {
+                    if (arg.isEmpty()) throw new ParseException(p, "<<if>> needs a condition");
+                    if (guard != null) throw new ParseException(p, "an option can have only one <<if>>");
+                    guard = ExprParser.parse(arg, p);
+                }
+                default -> {
+                    if (arg.isEmpty()) throw new ParseException(p, "<<show if>> needs a condition");
+                    if (showGuard != null) throw new ParseException(p, "an option can have only one <<show if>>");
+                    showGuard = ExprParser.parse(arg, p);
+                }
+            }
         }
         if (textPart.isBlank()) {
             throw new ParseException(p, "option has no text");
@@ -223,7 +289,7 @@ public final class DialogueParser {
         Text text = TextParser.parse(textPart.trim(), p);
         // Body: following lines indented deeper than the arrow.
         List<Statement> body = parseBlock(l.indent() + 1, null);
-        return new Option(p, text, guard, showGuard, body);
+        return new Option(p, text, guard, showGuard, once, body);
     }
 
     private Statement parseStatement(SrcLine l, int minIndent) {
@@ -268,6 +334,32 @@ public final class DialogueParser {
                 List<Statement> body = parseBlock(minIndent, List.of("endonce"));
                 expectCloser(p, "endonce");
                 return new Statement.Once(p, "once" + (onceCounter++), body);
+            }
+            case "random" -> {
+                idx++;
+                if (!rest.isEmpty()) throw new ParseException(p, "<<random>> takes no arguments");
+                List<List<Statement>> alternatives = new ArrayList<>();
+                while (true) {
+                    alternatives.add(parseBlock(minIndent, List.of("or", "endrandom")));
+                    if (idx >= lines.size()) throw new ParseException(p, "<<random>> is never closed with <<endrandom>>");
+                    SrcLine c = lines.get(idx);
+                    String kw = commandKeyword(c.text());
+                    if ("or".equals(kw)) {
+                        idx++;
+                        continue;
+                    }
+                    if ("endrandom".equals(kw)) {
+                        idx++;
+                        break;
+                    }
+                    throw new ParseException(p, "<<random>> is never closed with <<endrandom>>");
+                }
+                return new Statement.Random(p, List.copyOf(alternatives));
+            }
+            case "wait" -> {
+                idx++;
+                if (rest.isEmpty()) throw new ParseException(p, "expected <<wait seconds>>");
+                return new Statement.Wait(p, ExprParser.parse(rest, p));
             }
             case "set" -> {
                 idx++;

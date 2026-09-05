@@ -32,6 +32,7 @@ public final class Evaluator {
                 for (Expr a : c.args()) args.add(eval(a, ctx));
                 yield Values.normalise(ctx.call(c.function(), args));
             }
+            case Expr.Ternary t -> Values.truthy(eval(t.cond(), ctx)) ? eval(t.ifTrue(), ctx) : eval(t.ifFalse(), ctx);
         };
     }
 
@@ -93,7 +94,15 @@ public final class Evaluator {
         for (Text.Part p : text.parts()) {
             if (p instanceof Text.Part.Plain pl) sb.append(pl.text());
             else if (p instanceof Text.Part.Interp in) sb.append(Values.text(eval(in.expr(), ctx)));
+            else if (p instanceof Text.Part.Pick pk) sb.append(render(pk.choices().get(pick(pk.choices().size(), ctx)), ctx));
         }
         return sb.toString();
+    }
+
+    /** A random index below n, through the context's random() so hosts and tests control it. */
+    public static int pick(int n, Context ctx) {
+        if (n <= 1) return 0;
+        int i = (int) Values.number(ctx.call("random", List.of((double) n)));
+        return Math.max(0, Math.min(n - 1, i));
     }
 }

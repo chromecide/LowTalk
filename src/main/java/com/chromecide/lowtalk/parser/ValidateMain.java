@@ -32,10 +32,22 @@ public final class ValidateMain {
         int errors = 0;
         int warnings = 0;
         Validator validator = new Validator();
+        DialogueParser.IncludeResolver resolver = path -> {
+            try {
+                Path p = Path.of(path);
+                return Files.isRegularFile(p) ? Files.readString(p, StandardCharsets.UTF_8) : null;
+            } catch (IOException e) {
+                return null;
+            }
+        };
         for (Path f : files) {
+            if (f.getFileName().toString().startsWith("_")) {
+                System.out.println("include " + f + "  (starts with _, only used through include:)");
+                continue;
+            }
             String src = Files.readString(f, StandardCharsets.UTF_8);
             try {
-                Dialogue d = DialogueParser.parse(f.toString(), src);
+                Dialogue d = DialogueParser.parse(f.toString(), src, resolver);
                 List<Validator.Problem> problems = validator.validate(d);
                 for (Validator.Problem p : problems) {
                     System.out.println(p);

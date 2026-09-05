@@ -88,6 +88,9 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
                 if (choose.line() != null) queueLine(LINE_NPC, choose.line().speaker(), choose.line().text());
             }
             case Step.Ask ask -> queueLine(LINE_NPC, null, ask.prompt());
+            case Step.Wait wait -> {
+                if (wait.line() != null) queueLine(LINE_NPC, wait.line().speaker(), wait.line().text());
+            }
             case Step.Finish f -> {}
         }
     }
@@ -183,6 +186,7 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
                 cmd.set("#Input.Value", "");
                 cmd.set("#InputRow.Visible", true);
             }
+            case Step.Wait wait -> {} // only Leave while the pause runs
             case Step.Finish f -> {}
         }
     }

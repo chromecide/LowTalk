@@ -102,6 +102,7 @@ public final class Conversation {
         if (index < 0 || index >= options.size()) throw new RuntimeError("no option " + index);
         Option o = options.get(index);
         if (!enabled(o)) throw new RuntimeError("option " + index + " is not available");
+        if (o.once()) ctx.markOnce(currentNode + "#" + o.onceKey());
         pendingChoice = null;
         // The choice statement stays current in its frame so a body that does not jump or end
         // returns to the same options (hub behaviour).
@@ -181,6 +182,17 @@ public final class Conversation {
                             stack.push(new Frame(o.body()));
                         }
                     }
+                    case Statement.Random r -> {
+                        f.index++;
+                        if (!r.alternatives().isEmpty()) {
+                            stack.push(new Frame(r.alternatives().get(Evaluator.pick(r.alternatives().size(), ctx))));
+                        }
+                    }
+                    case Statement.Wait w -> {
+                        f.index++;
+                        double seconds = Math.max(0.0, Values.number(Evaluator.eval(w.seconds(), ctx)));
+                        return result(new Step.Wait(held, seconds));
+                    }
                     case Statement.Set set -> {
                         f.index++;
                         ctx.setVar(set.target().scope(), set.target().name(), Evaluator.eval(set.value(), ctx));
@@ -238,6 +250,9 @@ public final class Conversation {
         List<Option> options = c.options();
         for (int i = 0; i < options.size(); i++) {
             Option o = options.get(i);
+            if (o.once() && ctx.onceDone(currentNode + "#" + o.onceKey())) {
+                continue;
+            }
             if (o.guard() != null && !Values.truthy(Evaluator.eval(o.guard(), ctx))) {
                 continue;
             }
@@ -248,6 +263,7 @@ public final class Conversation {
     }
 
     private boolean enabled(Option o) {
+        if (o.once() && ctx.onceDone(currentNode + "#" + o.onceKey())) return false;
         if (o.guard() != null && !Values.truthy(Evaluator.eval(o.guard(), ctx))) return false;
         return o.showGuard() == null || Values.truthy(Evaluator.eval(o.showGuard(), ctx));
     }
