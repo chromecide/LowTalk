@@ -39,6 +39,9 @@ public final class Validator {
             Map.entry("run", new int[] {1, 1})
     );
 
+    /** The dialogue window has this many option slots. */
+    public static final int MAX_OPTIONS = 8;
+
     public static final Set<String> ATTITUDES = Set.of("ignore", "hostile", "neutral", "friendly", "revered");
 
     public static final Set<String> BUILTIN_FUNCTIONS = Set.of(
@@ -103,6 +106,9 @@ public final class Validator {
             switch (s) {
                 case Statement.Line l -> checkText(l.text(), l.pos(), out);
                 case Statement.Choice c -> {
+                    if (c.options().size() > MAX_OPTIONS) {
+                        out.add(new Problem(c.pos(), true, "a choice can show at most " + MAX_OPTIONS + " options, this one has " + c.options().size()));
+                    }
                     if (!last) {
                         out.add(new Problem(c.pos(), false, "statements after a set of options are never reached; put them inside the options or before them"));
                     }

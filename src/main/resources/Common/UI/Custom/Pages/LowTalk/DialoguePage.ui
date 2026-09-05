@@ -4,7 +4,7 @@ $C.@PageOverlay {
   LayoutMode: Middle;
 
   $C.@DecoratedContainer {
-    Anchor: (Width: 640, Height: 480);
+    Anchor: (Width: 640, Height: 500);
 
     #Title {
       $C.@Title #NpcTitle {
@@ -40,11 +40,60 @@ $C.@PageOverlay {
       Group #Options {
         LayoutMode: Top;
         Anchor: (Top: 10);
+
+        $C.@TextButton #Opt0 {
+          @Anchor = (Bottom: 6);
+          @Text = "";
+          Visible: false;
+        }
+
+        $C.@TextButton #Opt1 {
+          @Anchor = (Bottom: 6);
+          @Text = "";
+          Visible: false;
+        }
+
+        $C.@TextButton #Opt2 {
+          @Anchor = (Bottom: 6);
+          @Text = "";
+          Visible: false;
+        }
+
+        $C.@TextButton #Opt3 {
+          @Anchor = (Bottom: 6);
+          @Text = "";
+          Visible: false;
+        }
+
+        $C.@TextButton #Opt4 {
+          @Anchor = (Bottom: 6);
+          @Text = "";
+          Visible: false;
+        }
+
+        $C.@TextButton #Opt5 {
+          @Anchor = (Bottom: 6);
+          @Text = "";
+          Visible: false;
+        }
+
+        $C.@TextButton #Opt6 {
+          @Anchor = (Bottom: 6);
+          @Text = "";
+          Visible: false;
+        }
+
+        $C.@TextButton #Opt7 {
+          @Anchor = (Bottom: 6);
+          @Text = "";
+          Visible: false;
+        }
       }
 
       Group #InputRow {
         LayoutMode: Left;
         Anchor: (Top: 8);
+        Visible: false;
 
         $C.@TextField #Input {
           @Anchor = (Right: 8);
@@ -60,6 +109,7 @@ $C.@PageOverlay {
       Group #ContinueRow {
         LayoutMode: Center;
         Anchor: (Top: 8);
+        Visible: false;
 
         $C.@TextButton #ContinueButton {
           @Anchor = (Width: 200);

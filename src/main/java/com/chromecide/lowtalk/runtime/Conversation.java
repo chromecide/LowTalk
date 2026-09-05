@@ -133,10 +133,17 @@ public final class Conversation {
         ctx.markVisited(node);
     }
 
+    /**
+     * Run until something must be shown. A line is held back while jumps, sets, conditionals and
+     * effects are processed, so that it can be shown together with the options or the next line
+     * that follows it. Continue is only needed between two consecutive lines.
+     */
     private Result advance() {
+        Step.Say held = null;
         while (true) {
             Frame f = stack.peek();
             if (f == null) {
+                if (held != null) return result(held);
                 return finish();
             }
             if (f.index >= f.body.size()) {
@@ -147,18 +154,15 @@ public final class Conversation {
             try {
                 switch (s) {
                     case Statement.Line line -> {
-                        Step.Say say = new Step.Say(speakerOf(line), Evaluator.render(line.text(), ctx));
-                        f.index++;
-                        // A line directly followed by options is shown together with them.
-                        if (f.index < f.body.size() && f.body.get(f.index) instanceof Statement.Choice c) {
-                            pendingChoice = c;
-                            return result(new Step.Choose(say, shownOptions(c)));
+                        if (held != null) {
+                            return result(held); // leave this line for the next call
                         }
-                        return result(say);
+                        held = new Step.Say(speakerOf(line), Evaluator.render(line.text(), ctx));
+                        f.index++;
                     }
                     case Statement.Choice c -> {
                         pendingChoice = c;
-                        return result(new Step.Choose(null, shownOptions(c)));
+                        return result(new Step.Choose(held, shownOptions(c)));
                     }
                     case Statement.Conditional c -> {
                         f.index++;
@@ -183,9 +187,16 @@ public final class Conversation {
                     }
                     case Statement.Jump j -> jumpTo(j.node(), j.pos());
                     case Statement.End e -> {
+                        if (held != null) {
+                            // Show the last line; the next call finds the end again.
+                            return result(held);
+                        }
                         return finish();
                     }
                     case Statement.Input in -> {
+                        if (held != null) {
+                            return result(held);
+                        }
                         pendingInput = in;
                         return result(new Step.Ask(Evaluator.render(in.prompt(), ctx)));
                     }

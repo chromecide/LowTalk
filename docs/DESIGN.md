@@ -172,6 +172,14 @@ Observed in the shipped plugins and followed here:
   `HytaleLogger`.
 - Asset-like data (dialogues) is loaded from files in the plugin folder and
   reloadable, the way NPC roles and objectives are.
+- Custom UI pages bind their events once, when the page is built, and later
+  updates only change text, values, and visibility. The built-in pages keep a
+  fixed set of controls and toggle them rather than re-sending bindings;
+  re-sending bindings on an update leaves the client with dead buttons.
+  Dynamic lists exist in the built-in pages, but they are rebuilt together
+  with a fresh page, not patched into a live one.
+- Layout files (`.ui`) are hot-reloaded by the server while it runs, so
+  layout changes never need a restart; only Java changes do.
 
 ## Safety and permissions
 

@@ -41,6 +41,22 @@ class ConversationTest {
     }
 
     @Test
+    void lineBeforeEndIsShownThenFinishes() {
+        Conversation c = conv("== a\n-> Go\n    Farewell.\n    <<end>>\n");
+        choose(c.start().step());
+        assertEquals("Farewell.", say(c.choose(0).step()).text());
+        assertInstanceOf(Step.Finish.class, c.next().step());
+    }
+
+    @Test
+    void lineBeforeInputIsShownFirst() {
+        Conversation c = conv("== a\nYour name?\n<<input $tmp.n \"Type it\">>\nHi {$tmp.n}.\n");
+        assertEquals("Your name?", say(c.start().step()).text());
+        assertInstanceOf(Step.Ask.class, c.next().step());
+        assertEquals("Hi Bo.", say(c.answer("Bo").step()).text());
+    }
+
+    @Test
     void defaultSpeakerDirective() {
         Conversation c = conv("speaker: Bram\n== a\nHi.\n");
         assertEquals("Bram", say(c.start().step()).speaker());
@@ -76,8 +92,9 @@ class ConversationTest {
                 """);
         Step.Choose ch = choose(c.start().step());
         assertNull(ch.line());
-        say(c.choose(0).step());
-        Step.Choose again = choose(c.next().step());
+        // The line spoken inside the option is shown together with the hub it returns to.
+        Step.Choose again = choose(c.choose(0).step());
+        assertEquals("An answer.", again.line().text());
         assertEquals(2, again.options().size());
         assertInstanceOf(Step.Finish.class, c.choose(1).step());
     }
@@ -128,8 +145,7 @@ class ConversationTest {
     @Test
     void jumpAndVisited() {
         Conversation c = conv("== a\nOne.\n<<jump b>>\n== b\nTwo.\n<<end>>\n");
-        say(c.start().step());
-        assertEquals("a", c.getCurrentNode());
+        assertEquals("One.", say(c.start().step()).text());
         assertEquals("Two.", say(c.next().step()).text());
         assertEquals("b", c.getCurrentNode());
         assertTrue(ctx.visited.contains("a"));
@@ -182,9 +198,9 @@ class ConversationTest {
 
     @Test
     void runtimeErrorsCarryPosition() {
+        // The condition is evaluated while the first line is still held, so start() fails.
         Conversation c = conv("== a\nHi.\n<<if nope()>>\n  x\n<<endif>>\n");
-        say(c.start().step());
-        RuntimeError e = assertThrows(RuntimeError.class, c::next);
+        RuntimeError e = assertThrows(RuntimeError.class, c::start);
         assertEquals(3, e.getPos().line());
     }
 
@@ -203,23 +219,22 @@ class ConversationTest {
         Dialogue d = DialogueParser.parse("rootling_merchant.talk", Files.readString(Path.of("examples/rootling_merchant.talk")));
         Conversation c = new Conversation(d, ctx);
 
-        Step.Say intro = say(c.start().step());
-        assertTrue(intro.text().startsWith("Well met"));
-        Step.Choose hub = choose(c.next().step());
+        Step.Choose hub = choose(c.start().step());
+        assertTrue(hub.line().text().startsWith("Well met"));
         assertEquals(4, hub.options().size());
 
-        // "I'm hungry" -> charity, no essence -> free bread.
+        // "I'm hungry" -> charity, no essence -> free bread. Two lines, then back to the hub.
         Step.Say hm = say(c.choose(1).step());
         assertTrue(hm.text().startsWith("Hm."));
-        Conversation.Result r = c.next();
-        say(r.step());
         Conversation.Result r2 = c.next();
         Step.Choose back = choose(r2.step());
+        assertTrue(back.line().text().startsWith("Take this"));
         assertTrue(r2.effects().stream().anyMatch(e -> e.name().equals("give") && e.args().equals(List.of("Food_Bread", "1"))), r2.effects().toString());
         assertEquals(3, back.options().size(), "the bread option is hidden after it was given");
 
         // Second visit uses the guarded returning start.
         Conversation c2 = new Conversation(d, ctx);
-        assertTrue(say(c2.start().step()).text().contains("Back again"));
+        Step.Choose second = choose(c2.start().step());
+        assertTrue(second.line().text().contains("Back again"));
     }
 }

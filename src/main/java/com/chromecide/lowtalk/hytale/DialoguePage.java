@@ -16,34 +16,37 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The conversation window. Shows one {@link Step} at a time: a speaker, a line, and either a
- * Continue button, option buttons, or a text box. Events are stamped with a generation number so
- * a click on a button from a previous step is ignored.
+ * Continue button, option buttons, or a text box.
+ *
+ * The layout has a fixed pool of option buttons and every event is bound once when the page
+ * opens; each step only changes text and visibility. Events carry a generation number so a click
+ * that belongs to a previous step is ignored.
  */
 public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
 
     private static final String LAYOUT = "Pages/LowTalk/DialoguePage.ui";
-    private static final String OPTION = "Pages/LowTalk/OptionButton.ui";
-    private static final String OPTION_DISABLED = "Pages/LowTalk/OptionDisabled.ui";
+    public static final int OPTION_SLOTS = 8;
     private static final int KEY_RETURN = 13;
     private static final int KEY_KP_ENTER = 1073741912;
+    private static final String DISABLED_PREFIX = "— ";
 
     public enum Action { CONTINUE, CHOOSE, OK, KEY, CLOSE }
 
     public static class Data {
         public static final BuilderCodec<Data> CODEC = BuilderCodec.builder(Data.class, Data::new)
                 .append(new KeyedCodec<>("Action", Codec.STRING, false), (d, s) -> d.action = s, d -> d.action).add()
-                .append(new KeyedCodec<>("Gen", Codec.STRING, false), (d, s) -> d.gen = s, d -> d.gen).add()
-                .append(new KeyedCodec<>("Index", Codec.STRING, false), (d, s) -> d.index = s, d -> d.index).add()
+                .append(new KeyedCodec<>("Slot", Codec.STRING, false), (d, s) -> d.slot = s, d -> d.slot).add()
                 .append(new KeyedCodec<>("@Text", Codec.STRING, false), (d, s) -> d.text = s, d -> d.text).add()
                 .append(new KeyedCodec<>("Keycode", Codec.INTEGER, false), (d, i) -> d.keycode = i, d -> d.keycode).add()
                 .append(new KeyedCodec<>("Repeat", Codec.BOOLEAN, false), (d, b) -> d.repeat = b, d -> d.repeat).add()
                 .build();
         private String action;
-        private String gen;
-        private String index;
+        private String slot;
         private String text;
         private Integer keycode;
         private Boolean repeat;
@@ -51,8 +54,9 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
 
     private final DialogueSession session;
     private final String title;
-    private int generation = 0;
     private Step current;
+    /** For the current Choose step: slot number -> option index, or -1 for a disabled slot. */
+    private final List<Integer> slotToOption = new ArrayList<>();
     private volatile boolean open = true;
 
     public DialoguePage(@Nonnull PlayerRef playerRef, @Nonnull DialogueSession session, @Nonnull String title) {
@@ -68,7 +72,6 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
     /** Called before the page is opened, and again for each new step. */
     public void show(@Nonnull Step step) {
         this.current = step;
-        this.generation++;
     }
 
     public void showNarration(@Nonnull String text) {
@@ -83,50 +86,52 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
         cmd.append(LAYOUT);
         cmd.set("#NpcTitle.Text", title);
         cmd.set("#Narration.Text", "");
-        render(cmd, evt);
+        // Bind everything once; later steps only change text and visibility.
+        evt.addEventBinding(CustomUIEventBindingType.Activating, "#CloseButton", new EventData().append("Action", Action.CLOSE), false);
+        evt.addEventBinding(CustomUIEventBindingType.Activating, "#ContinueButton", new EventData().append("Action", Action.CONTINUE), false);
+        evt.addEventBinding(CustomUIEventBindingType.Activating, "#OkButton",
+                new EventData().append("Action", Action.OK).append("@Text", "#Input.Value"), false);
+        evt.addEventBinding(CustomUIEventBindingType.KeyDown, "#Input",
+                new EventData().append("Action", Action.KEY).append("@Text", "#Input.Value"), false);
+        for (int i = 0; i < OPTION_SLOTS; i++) {
+            evt.addEventBinding(CustomUIEventBindingType.Activating, "#Opt" + i,
+                    new EventData().append("Action", Action.CHOOSE).append("Slot", String.valueOf(i)), false);
+        }
+        render(cmd);
     }
 
     /** Push the current step to an already-open window. */
     public void refresh() {
         if (!open) return;
         UICommandBuilder cmd = new UICommandBuilder();
-        UIEventBuilder evt = new UIEventBuilder();
-        render(cmd, evt);
-        sendUpdate(cmd, evt, false);
+        render(cmd);
+        sendUpdate(cmd, null, false);
     }
 
-    private void render(UICommandBuilder cmd, UIEventBuilder evt) {
-        String gen = String.valueOf(generation);
-        cmd.clear("#Options");
+    private void render(UICommandBuilder cmd) {
+        slotToOption.clear();
+        for (int i = 0; i < OPTION_SLOTS; i++) {
+            cmd.set("#Opt" + i + ".Visible", false);
+        }
         cmd.set("#InputRow.Visible", false);
         cmd.set("#ContinueRow.Visible", false);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#CloseButton",
-                new EventData().append("Action", Action.CLOSE).append("Gen", gen), false);
 
         switch (current) {
             case Step.Say say -> {
                 setLine(cmd, say);
                 cmd.set("#ContinueRow.Visible", true);
-                evt.addEventBinding(CustomUIEventBindingType.Activating, "#ContinueButton",
-                        new EventData().append("Action", Action.CONTINUE).append("Gen", gen), false);
             }
             case Step.Choose choose -> {
                 if (choose.line() != null) {
                     setLine(cmd, choose.line());
                 }
-                int i = 0;
+                int slot = 0;
                 for (Step.Shown o : choose.options()) {
-                    String sel = "#Options[" + i + "]";
-                    if (o.enabled()) {
-                        cmd.append("#Options", OPTION);
-                        cmd.set(sel + ".Text", o.text());
-                        evt.addEventBinding(CustomUIEventBindingType.Activating, sel,
-                                new EventData().append("Action", Action.CHOOSE).append("Gen", gen).append("Index", String.valueOf(o.index())), false);
-                    } else {
-                        cmd.append("#Options", OPTION_DISABLED);
-                        cmd.set(sel + ".Text", o.text());
-                    }
-                    i++;
+                    if (slot >= OPTION_SLOTS) break;
+                    cmd.set("#Opt" + slot + ".Text", o.enabled() ? o.text() : DISABLED_PREFIX + o.text());
+                    cmd.set("#Opt" + slot + ".Visible", true);
+                    slotToOption.add(o.enabled() ? o.index() : -1);
+                    slot++;
                 }
             }
             case Step.Ask ask -> {
@@ -134,10 +139,6 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
                 cmd.set("#Text.Text", ask.prompt());
                 cmd.set("#Input.Value", "");
                 cmd.set("#InputRow.Visible", true);
-                EventData ok = new EventData().append("Action", Action.OK).append("Gen", gen).append("@Text", "#Input.Value");
-                evt.addEventBinding(CustomUIEventBindingType.Activating, "#OkButton", ok, false);
-                evt.addEventBinding(CustomUIEventBindingType.KeyDown, "#Input",
-                        new EventData().append("Action", Action.KEY).append("Gen", gen).append("@Text", "#Input.Value"), false);
             }
             case Step.Finish f -> {
                 cmd.set("#Speaker.Text", "");
@@ -161,22 +162,28 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
         } catch (IllegalArgumentException e) {
             return;
         }
-        if (action != Action.CLOSE && data.gen != null && !data.gen.equals(String.valueOf(generation))) {
-            return; // click from a previous step
-        }
         switch (action) {
-            case CONTINUE -> session.onContinue();
-            case CHOOSE -> {
-                if (data.index == null) return;
-                try {
-                    session.onChoose(Integer.parseInt(data.index));
-                } catch (NumberFormatException ignored) {
-                    // malformed index, ignore
-                }
+            case CONTINUE -> {
+                if (current instanceof Step.Say) session.onContinue();
             }
-            case OK -> session.onAnswer(data.text == null ? "" : data.text);
+            case CHOOSE -> {
+                if (!(current instanceof Step.Choose) || data.slot == null) return;
+                int slot;
+                try {
+                    slot = Integer.parseInt(data.slot);
+                } catch (NumberFormatException e) {
+                    return;
+                }
+                if (slot < 0 || slot >= slotToOption.size()) return;
+                int optionIndex = slotToOption.get(slot);
+                if (optionIndex < 0) return; // disabled option
+                session.onChoose(optionIndex);
+            }
+            case OK -> {
+                if (current instanceof Step.Ask) session.onAnswer(data.text == null ? "" : data.text);
+            }
             case KEY -> {
-                if (data.keycode != null && !Boolean.TRUE.equals(data.repeat)
+                if (current instanceof Step.Ask && data.keycode != null && !Boolean.TRUE.equals(data.repeat)
                         && (data.keycode == KEY_RETURN || data.keycode == KEY_KP_ENTER)) {
                     session.onAnswer(data.text == null ? "" : data.text);
                 }

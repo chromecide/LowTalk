@@ -34,7 +34,9 @@ copying, open an issue and we'll find another way or ask Hypixel.
 Follow the conventions Hypixel uses in their own plugins where they exist:
 codec-defined config, ECS systems for entity hooks, custom UI pages for
 windows, `HytaleLogger` for logging. The aim is that LowTalk reads like it
-belongs next to the built-in plugins.
+belongs next to the built-in plugins. The conventions we have confirmed so
+far are listed in `docs/DESIGN.md` under "Alignment with Hypixel's
+conventions"; add to that list when you learn a new one the hard way.
 
 ## Tests and docs
 
