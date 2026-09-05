@@ -78,6 +78,11 @@ public class DialogueRegistry {
     }
 
     public LoadReport reload() {
+        return reload(true);
+    }
+
+    /** @param checkAssets false during plugin setup, when the server's asset maps are not loaded yet */
+    public LoadReport reload(boolean checkAssets) {
         Map<String, Dialogue> ids = new LinkedHashMap<>();
         Map<String, List<Dialogue>> roles = new LinkedHashMap<>();
         Map<String, List<Dialogue>> tags = new LinkedHashMap<>();
@@ -118,9 +123,11 @@ public class DialogueRegistry {
                     messages.add("skipped " + rel + " because of errors");
                     continue;
                 }
-                for (String w : AssetChecks.check(d)) {
-                    messages.add(w);
-                    warnings++;
+                if (checkAssets) {
+                    for (String w : AssetChecks.check(d)) {
+                        messages.add(w);
+                        warnings++;
+                    }
                 }
                 if (ids.containsKey(d.id())) {
                     messages.add("error " + rel + ": another file already uses the id '" + d.id() + "'");
@@ -148,6 +155,13 @@ public class DialogueRegistry {
         byRole = Collections.unmodifiableMap(roles);
         byTag = Collections.unmodifiableMap(tags);
         return new LoadReport(files, ids.size(), errors, warnings, messages);
+    }
+
+    /** Run only the asset id checks over everything loaded, once assets are available. */
+    public List<String> checkAssets() {
+        List<String> out = new ArrayList<>();
+        for (Dialogue d : byId.values()) out.addAll(AssetChecks.check(d));
+        return out;
     }
 
     @Nullable

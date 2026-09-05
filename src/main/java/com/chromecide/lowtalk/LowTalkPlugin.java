@@ -65,7 +65,8 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
         if (cfg.isCopyExamples()) {
             registry.copyExamplesIfEmpty();
         }
-        DialogueRegistry.LoadReport report = registry.reload();
+        // Assets are not loaded yet during setup; id checks run in start().
+        DialogueRegistry.LoadReport report = registry.reload(false);
         logReport(report);
 
         this.getEntityStoreRegistry().registerSystem(new NpcUseSystem(this));
@@ -73,6 +74,15 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
         this.getCommandRegistry().registerCommand(new LowTalkCommand(this));
 
         getLogger().at(Level.INFO).log("LowTalk ready: %d dialogue(s) from %s", report.loaded(), registry.getFolder());
+    }
+
+    @Override
+    protected void start() {
+        List<String> warnings = registry.checkAssets();
+        for (String w : warnings) getLogger().at(Level.WARNING).log("%s", w);
+        if (!warnings.isEmpty()) {
+            getLogger().at(Level.WARNING).log("%d dialogue(s) reference ids that do not exist in the loaded assets", warnings.size());
+        }
     }
 
     @Override
