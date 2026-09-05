@@ -57,14 +57,15 @@ public final class WorldEffects {
                 WeatherTracker tracker = store.getComponent(ref, WeatherTracker.getComponentType());
                 if (tracker == null) return null;
                 if (clear) {
+                    // Drop the override, then let the tracker's own routine pick what this player should see:
+                    // the world's forced weather, else the environment's, else none (index 0 clears the sky).
                     tracker.clearOverrideWeatherIndex();
-                    int back = resource.getForcedWeatherIndex();
-                    if (back == 0) {
-                        TransformComponent transform = store.getComponent(ref, TransformComponent.getComponentType());
-                        if (transform != null) tracker.updateEnvironment(transform, store);
-                        back = resource.getWeatherIndexForEnvironment(tracker.getEnvironmentId());
+                    TransformComponent transform = store.getComponent(ref, TransformComponent.getComponentType());
+                    if (transform != null) {
+                        tracker.updateWeather(session.getPlayer(), resource, transform, WEATHER_TRANSITION_SECONDS, store);
+                    } else {
+                        tracker.sendWeatherIndex(session.getPlayer(), resource.getForcedWeatherIndex(), WEATHER_TRANSITION_SECONDS);
                     }
-                    if (back != Integer.MIN_VALUE && back != 0) tracker.sendWeatherIndex(session.getPlayer(), back, WEATHER_TRANSITION_SECONDS);
                 } else {
                     tracker.setOverrideWeatherIndex(index);
                     tracker.sendWeatherIndex(session.getPlayer(), index, WEATHER_TRANSITION_SECONDS);
