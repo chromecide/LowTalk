@@ -1,7 +1,7 @@
 package com.chromecide.lowtalk.hytale.effects;
 
 import com.chromecide.lowtalk.LowTalkPlugin;
-import com.chromecide.lowtalk.hytale.DialogueSession;
+import com.chromecide.lowtalk.hytale.EffectHost;
 import com.chromecide.lowtalk.hytale.EffectRegistry;
 import com.chromecide.lowtalk.hytale.HytaleContext;
 import com.chromecide.lowtalk.hytale.functions.BuiltinFunctions;
@@ -163,13 +163,13 @@ public final class BuiltinEffects {
     }
 
     @Nullable
-    private static Ref<EntityStore> npcRef(DialogueSession session, Store<EntityStore> store) {
+    private static Ref<EntityStore> npcRef(EffectHost session, Store<EntityStore> store) {
         Ref<EntityStore> ref = store.getExternalData().getRefFromUUID(session.getNpcId());
         return ref != null && ref.isValid() ? ref : null;
     }
 
     @Nullable
-    private static String npcRole(DialogueSession session) {
+    private static String npcRole(EffectHost session) {
         Store<EntityStore> store = BuiltinFunctions.store(session.getContext());
         Ref<EntityStore> npcRef = npcRef(session, store);
         if (npcRef == null) return null;

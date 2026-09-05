@@ -118,6 +118,10 @@ public class DialogueRegistry {
                     messages.add("skipped " + rel + " because of errors");
                     continue;
                 }
+                for (String w : AssetChecks.check(d)) {
+                    messages.add(w);
+                    warnings++;
+                }
                 if (ids.containsKey(d.id())) {
                     messages.add("error " + rel + ": another file already uses the id '" + d.id() + "'");
                     errors++;

@@ -84,7 +84,91 @@ public final class Validator {
         for (Node n : d.nodeList()) {
             checkBlock(n.body(), d, inputVars, out, false);
         }
+        checkReachability(d, out);
+        checkVariables(d, inputVars, out);
         return out;
+    }
+
+    /** Nodes that no start: and no jump ever reach. */
+    private void checkReachability(Dialogue d, List<Problem> out) {
+        Set<String> reachable = new HashSet<>();
+        for (Dialogue.Start s : d.starts()) reachable.add(s.node());
+        for (Node n : d.nodeList()) collectJumps(n.body(), reachable);
+        for (Node n : d.nodeList()) {
+            if (!reachable.contains(n.name())) {
+                out.add(new Problem(n.pos(), false, "node '" + n.name() + "' is never reached by a start: or a jump"));
+            }
+        }
+    }
+
+    private static void collectJumps(List<Statement> body, Set<String> out) {
+        for (Statement s : body) {
+            switch (s) {
+                case Statement.Jump j -> out.add(j.node());
+                case Statement.Choice c -> c.options().forEach(o -> collectJumps(o.body(), out));
+                case Statement.Conditional c -> c.branches().forEach(b -> collectJumps(b.body(), out));
+                case Statement.Once o -> collectJumps(o.body(), out);
+                default -> {}
+            }
+        }
+    }
+
+    /** Variables that are read somewhere but never set or input anywhere in this file (likely typos). */
+    private void checkVariables(Dialogue d, Set<String> inputVars, List<Problem> out) {
+        Set<String> written = new HashSet<>(inputVars);
+        Map<String, Pos> read = new java.util.LinkedHashMap<>();
+        for (Dialogue.Start st : d.starts()) {
+            if (st.condition() != null) for (Expr.Var v : vars(st.condition())) read.putIfAbsent(key(v), st.pos());
+        }
+        for (Node n : d.nodeList()) scanVars(n.body(), written, read);
+        for (Map.Entry<String, Pos> e : read.entrySet()) {
+            String k = e.getKey();
+            // player/npc/world scopes may legitimately be written by other files or plugins.
+            if (!written.contains(k) && (k.startsWith("local.") || k.startsWith("tmp."))) {
+                out.add(new Problem(e.getValue(), false, "$" + k.substring(k.indexOf('.') + 1) + " is read but never set in this file"));
+            }
+        }
+    }
+
+    private static String key(Expr.Var v) {
+        return v.scope() + "." + v.name();
+    }
+
+    private static void scanVars(List<Statement> body, Set<String> written, Map<String, Pos> read) {
+        for (Statement s : body) {
+            switch (s) {
+                case Statement.Set set -> {
+                    for (Expr.Var v : vars(set.value())) read.putIfAbsent(key(v), set.pos());
+                    written.add(key(set.target()));
+                }
+                case Statement.Line l -> textVars(l.text(), l.pos(), read);
+                case Statement.Input in -> textVars(in.prompt(), in.pos(), read);
+                case Statement.Command c -> c.args().forEach(t -> textVars(t, c.pos(), read));
+                case Statement.Choice c -> {
+                    for (Option o : c.options()) {
+                        textVars(o.text(), o.pos(), read);
+                        if (o.guard() != null) for (Expr.Var v : vars(o.guard())) read.putIfAbsent(key(v), o.pos());
+                        if (o.showGuard() != null) for (Expr.Var v : vars(o.showGuard())) read.putIfAbsent(key(v), o.pos());
+                        scanVars(o.body(), written, read);
+                    }
+                }
+                case Statement.Conditional c -> {
+                    for (Statement.Branch b : c.branches()) {
+                        if (b.condition() != null) for (Expr.Var v : vars(b.condition())) read.putIfAbsent(key(v), b.pos());
+                        scanVars(b.body(), written, read);
+                    }
+                }
+                case Statement.Once o -> scanVars(o.body(), written, read);
+                case Statement.Jump j -> {}
+                case Statement.End e -> {}
+            }
+        }
+    }
+
+    private static void textVars(Text t, Pos pos, Map<String, Pos> read) {
+        for (Text.Part p : t.parts()) {
+            if (p instanceof Text.Part.Interp in) for (Expr.Var v : vars(in.expr())) read.putIfAbsent(key(v), pos);
+        }
     }
 
     private void collectInputVars(List<Statement> body, Set<String> out) {

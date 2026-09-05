@@ -1,0 +1,8 @@
+# property=allowed bare-word values, harvested from Hytale 0.6.3 Common/UI/Custom/**/*.ui
+Alignment=Center
+Format=Rgb
+HorizontalAlignment=Center,End,Start
+LayoutMode=Bottom,Center,CenterMiddle,Full,Left,LeftCenterWrap,LeftWrap,Middle,MiddleCenter,Right,Top,TopScrolling
+PanelAlign=Bottom,Right
+Side=Right
+VerticalAlignment=Center,End

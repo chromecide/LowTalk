@@ -26,7 +26,7 @@ import java.util.logging.Level;
  * One player in one dialogue with one NPC. Drives the {@link Conversation} and the {@link DialoguePage}.
  * Everything here runs on the world thread (page events arrive there already).
  */
-public class DialogueSession {
+public class DialogueSession implements EffectHost {
 
     public interface Host {
         LowTalkConfig config();
@@ -105,12 +105,12 @@ public class DialogueSession {
         return s;
     }
 
-    public PlayerRef getPlayer() { return player; }
+    @Override public PlayerRef getPlayer() { return player; }
     public Dialogue getDialogue() { return dialogue; }
-    public UUID getNpcId() { return npcId; }
+    @Override public UUID getNpcId() { return npcId; }
     public String getNpcName() { return npcName; }
-    public World getWorld() { return world; }
-    public HytaleContext getContext() { return context; }
+    @Override public World getWorld() { return world; }
+    @Override public HytaleContext getContext() { return context; }
     public Conversation getConversation() { return conversation; }
     public boolean isEnded() { return ended; }
 
@@ -186,6 +186,7 @@ public class DialogueSession {
      * End the conversation without touching the window, for effects that open another page
      * (the barter shop) in its place. Effects after this one in the same step are still applied.
      */
+    @Override
     public void detach() {
         if (ended) return;
         ended = true;

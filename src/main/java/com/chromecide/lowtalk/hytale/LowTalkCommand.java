@@ -7,6 +7,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.command.system.CommandContext;
+import com.hypixel.hytale.server.core.command.system.arguments.system.OptionalArg;
 import com.hypixel.hytale.server.core.command.system.arguments.system.RequiredArg;
 import com.hypixel.hytale.server.core.command.system.arguments.types.ArgTypes;
 import com.hypixel.hytale.server.core.command.system.basecommands.AbstractCommandCollection;
@@ -38,6 +39,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         this.addSubCommand(new Vars(plugin));
         this.addSubCommand(new Reset(plugin));
         this.addSubCommand(new Thaw(plugin));
+        this.addSubCommand(new TestDialogue(plugin));
         this.addSubCommand(new Stop(plugin));
     }
 
@@ -241,6 +243,47 @@ public class LowTalkCommand extends AbstractCommandCollection {
             }
             boolean was = NpcHold.thawNow(store, npc.ref(), npc.id(), plugin.getStore());
             context.sendMessage(info(plugin, was ? npc.name() + " is free to move again." : npc.name() + " was not frozen."));
+        }
+    }
+
+    /**
+     * /lowtalk test <dialogue> [apply] [choice ...]
+     * Plays a dialogue headlessly with the NPC you are looking at (or none) and prints every step.
+     * Effects are listed unless the first token is "apply".
+     */
+    static class TestDialogue extends AbstractPlayerCommand {
+        private final LowTalkPlugin plugin;
+        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", ArgTypes.STRING);
+        private final OptionalArg<String> scriptArg = withOptionalArg("script", "'apply' to run effects for real, then choices: numbers or text prefixes", ArgTypes.GREEDY_STRING);
+
+        TestDialogue(LowTalkPlugin plugin) {
+            super("test", "Play a dialogue from the console with scripted choices");
+            this.plugin = plugin;
+            this.requirePermission(ADMIN);
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef player, @Nonnull World world) {
+            Dialogue d = plugin.getRegistry().byId(idArg.get(context));
+            if (d == null) {
+                context.sendMessage(info(plugin, "No dialogue with id '" + idArg.get(context) + "'. Try /lowtalk list."));
+                return;
+            }
+            java.util.List<String> tokens = new java.util.ArrayList<>();
+            if (scriptArg.provided(context)) {
+                for (String t : scriptArg.get(context).trim().split("\\s+")) if (!t.isEmpty()) tokens.add(t);
+            }
+            boolean apply = !tokens.isEmpty() && tokens.get(0).equalsIgnoreCase("apply");
+            if (apply) tokens.remove(0);
+            NpcInfo npc = lookedAtNpc(ref, store, player, plugin);
+            java.util.UUID npcId = npc == null ? new java.util.UUID(0L, 0L) : npc.id();
+            String npcName = npc == null ? (d.speaker() != null ? d.speaker() : "Narrator") : npc.name();
+            TestRunner runner = new TestRunner(plugin, d, player, world, npcId, npcName, apply, line -> {
+                context.sendMessage(info(plugin, line));
+                plugin.getLogger().at(java.util.logging.Level.INFO).log("[test] %s", line);
+            });
+            runner.run(tokens);
         }
     }
 

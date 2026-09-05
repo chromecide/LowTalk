@@ -13,7 +13,7 @@ public class EffectRegistry {
     @FunctionalInterface
     public interface Handler {
         /** @return a short narration line to show the player, or null for nothing. */
-        String apply(@Nonnull DialogueSession session, @Nonnull Effect effect);
+        String apply(@Nonnull EffectHost session, @Nonnull Effect effect);
     }
 
     private final Map<String, Handler> handlers = new ConcurrentHashMap<>();
