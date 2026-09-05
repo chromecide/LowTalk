@@ -97,11 +97,7 @@ public final class LowTalkApi {
         World world = store.getExternalData().getWorld();
         world.execute(() -> {
             if (!ref.isValid()) return;
-            NpcInfo npc = NpcInfo.lookedAt(ref, store, player, plugin.getStore());
-            if (npc == null) {
-                npc = new NpcInfo(null, new UUID(0L, 0L), "none", d.speaker() != null ? d.speaker() : "Narrator", Set.of());
-            }
-            plugin.getSessions().open(d, player, ref, store, world, npc);
+            plugin.getSessions().openFor(d, player, ref, store, world, NpcInfo.lookedAt(ref, store, player, plugin.getStore()));
         });
         return true;
     }

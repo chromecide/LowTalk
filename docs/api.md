@@ -81,6 +81,13 @@ api.close(playerRef.getUuid());
 boolean busy = api.isTalking(playerRef.getUuid());
 ```
 
+No Java is needed to start a dialogue from game content: trigger volumes
+(`"Type": "LowTalkDialogue"`), `OpenCustomUI` interactions
+(`"Page": { "Type": "LowTalk", "Dialogue": "id" }`), shop-style choice pages
+(`"Interactions": [ { "Type": "LowTalkDialogue", "Dialogue": "id" } ]`) and the
+`on: join` directive all open dialogues through the game's own systems. See
+[format.md](format.md#opening-dialogues-from-the-games-own-systems).
+
 ## Variables outside a conversation
 
 ```java
