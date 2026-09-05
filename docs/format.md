@@ -142,6 +142,8 @@ Used in `if`, `elseif`, option guards, `set`, and `start when`.
   - `hour()` in-game hour, 0 to 23
   - `random(n)` integer from 0 to n-1
   - `chance(p)` true with probability p, 0 to 1
+  - `ordinal(n)` "1st", "2nd", "3rd", "11th", "21st"
+  - `plural(n, "loaf", "loaves")` the right word for the count; the third argument is optional and defaults to adding an s
 
 Plugins can register additional functions.
 

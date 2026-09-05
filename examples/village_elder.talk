@@ -27,7 +27,7 @@ Elder: Gather ten fibres from the tall grass beyond the pond. Bring them here an
 -> I'll do it.
     <<objective Objective_Gather>>
     <<set $npc.helpers = $npc.helpers + 1>>
-    Elder: Good. You are the {$npc.helpers}th to say so. Let's see if you're the first to return.
+    Elder: Good. You are the {ordinal($npc.helpers)} to say so. Let's see if you're the first to return.
     <<end>>
 -> What's in it for me?
     Elder: My gratitude, and a bar of good copper.

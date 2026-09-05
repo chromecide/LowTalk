@@ -3,6 +3,7 @@ package com.chromecide.lowtalk.hytale.functions;
 import com.chromecide.lowtalk.hytale.FunctionRegistry;
 import com.chromecide.lowtalk.hytale.HytaleContext;
 import com.chromecide.lowtalk.runtime.RuntimeError;
+import com.chromecide.lowtalk.runtime.TextFunctions;
 import com.chromecide.lowtalk.runtime.Values;
 import com.hypixel.hytale.builtin.adventure.objectives.Objective;
 import com.hypixel.hytale.builtin.adventure.objectives.components.ObjectiveHistoryComponent;
@@ -38,6 +39,9 @@ public final class BuiltinFunctions {
         });
         functions.register("chance", (ctx, args) -> ThreadLocalRandom.current().nextDouble() < Values.number(arg(args, 0, "chance")));
         functions.register("perm", (ctx, args) -> ctx.getPlayer().hasPermission(string(args, 0, "perm")));
+        functions.register("ordinal", (ctx, args) -> TextFunctions.ordinal(Values.number(arg(args, 0, "ordinal"))));
+        functions.register("plural", (ctx, args) -> TextFunctions.plural(Values.number(arg(args, 0, "plural")),
+                string(args, 1, "plural"), args.size() > 2 ? Values.text(args.get(2)) : null));
 
         functions.register("count", (ctx, args) -> (double) countItems(ctx, string(args, 0, "count")));
         functions.register("has", (ctx, args) -> {

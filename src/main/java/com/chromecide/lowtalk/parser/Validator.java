@@ -45,7 +45,7 @@ public final class Validator {
     public static final Set<String> ATTITUDES = Set.of("ignore", "hostile", "neutral", "friendly", "revered");
 
     public static final Set<String> BUILTIN_FUNCTIONS = Set.of(
-            "player", "npc", "has", "count", "visited", "objective", "attitude", "perm", "hour", "random", "chance"
+            "player", "npc", "has", "count", "visited", "objective", "attitude", "perm", "hour", "random", "chance", "ordinal", "plural"
     );
 
     private final Set<String> extraCommands;

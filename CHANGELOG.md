@@ -8,7 +8,7 @@ First working version.
   once-blocks, set, jump, end, text input, interpolation, expressions.
 - Five variable scopes: local (player with NPC), player, npc, world, tmp.
 - Built-in functions: has, count, visited, objective, attitude, perm, hour,
-  random, chance.
+  random, chance, ordinal, plural.
 - Built-in commands: give, take, shop, attitude, objective, anim, sound, run.
 - Bind dialogues to NPC roles or to individual NPCs by tag; replace or
   crouch interaction modes.
