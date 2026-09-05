@@ -42,7 +42,7 @@ class DialogueParserTest {
         assertEquals(List.of("Kweebec_Merchant", "@elder"), d.bindings());
         assertEquals(2, d.starts().size());
         assertEquals("returning", d.starts().get(0).node());
-        assertEquals(new Expr.Var("player", "met"), d.starts().get(0).condition());
+        assertEquals(new Expr.Var("local", "met"), d.starts().get(0).condition());
         assertEquals("first", d.starts().get(1).node());
         assertNull(d.starts().get(1).condition());
         assertEquals("Merchant", d.speaker());
@@ -118,7 +118,7 @@ class DialogueParserTest {
 
         Option secret = c.options().get(1);
         assertEquals("Secret", secret.text().debugString());
-        assertEquals(new Expr.Var("player", "knows"), secret.guard());
+        assertEquals(new Expr.Var("local", "knows"), secret.guard());
         assertEquals(new Statement.Jump(secret.body().get(0).pos(), "secret"), secret.body().get(0));
 
         Option greyed = c.options().get(2);
@@ -165,12 +165,12 @@ class DialogueParserTest {
         assertEquals(2, n.body().size());
         Statement.Conditional c = (Statement.Conditional) n.body().get(0);
         assertEquals(3, c.branches().size());
-        assertEquals(new Expr.Var("player", "met"), c.branches().get(0).condition());
+        assertEquals(new Expr.Var("local", "met"), c.branches().get(0).condition());
         assertInstanceOf(Expr.Call.class, c.branches().get(1).condition());
         assertNull(c.branches().get(2).condition());
         assertEquals(2, c.branches().get(2).body().size());
         Statement.Set set = (Statement.Set) c.branches().get(2).body().get(1);
-        assertEquals(new Expr.Var("player", "met"), set.target());
+        assertEquals(new Expr.Var("local", "met"), set.target());
         assertEquals(new Expr.Literal(true), set.value());
     }
 

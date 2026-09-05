@@ -135,8 +135,8 @@ class ConversationTest {
                 """);
         assertEquals("First.", say(c.start().step()).text());
         assertInstanceOf(Step.Finish.class, c.next().step());
-        assertEquals(true, ctx.getVar("player", "met"));
-        assertEquals(1.0, ctx.getVar("player", "n"));
+        assertEquals(true, ctx.getVar("local", "met"));
+        assertEquals(1.0, ctx.getVar("local", "n"));
 
         Conversation c2 = conv("== a\n<<if $met>>\n  Again.\n<<else>>\n  First.\n<<endif>>\n");
         assertEquals("Again.", say(c2.start().step()).text());
@@ -163,7 +163,7 @@ class ConversationTest {
                 Back.
                 """;
         assertEquals("First.", say(conv(src).start().step()).text());
-        ctx.setVar("player", "met", true);
+        ctx.setVar("local", "met", true);
         assertEquals("Back.", say(conv(src).start().step()).text());
     }
 
@@ -184,7 +184,7 @@ class ConversationTest {
 
     @Test
     void commandsBecomeEffectsWithRenderedArgs() {
-        ctx.setVar("player", "n", 2.0);
+        ctx.setVar("local", "n", 2.0);
         Conversation c = conv("== a\n<<give Food_Bread {$n}>>\n<<run \"/say hi {player}\">>\nDone.\n");
         Conversation.Result r = c.start();
         assertEquals("Done.", say(r.step()).text());

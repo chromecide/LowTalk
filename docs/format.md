@@ -105,10 +105,20 @@ Plugins can register additional commands.
 
 | Form | Scope | Persists |
 |------|-------|----------|
-| `$name` | this player, this dialogue's scope | yes |
-| `$npc.name` | this NPC entity, all players | yes |
+| `$name` | this player with this NPC: "the merchant remembers me" | yes |
+| `$player.name` | this player everywhere: story progress that any NPC can see | yes |
+| `$npc.name` | this NPC, all players: "how many people have asked" | yes |
 | `$world.name` | every player and NPC | yes |
 | `$tmp.name` | this conversation only | no |
+
+Two NPCs of the same role each keep their own `$name` variables about a
+player, so meeting one merchant does not make every merchant act as if it
+knows you. Use `$player.name` for anything that should carry over. Visited
+nodes and once-blocks are also tracked per player and NPC.
+
+All persistent scopes are additionally namespaced by the dialogue's `scope:`
+(default: the file name), so two files only share variables if they declare
+the same scope.
 
 Values are numbers, strings, or booleans. Unset variables read as `false`.
 

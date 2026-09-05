@@ -25,6 +25,8 @@ public final class ExprParser {
 
     private static final Set<String> COMPARE = Set.of("==", "!=", "<", "<=", ">", ">=");
     static final Set<String> VAR_SCOPES = Set.of("player", "npc", "world", "tmp");
+    /** Scope of a bare $name: this player with this NPC. */
+    public static final String DEFAULT_SCOPE = "local";
 
     private final List<Token> tokens;
     private final Pos pos;
@@ -161,7 +163,7 @@ public final class ExprParser {
         throw new ParseException(pos, "unexpected token in expression");
     }
 
-    /** "$name" -> player scope; "$npc.name" etc. -> that scope. */
+    /** "$name" -> local scope (this player with this NPC); "$player.name", "$npc.name" etc. -> that scope. */
     static Expr.Var toVar(String dollarName) {
         String body = dollarName.substring(1);
         int dot = body.indexOf('.');
@@ -171,9 +173,9 @@ public final class ExprParser {
             if (VAR_SCOPES.contains(scope) && !name.isEmpty() && !name.contains(".")) {
                 return new Expr.Var(scope, name);
             }
-            // Not a known scope: treat the whole thing as a player variable name (dots allowed).
+            // Not a known scope: treat the whole thing as a local variable name (dots allowed).
         }
-        return new Expr.Var("player", body);
+        return new Expr.Var(DEFAULT_SCOPE, body);
     }
 
     // ---- token helpers

@@ -7,7 +7,7 @@ public sealed interface Expr {
 
     record Literal(Object value) implements Expr {}
 
-    /** A variable reference such as $met, $npc.helpers, $world.season, $tmp.answer. */
+    /** A variable reference: $met (local: this player with this NPC), $player.x, $npc.x, $world.x, $tmp.x. */
     record Var(String scope, String name) implements Expr {}
 
     record Unary(String op, Expr operand) implements Expr {}

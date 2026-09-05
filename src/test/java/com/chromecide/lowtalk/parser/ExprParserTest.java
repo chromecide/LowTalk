@@ -28,12 +28,13 @@ class ExprParserTest {
 
     @Test
     void variableScopes() {
-        assertEquals(new Expr.Var("player", "met"), p("$met"));
+        assertEquals(new Expr.Var("local", "met"), p("$met"));
+        assertEquals(new Expr.Var("player", "met"), p("$player.met"));
         assertEquals(new Expr.Var("npc", "helpers"), p("$npc.helpers"));
         assertEquals(new Expr.Var("world", "season"), p("$world.season"));
         assertEquals(new Expr.Var("tmp", "answer"), p("$tmp.answer"));
         // Unknown prefix is just a dotted player variable.
-        assertEquals(new Expr.Var("player", "quest.stage"), p("$quest.stage"));
+        assertEquals(new Expr.Var("local", "quest.stage"), p("$quest.stage"));
     }
 
     @Test
@@ -64,7 +65,7 @@ class ExprParserTest {
         assertEquals("and", e.op());
         assertEquals("or", ((Expr.Binary) e.left()).op());
         Expr.Binary lt = (Expr.Binary) e.right();
-        assertEquals(new Expr.Unary("-", new Expr.Var("player", "c")), lt.left());
+        assertEquals(new Expr.Unary("-", new Expr.Var("local", "c")), lt.left());
     }
 
     @Test

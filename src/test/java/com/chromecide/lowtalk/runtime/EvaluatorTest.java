@@ -36,7 +36,7 @@ class EvaluatorTest {
 
     @Test
     void stringsConcatenateAndCompare() {
-        ctx.setVar("player", "name", "Bram");
+        ctx.setVar("local", "name", "Bram");
         assertEquals("Hi Bram", eval("\"Hi \" + $name"));
         assertEquals(true, eval("$name == \"Bram\""));
         assertEquals(true, eval("$name != \"bram\""));
@@ -45,7 +45,7 @@ class EvaluatorTest {
 
     @Test
     void numericStringsStillAdd() {
-        ctx.setVar("player", "n", "2");
+        ctx.setVar("local", "n", "2");
         assertEquals(5.0, eval("$n + 3"));
     }
 
@@ -65,8 +65,8 @@ class EvaluatorTest {
 
     @Test
     void textRendering() {
-        ctx.setVar("player", "coins", 3.0);
-        ctx.setVar("player", "half", 2.5);
+        ctx.setVar("local", "coins", 3.0);
+        ctx.setVar("local", "half", 2.5);
         String s = Evaluator.render(TextParser.parse("{player} meets {npc} with {$coins} coins and {$half} more, {{braces}}", POS), ctx);
         assertEquals("Chromecide meets Rootling Merchant with 3 coins and 2.5 more, {braces}", s);
     }

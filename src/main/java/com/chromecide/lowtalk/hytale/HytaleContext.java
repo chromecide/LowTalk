@@ -20,6 +20,7 @@ public class HytaleContext implements Context {
     private final String npcName;
     private final VariableStore store;
     private final FunctionRegistry functions;
+    private final VariableStore.Record localRecord;
     private final VariableStore.Record playerRecord;
     private final VariableStore.Record npcRecord;
     private final VariableStore.Record worldRecord;
@@ -33,6 +34,7 @@ public class HytaleContext implements Context {
         this.npcName = npcName;
         this.store = store;
         this.functions = functions;
+        this.localRecord = store.pair(player.getUuid(), npcId);
         this.playerRecord = store.player(player.getUuid());
         this.npcRecord = store.npc(npcId);
         this.worldRecord = store.world();
@@ -46,6 +48,7 @@ public class HytaleContext implements Context {
 
     private VariableStore.Record recordFor(String scope) {
         return switch (scope) {
+            case "local" -> localRecord;
             case "player" -> playerRecord;
             case "npc" -> npcRecord;
             case "world" -> worldRecord;
@@ -79,21 +82,21 @@ public class HytaleContext implements Context {
 
     @Override
     public boolean hasVisited(String node) {
-        return store.hasVisited(playerRecord, dialogue.id(), node);
+        return store.hasVisited(localRecord, dialogue.id(), node);
     }
 
     @Override
     public void markVisited(String node) {
-        store.markVisited(playerRecord, dialogue.id(), node);
+        store.markVisited(localRecord, dialogue.id(), node);
     }
 
     @Override
     public boolean onceDone(String key) {
-        return store.onceDone(playerRecord, dialogue.id(), key);
+        return store.onceDone(localRecord, dialogue.id(), key);
     }
 
     @Override
     public void markOnce(String key) {
-        store.markOnce(playerRecord, dialogue.id(), key);
+        store.markOnce(localRecord, dialogue.id(), key);
     }
 }

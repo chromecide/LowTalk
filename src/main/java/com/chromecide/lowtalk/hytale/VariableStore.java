@@ -57,6 +57,11 @@ public class VariableStore {
         return load("players/" + id);
     }
 
+    /** This player's memory with one specific NPC: bare $variables, visited nodes, once keys. */
+    public Record pair(@Nonnull UUID playerId, @Nonnull UUID npcId) {
+        return load("players/" + playerId + "/" + npcId);
+    }
+
     public Record npc(@Nonnull UUID id) {
         return load("npcs/" + id);
     }
@@ -149,6 +154,29 @@ public class VariableStore {
             r.once.remove(dialogueId);
             r.dirty = true;
         }
+    }
+
+    /** Forget everything about one player: their variables and every NPC's memory of them. */
+    public int resetPlayer(@Nonnull UUID playerId) {
+        String prefix = "players/" + playerId;
+        cache.keySet().removeIf(k -> k.equals(prefix) || k.startsWith(prefix + "/"));
+        int removed = 0;
+        try {
+            Path file = root.resolve(prefix + ".json");
+            if (Files.deleteIfExists(file)) removed++;
+            Path dir = root.resolve(prefix);
+            if (Files.isDirectory(dir)) {
+                try (var s = Files.list(dir)) {
+                    for (Path p : s.toList()) {
+                        if (Files.deleteIfExists(p)) removed++;
+                    }
+                }
+                Files.deleteIfExists(dir);
+            }
+        } catch (IOException e) {
+            logger.at(Level.WARNING).log("Could not reset %s: %s", prefix, e.toString());
+        }
+        return removed;
     }
 
     // ---- persistence

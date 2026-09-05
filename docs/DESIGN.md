@@ -90,10 +90,11 @@ through the API.
 Variables are the only state. Three JSON files per world under the plugin's
 data folder:
 
-- `players/<uuid>.json` per-player variables, keyed by scope then name, plus
-  the set of visited nodes
-- `npcs/<uuid>.json` per-NPC variables
-- `world.json` world variables
+- `players/<uuid>/<npc uuid>.json` what one NPC knows about one player:
+  bare `$variables`, visited nodes, once keys
+- `players/<uuid>.json` `$player.` variables that follow the player everywhere
+- `npcs/<uuid>.json` `$npc.` variables and the NPC's tags
+- `world.json` `$world.` variables
 
 Writes are batched and atomic (write to a temp file, then move). A
 conversation ending, a server save, and a shutdown all flush.
@@ -151,8 +152,9 @@ See [format.md](format.md). Design notes on the choices:
 - **Hubs by default.** An option body that does not jump or end returns to
   the same options. This matches how most NPC conversations actually work and
   avoids a `<<jump self>>` on every branch.
-- **Four variable scopes.** Player, NPC, world, and temporary. Explicit
-  prefixes beat implicit rules.
+- **Five variable scopes.** Local (player with NPC), player, NPC, world, and
+  temporary. The bare form is the one writers reach for most, "this NPC
+  remembers me", and explicit prefixes cover the rest.
 - **Effects are commands, checks are functions.** `<<give>>` does something;
   `has()` asks something. Never the same word for both.
 

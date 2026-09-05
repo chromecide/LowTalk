@@ -37,6 +37,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         this.addSubCommand(new Tag(plugin, false));
         this.addSubCommand(new Tags(plugin));
         this.addSubCommand(new Vars(plugin));
+        this.addSubCommand(new Reset(plugin));
         this.addSubCommand(new Stop(plugin));
     }
 
@@ -198,6 +199,25 @@ public class LowTalkCommand extends AbstractCommandCollection {
             }
             scopes.forEach((scope, vars) -> vars.forEach((k, v) ->
                     context.sendMessage(info(plugin, scope + ": $" + k + " = " + v))));
+        }
+    }
+
+    /** Forget everything every dialogue knows about you. For testing. */
+    static class Reset extends AbstractPlayerCommand {
+        private final LowTalkPlugin plugin;
+
+        Reset(LowTalkPlugin plugin) {
+            super("reset", "Forget everything every dialogue knows about you");
+            this.plugin = plugin;
+            this.requirePermission(ADMIN);
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef player, @Nonnull World world) {
+            plugin.getSessions().end(player.getUuid());
+            int removed = plugin.getStore().resetPlayer(player.getUuid());
+            context.sendMessage(info(plugin, "Forgotten. " + removed + " memory file(s) removed; every NPC meets you fresh now."));
         }
     }
 
