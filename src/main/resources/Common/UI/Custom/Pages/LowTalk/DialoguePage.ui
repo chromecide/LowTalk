@@ -4,14 +4,14 @@ $Sounds = "../../Sounds.ui";
 // Options look like the game's own choice lists: plain text that lights up on hover.
 @OptionStyle = (
   Default: (
-    LabelStyle: (FontSize: 16, TextColor: #d6e2f0, HorizontalAlignment: Left, VerticalAlignment: Center)
+    LabelStyle: (FontSize: 16, TextColor: #d6e2f0, HorizontalAlignment: Start, VerticalAlignment: Center)
   ),
   Hovered: (
-    LabelStyle: (FontSize: 16, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Left, VerticalAlignment: Center),
+    LabelStyle: (FontSize: 16, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Start, VerticalAlignment: Center),
     Background: #ffffff(0.08)
   ),
   Pressed: (
-    LabelStyle: (FontSize: 16, TextColor: #ffd37a, RenderBold: true, HorizontalAlignment: Left, VerticalAlignment: Center),
+    LabelStyle: (FontSize: 16, TextColor: #ffd37a, RenderBold: true, HorizontalAlignment: Start, VerticalAlignment: Center),
     Background: #ffffff(0.12)
   ),
   Sounds: $Sounds.@ButtonsLight
