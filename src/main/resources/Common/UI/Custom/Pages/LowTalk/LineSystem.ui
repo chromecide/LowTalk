@@ -1,0 +1,10 @@
+$C = "../../Common.ui";
+
+Group {
+  LayoutMode: Top;
+  Anchor: (Bottom: 10);
+
+  Label #Text {
+    Style: (FontSize: 14, TextColor: #8fa3b8, Wrap: true, HorizontalAlignment: Center);
+  }
+}

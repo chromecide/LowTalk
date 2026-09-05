@@ -30,6 +30,9 @@ import java.util.List;
 public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
 
     private static final String LAYOUT = "Pages/LowTalk/DialoguePage.ui";
+    private static final String LINE_NPC = "Pages/LowTalk/LineNpc.ui";
+    private static final String LINE_PLAYER = "Pages/LowTalk/LinePlayer.ui";
+    private static final String LINE_SYSTEM = "Pages/LowTalk/LineSystem.ui";
     public static final int OPTION_SLOTS = 8;
     private static final int KEY_RETURN = 13;
     private static final int KEY_KP_ENTER = 1073741912;
@@ -59,6 +62,9 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
     private Step current;
     /** For the current Choose step: slot number -> option index, or -1 for a disabled slot. */
     private final List<Integer> slotToOption = new ArrayList<>();
+    /** Transcript entries waiting to be appended on the next render. */
+    private final List<String[]> pendingLines = new ArrayList<>();
+    private int transcriptCount = 0;
     private volatile boolean open = true;
     private volatile long openedAt = System.currentTimeMillis();
 
@@ -76,20 +82,55 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
     /** Called before the page is opened, and again for each new step. */
     public void show(@Nonnull Step step) {
         this.current = step;
+        switch (step) {
+            case Step.Say say -> queueLine(LINE_NPC, say.speaker(), say.text());
+            case Step.Choose choose -> {
+                if (choose.line() != null) queueLine(LINE_NPC, choose.line().speaker(), choose.line().text());
+            }
+            case Step.Ask ask -> queueLine(LINE_NPC, null, ask.prompt());
+            case Step.Finish f -> {}
+        }
+    }
+
+    /** The player chose an option or typed an answer; echo it into the transcript. */
+    public void playerSaid(@Nonnull String text) {
+        queueLine(LINE_PLAYER, playerRef.getUsername(), text);
     }
 
     public void showNarration(@Nonnull String text) {
         if (!open) return;
         UICommandBuilder cmd = new UICommandBuilder();
-        cmd.set("#Narration.Text", text);
+        queueLine(LINE_SYSTEM, null, text);
+        flushLines(cmd);
         sendUpdate(cmd, null, false);
+    }
+
+    private void queueLine(String layout, String speaker, String text) {
+        pendingLines.add(new String[] {layout, speaker == null ? "" : speaker, text == null ? "" : text});
+    }
+
+    private void flushLines(UICommandBuilder cmd) {
+        for (String[] line : pendingLines) {
+            cmd.append("#Transcript", line[0]);
+            String sel = "#Transcript[" + transcriptCount + "]";
+            if (!line[0].equals(LINE_SYSTEM)) {
+                cmd.set(sel + " #Speaker.Text", line[1]);
+            }
+            cmd.set(sel + " #Text.Text", line[2]);
+            transcriptCount++;
+        }
+        pendingLines.clear();
+        if (transcriptCount > 0) {
+            cmd.set("#Transcript.ScrollChildIndexIntoView", transcriptCount - 1);
+        }
     }
 
     @Override
     public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder cmd, @Nonnull UIEventBuilder evt, @Nonnull Store<EntityStore> store) {
         cmd.append(LAYOUT);
         cmd.set("#NpcTitle.Text", title);
-        cmd.set("#Narration.Text", "");
+        cmd.clear("#Transcript");
+        transcriptCount = 0;
         if (portrait != null) {
             cmd.set("#Portrait.Background", portrait);
             cmd.set("#PortraitBox.Visible", true);
@@ -124,17 +165,11 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
         cmd.set("#InputRow.Visible", false);
         cmd.set("#ContinueRow.Visible", false);
         cmd.set("#CloseRow.Visible", true);
+        flushLines(cmd);
 
         switch (current) {
-            case Step.Say say -> {
-                setLine(cmd, say);
-                cmd.set("#ContinueRow.Visible", !say.last());
-                cmd.set("#CloseRow.Visible", true);
-            }
+            case Step.Say say -> cmd.set("#ContinueRow.Visible", !say.last());
             case Step.Choose choose -> {
-                if (choose.line() != null) {
-                    setLine(cmd, choose.line());
-                }
                 int slot = 0;
                 for (Step.Shown o : choose.options()) {
                     if (slot >= OPTION_SLOTS) break;
@@ -145,21 +180,11 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
                 }
             }
             case Step.Ask ask -> {
-                cmd.set("#Speaker.Text", "");
-                cmd.set("#Text.Text", ask.prompt());
                 cmd.set("#Input.Value", "");
                 cmd.set("#InputRow.Visible", true);
             }
-            case Step.Finish f -> {
-                cmd.set("#Speaker.Text", "");
-                cmd.set("#Text.Text", "");
-            }
+            case Step.Finish f -> {}
         }
-    }
-
-    private static void setLine(UICommandBuilder cmd, Step.Say say) {
-        cmd.set("#Speaker.Text", say.speaker() == null ? "" : say.speaker());
-        cmd.set("#Text.Text", say.text());
     }
 
     @Override
@@ -195,16 +220,22 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
                 session.onChoose(optionIndex);
             }
             case OK -> {
-                if (current instanceof Step.Ask) session.onAnswer(data.text == null ? "" : data.text);
+                if (current instanceof Step.Ask) answer(data.text);
             }
             case KEY -> {
                 if (current instanceof Step.Ask && data.keycode != null && !Boolean.TRUE.equals(data.repeat)
                         && (data.keycode == KEY_RETURN || data.keycode == KEY_KP_ENTER)) {
-                    session.onAnswer(data.text == null ? "" : data.text);
+                    answer(data.text);
                 }
             }
             case CLOSE -> session.onLeave();
         }
+    }
+
+    private void answer(String raw) {
+        String text = raw == null ? "" : raw.trim();
+        playerSaid(text.isEmpty() ? "..." : text);
+        session.onAnswer(text);
     }
 
     @Override

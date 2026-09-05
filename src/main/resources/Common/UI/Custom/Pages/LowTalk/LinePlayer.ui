@@ -1,0 +1,16 @@
+$C = "../../Common.ui";
+
+Group {
+  LayoutMode: Top;
+  Anchor: (Bottom: 10);
+  Padding: (Left: 24);
+
+  Label #Speaker {
+    Anchor: (Bottom: 3);
+    Style: (FontSize: 13, RenderBold: true, RenderUppercase: true, TextColor: #8fb4e6);
+  }
+
+  Label #Text {
+    Style: (...$C.@DefaultLabelStyle, FontSize: 16, TextColor: #b9c7d8, Wrap: true);
+  }
+}

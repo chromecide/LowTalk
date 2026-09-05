@@ -46,31 +46,12 @@ $C.@PageOverlay {
           }
         }
 
-        Group {
-          LayoutMode: Top;
+        Group #Transcript {
           FlexWeight: 1;
-
-          Label #Speaker {
-            Anchor: (Bottom: 6);
-            Style: (FontSize: 14, RenderBold: true, RenderUppercase: true, TextColor: #ffd37a);
-          }
-
-          Group #TextBox {
-            FlexWeight: 1;
-            LayoutMode: TopScrolling;
-            ScrollbarStyle: $C.@DefaultScrollbarStyle;
-            Padding: (Right: 8);
-
-            Label #Text {
-              Style: (...$C.@DefaultLabelStyle, FontSize: 17, TextColor: #e8eef6, Wrap: true);
-            }
-          }
+          LayoutMode: TopScrolling;
+          ScrollbarStyle: $C.@DefaultScrollbarStyle;
+          Padding: (Right: 8);
         }
-      }
-
-      Label #Narration {
-        Anchor: (Top: 6);
-        Style: (FontSize: 13, TextColor: #8fa3b8, Wrap: true, HorizontalAlignment: Center);
       }
 
       Group #Options {

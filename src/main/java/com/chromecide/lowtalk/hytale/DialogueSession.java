@@ -131,6 +131,7 @@ public class DialogueSession {
     /** Called by the page with the button text, for listeners and the log. */
     void choiceMade(String text) {
         log("chose \"" + text + "\"");
+        page.playerSaid(text);
         notify(l -> l.onChoice(context, text));
     }
 
