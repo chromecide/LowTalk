@@ -79,7 +79,7 @@ conversation. Each one remembers each player separately.
 | `/lowtalk vars` | Your saved variables |
 | `/lowtalk reset` | Forget everything every dialogue knows about you |
 | `/lowtalk test <id> [apply] [choices...]` | Play a dialogue headlessly with scripted choices |
-| `/lowtalk testworld [build]` | Build or visit the test corridor world |
+| `/lowtalk testworld build` / `go` | Build or visit the test corridor world |
 | `/lowtalk thaw` | Unfreeze the NPC you're looking at |
 | `/lowtalk stop` | Leave your current conversation |
 

@@ -288,13 +288,28 @@ public class LowTalkCommand extends AbstractCommandCollection {
         }
     }
 
-    /** /lowtalk testworld [build] : build the test corridor world, or teleport to it. */
-    static class TestWorldCommand extends AbstractPlayerCommand {
-        private final LowTalkPlugin plugin;
-        private final OptionalArg<String> actionArg = withOptionalArg("action", "'build' to create the corridor; nothing to teleport there", ArgTypes.STRING);
-
+    /** /lowtalk testworld build | go */
+    static class TestWorldCommand extends AbstractCommandCollection {
         TestWorldCommand(LowTalkPlugin plugin) {
             super("testworld", "Build or visit the LowTalk test corridor");
+            this.requirePermission(ADMIN);
+            this.addSubCommand(new TestWorldBuild(plugin));
+            this.addSubCommand(new TestWorldGo(plugin));
+        }
+    }
+
+    static java.util.function.Consumer<String> reporter(LowTalkPlugin plugin, PlayerRef player) {
+        return line -> {
+            player.sendMessage(info(plugin, line));
+            plugin.getLogger().at(java.util.logging.Level.INFO).log("[testworld] %s", line);
+        };
+    }
+
+    static class TestWorldBuild extends AbstractPlayerCommand {
+        private final LowTalkPlugin plugin;
+
+        TestWorldBuild(LowTalkPlugin plugin) {
+            super("build", "Create the test world and build the corridor of stations");
             this.plugin = plugin;
             this.requirePermission(ADMIN);
         }
@@ -302,17 +317,24 @@ public class LowTalkCommand extends AbstractCommandCollection {
         @Override
         protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
                                @Nonnull PlayerRef player, @Nonnull World world) {
-            java.util.function.Consumer<String> out = line -> {
-                player.sendMessage(info(plugin, line));
-                plugin.getLogger().at(java.util.logging.Level.INFO).log("[testworld] %s", line);
-            };
-            String action = actionArg.provided(context) ? actionArg.get(context).trim().toLowerCase() : "";
-            if (action.equals("build")) {
-                plugin.getRegistry().copyTestDialogues();
-                TestWorld.build(plugin, out);
-            } else {
-                TestWorld.teleport(plugin, player, out);
-            }
+            plugin.getRegistry().copyTestDialogues();
+            TestWorld.build(plugin, reporter(plugin, player));
+        }
+    }
+
+    static class TestWorldGo extends AbstractPlayerCommand {
+        private final LowTalkPlugin plugin;
+
+        TestWorldGo(LowTalkPlugin plugin) {
+            super("go", "Teleport to the test corridor");
+            this.plugin = plugin;
+            this.requirePermission(ADMIN);
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef player, @Nonnull World world) {
+            TestWorld.teleport(plugin, player, reporter(plugin, player));
         }
     }
 

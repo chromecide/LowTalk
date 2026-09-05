@@ -38,7 +38,7 @@ should happen. Build it once, then visit it whenever you like:
 ```
 /lowtalk testworld build     # creates the world "lowtalk_test", builds the corridor, spawns the stations
 /lowtalk reload              # picks up the station dialogues copied into dialogues/tests/
-/lowtalk testworld           # teleports you to the corridor entrance
+/lowtalk testworld go        # teleports you to the corridor entrance
 ```
 
 Walk east. Stations, in order:

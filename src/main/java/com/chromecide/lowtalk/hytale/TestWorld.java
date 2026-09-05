@@ -72,7 +72,7 @@ public final class TestWorld {
         withWorld(plugin, out, world -> world.execute(() -> {
             Store<EntityStore> store = world.getEntityStore().getStore();
             if (Boolean.TRUE.equals(plugin.getStore().get(plugin.getStore().world(), WORLD_NAME, "built"))) {
-                out.accept("The test corridor is already built. Use /lowtalk testworld to go there.");
+                out.accept("The test corridor is already built. Use /lowtalk testworld go.");
                 return;
             }
             world.getWorldConfig().setSpawningNPC(false);
@@ -96,7 +96,7 @@ public final class TestWorld {
                     int spawned = spawnStations(plugin, world, store, out);
                     plugin.getStore().set(plugin.getStore().world(), WORLD_NAME, "built", true);
                     plugin.getStore().flush();
-                    out.accept("Test corridor ready with " + spawned + " station NPC(s). Run /lowtalk reload, then /lowtalk testworld to go there.");
+                    out.accept("Test corridor ready with " + spawned + " station NPC(s). Run /lowtalk reload, then /lowtalk testworld go.");
                 } catch (RuntimeException e) {
                     out.accept("Build failed: " + e);
                     plugin.getLogger().at(Level.WARNING).log("Test world build failed: %s", e.toString());
