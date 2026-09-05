@@ -4,7 +4,9 @@ import com.chromecide.lowtalk.model.Dialogue;
 import com.chromecide.lowtalk.parser.DialogueParser;
 import com.chromecide.lowtalk.parser.ParseException;
 import com.chromecide.lowtalk.parser.Validator;
+import com.hypixel.hytale.assetstore.AssetPack;
 import com.hypixel.hytale.logger.HytaleLogger;
+import com.hypixel.hytale.server.core.asset.AssetModule;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -23,27 +25,54 @@ import java.util.logging.Level;
 import java.util.stream.Stream;
 
 /**
- * Loads every .talk file from the dialogues folder and answers "which dialogue does this NPC use".
- * Reloading swaps the whole set atomically; sessions already running keep their old tree.
+ * Loads .talk files and answers "which dialogue does this NPC use".
+ *
+ * Two kinds of source: the plugin's own dialogues folder (server-side files, copied examples, the test corridor),
+ * and every loaded asset pack's {@code Server/LowTalk/Dialogues} folder, which is where creators author in the
+ * game's Asset Editor. A full {@link #reload} rescans everything; the Asset Editor hot-loads single files through
+ * {@link #loadFile} and {@link #unloadFile}. Sessions already running keep their old tree.
  */
 public class DialogueRegistry {
+    public record LoadReport(int files, int loaded, int errors, int warnings, List<String> messages) {
+        public boolean ok() {
+            return errors == 0;
+        }
+    }
 
-    public record LoadReport(int files, int loaded, int errors, int warnings, List<String> messages) {}
+    /** Where dialogues live inside an asset pack. */
+    public static final String PACK_DIR = "Server/LowTalk/Dialogues";
 
     private static final String[] BUNDLED_EXAMPLES = {"rootling_merchant.talk", "village_elder.talk", "fortune_teller.talk"};
+    private static final String[] TEST_DIALOGUES = {
+            "test_basics.talk", "test_memory.talk", "test_input.talk", "test_items.talk", "test_feedback.talk",
+            "test_body.talk", "test_progress.talk", "test_travel.talk", "test_random.talk", "test_format.talk", "_shared.talk", "test_world.talk", "test_npc.talk"
+    };
+
+    /** A root folder that holds .talk files; {@code label} prefixes file names in messages ("" for the plugin folder). */
+    private record Source(String label, Path root) {
+        String display(Path file) {
+            String rel = root.relativize(file).toString().replace('\\', '/');
+            return label.isEmpty() ? rel : label + ":" + rel;
+        }
+    }
+
+    /** One loaded file. */
+    public record Loaded(Path file, String display, Dialogue dialogue) {}
 
     private final Path folder;
     private final HytaleLogger logger;
     private final Set<String> extraCommands;
     private final Set<String> extraFunctions;
 
+    /** Loaded files by absolute path, in load order. Guarded by {@code this}. */
+    private final Map<Path, Loaded> files = new LinkedHashMap<>();
     private volatile Map<String, Dialogue> byId = Map.of();
     private volatile Map<String, List<Dialogue>> byRole = Map.of();
     private volatile Map<String, List<Dialogue>> byTag = Map.of();
 
     public DialogueRegistry(@Nonnull Path folder, @Nonnull HytaleLogger logger,
                             @Nonnull Set<String> extraCommands, @Nonnull Set<String> extraFunctions) {
-        this.folder = folder;
+        this.folder = folder.toAbsolutePath().normalize();
         this.logger = logger;
         this.extraCommands = extraCommands;
         this.extraFunctions = extraFunctions;
@@ -52,6 +81,8 @@ public class DialogueRegistry {
     public Path getFolder() {
         return folder;
     }
+
+    // ---- bundled files
 
     /** Copy the bundled examples into the folder if it has no dialogues yet. */
     public void copyExamplesIfEmpty() {
@@ -76,11 +107,6 @@ public class DialogueRegistry {
             logger.at(Level.WARNING).log("Could not copy example dialogues: %s", e.toString());
         }
     }
-
-    private static final String[] TEST_DIALOGUES = {
-            "test_basics.talk", "test_memory.talk", "test_input.talk", "test_items.talk", "test_feedback.talk",
-            "test_body.talk", "test_progress.talk", "test_travel.talk", "test_random.talk", "test_format.talk", "_shared.talk", "test_world.talk", "test_npc.talk"
-    };
 
     /** Copy the test-corridor dialogues into dialogues/tests/, overwriting, so they match this build. */
     public void copyTestDialogues() {
@@ -108,94 +134,180 @@ public class DialogueRegistry {
         }
     }
 
-    public LoadReport reload() {
-        return reload(true);
+    // ---- sources
+
+    private List<Source> sources() {
+        List<Source> out = new ArrayList<>();
+        out.add(new Source("", folder));
+        AssetModule assets = null;
+        try {
+            assets = AssetModule.get();
+        } catch (RuntimeException ignored) {
+            // no asset module (unit tests, very early startup)
+        }
+        if (assets != null) {
+            for (AssetPack pack : assets.getAssetPacks()) {
+                try {
+                    Path root = pack.getRoot().resolve(PACK_DIR);
+                    if (Files.isDirectory(root)) out.add(new Source(pack.getName(), root.toAbsolutePath().normalize()));
+                } catch (RuntimeException ignored) {
+                    // packs inside archives may not resolve; they cannot be edited anyway
+                }
+            }
+        }
+        return out;
     }
 
-    /** @param checkAssets false during plugin setup, when the server's asset maps are not loaded yet */
-    public LoadReport reload(boolean checkAssets) {
-        Map<String, Dialogue> ids = new LinkedHashMap<>();
-        Map<String, List<Dialogue>> roles = new LinkedHashMap<>();
-        Map<String, List<Dialogue>> tags = new LinkedHashMap<>();
-        List<String> messages = new ArrayList<>();
-        int files = 0;
-        int errors = 0;
-        int warnings = 0;
-        Validator validator = new Validator(extraCommands, extraFunctions);
-
-        List<Path> paths = new ArrayList<>();
-        try {
-            Files.createDirectories(folder);
-            try (Stream<Path> s = Files.walk(folder)) {
-                s.filter(p -> p.toString().endsWith(".talk")).sorted().forEach(paths::add);
-            }
-        } catch (IOException e) {
-            messages.add("cannot read " + folder + ": " + e);
-            errors++;
+    /** The source whose root contains the file, or the file's own folder as a last resort. */
+    private Source sourceFor(Path file) {
+        Path abs = file.toAbsolutePath().normalize();
+        for (Source s : sources()) {
+            if (abs.startsWith(s.root())) return s;
         }
+        return new Source(abs.getParent().getFileName() == null ? "" : abs.getParent().getFileName().toString(), abs.getParent());
+    }
 
-        DialogueParser.IncludeResolver resolver = path -> {
+    private static DialogueParser.IncludeResolver resolverFor(Source src) {
+        return path -> {
             try {
-                Path p = folder.resolve(path).normalize();
-                if (!p.startsWith(folder.normalize()) || !Files.isRegularFile(p)) return null;
+                Path p = src.root().resolve(path).normalize();
+                if (!p.startsWith(src.root()) || !Files.isRegularFile(p)) return null;
                 return Files.readString(p, StandardCharsets.UTF_8);
             } catch (IOException e) {
                 return null;
             }
         };
-        for (Path p : paths) {
-            if (p.getFileName().toString().startsWith("_")) continue; // shared nodes, only used through include:
-            files++;
-            String rel = folder.relativize(p).toString();
+    }
+
+    // ---- loading
+
+    public LoadReport reload() {
+        return reload(true);
+    }
+
+    /** Rescan every source. @param checkAssets false during plugin setup, when the server's asset maps are not loaded yet */
+    public synchronized LoadReport reload(boolean checkAssets) {
+        Report acc = new Report();
+        files.clear();
+        for (Source src : sources()) {
+            List<Path> paths = new ArrayList<>();
             try {
-                Dialogue d = DialogueParser.parse(rel, Files.readString(p, StandardCharsets.UTF_8), resolver);
-                List<Validator.Problem> problems = validator.validate(d);
-                boolean bad = false;
-                for (Validator.Problem pr : problems) {
-                    messages.add(pr.toString());
-                    if (pr.error()) {
-                        bad = true;
-                        errors++;
-                    } else {
-                        warnings++;
-                    }
+                if (src.label().isEmpty()) Files.createDirectories(src.root());
+                try (Stream<Path> s = Files.walk(src.root())) {
+                    s.filter(p -> p.toString().endsWith(".talk")).sorted().forEach(paths::add);
                 }
-                if (bad) {
-                    messages.add("skipped " + rel + " because of errors");
-                    continue;
-                }
-                if (checkAssets) {
-                    for (String w : AssetChecks.check(d)) {
-                        messages.add(w);
-                        warnings++;
-                    }
-                }
-                if (ids.containsKey(d.id())) {
-                    messages.add("error " + rel + ": another file already uses the id '" + d.id() + "'");
-                    errors++;
-                    continue;
-                }
-                ids.put(d.id(), d);
-                for (String b : d.bindings()) {
-                    if (b.startsWith("@")) {
-                        tags.computeIfAbsent(b.substring(1), k -> new ArrayList<>()).add(d);
-                    } else {
-                        roles.computeIfAbsent(b, k -> new ArrayList<>()).add(d);
-                    }
-                }
-            } catch (ParseException e) {
-                messages.add("error " + e.getMessage());
-                errors++;
             } catch (IOException e) {
-                messages.add("error " + rel + ": " + e);
-                errors++;
+                acc.messages.add("cannot read " + src.root() + ": " + e);
+                acc.errors++;
+                continue;
+            }
+            for (Path p : paths) loadOne(src, p, null, checkAssets, acc);
+        }
+        rebuildIndexes();
+        return acc.toReport(byId.size());
+    }
+
+    /**
+     * Load or replace one file (the Asset Editor saved it). {@code content} may carry the bytes just written so the
+     * file need not be re-read. Files starting with "_" are include-only and are not registered.
+     */
+    public synchronized LoadReport loadFile(@Nonnull Path file, @Nullable String content, boolean checkAssets) {
+        Path abs = file.toAbsolutePath().normalize();
+        files.remove(abs);
+        Report acc = new Report();
+        loadOne(sourceFor(abs), abs, content, checkAssets, acc);
+        rebuildIndexes();
+        return acc.toReport(byId.size());
+    }
+
+    /** Forget one file (deleted or renamed in the Asset Editor). */
+    public synchronized boolean unloadFile(@Nonnull Path file) {
+        boolean removed = files.remove(file.toAbsolutePath().normalize()) != null;
+        if (removed) rebuildIndexes();
+        return removed;
+    }
+
+    /** What is loaded from this file, or null when it failed or is include-only. */
+    @Nullable
+    public synchronized Loaded forFile(@Nonnull Path file) {
+        return files.get(file.toAbsolutePath().normalize());
+    }
+
+    private void loadOne(Source src, Path file, @Nullable String content, boolean checkAssets, Report acc) {
+        Path abs = file.toAbsolutePath().normalize();
+        if (abs.getFileName().toString().startsWith("_")) return; // shared nodes, only used through include:
+        acc.files++;
+        String display = src.display(abs);
+        Validator validator = new Validator(extraCommands, extraFunctions);
+        try {
+            String source = content != null ? content : Files.readString(abs, StandardCharsets.UTF_8);
+            Dialogue d = DialogueParser.parse(display, source, resolverFor(src));
+            boolean bad = false;
+            for (Validator.Problem pr : validator.validate(d)) {
+                acc.messages.add(pr.toString());
+                if (pr.error()) {
+                    bad = true;
+                    acc.errors++;
+                } else {
+                    acc.warnings++;
+                }
+            }
+            if (bad) {
+                acc.messages.add("skipped " + display + " because of errors");
+                return;
+            }
+            if (checkAssets) {
+                for (String w : AssetChecks.check(d)) {
+                    acc.messages.add(w);
+                    acc.warnings++;
+                }
+            }
+            for (Loaded other : files.values()) {
+                if (other.dialogue().id().equals(d.id())) {
+                    acc.messages.add("error " + display + ": another file (" + other.display() + ") already uses the id '" + d.id() + "'");
+                    acc.errors++;
+                    return;
+                }
+            }
+            files.put(abs, new Loaded(abs, display, d));
+        } catch (ParseException e) {
+            acc.messages.add("error " + e.getMessage());
+            acc.errors++;
+        } catch (IOException e) {
+            acc.messages.add("error " + display + ": " + e);
+            acc.errors++;
+        }
+    }
+
+    private void rebuildIndexes() {
+        Map<String, Dialogue> ids = new LinkedHashMap<>();
+        Map<String, List<Dialogue>> roles = new LinkedHashMap<>();
+        Map<String, List<Dialogue>> tags = new LinkedHashMap<>();
+        for (Loaded l : files.values()) {
+            Dialogue d = l.dialogue();
+            ids.put(d.id(), d);
+            for (String b : d.bindings()) {
+                if (b.startsWith("@")) {
+                    tags.computeIfAbsent(b.substring(1), k -> new ArrayList<>()).add(d);
+                } else {
+                    roles.computeIfAbsent(b, k -> new ArrayList<>()).add(d);
+                }
             }
         }
-
         byId = Collections.unmodifiableMap(ids);
         byRole = Collections.unmodifiableMap(roles);
         byTag = Collections.unmodifiableMap(tags);
-        return new LoadReport(files, ids.size(), errors, warnings, messages);
+    }
+
+    private static final class Report {
+        int files;
+        int errors;
+        int warnings;
+        final List<String> messages = new ArrayList<>();
+
+        LoadReport toReport(int loaded) {
+            return new LoadReport(files, loaded, errors, warnings, List.copyOf(messages));
+        }
     }
 
     /** Run only the asset id checks over everything loaded, once assets are available. */
@@ -205,12 +317,14 @@ public class DialogueRegistry {
         return out;
     }
 
-    @Nullable
+    // ---- lookups
+
     /** Every loaded dialogue, in load order. */
     public List<Dialogue> all() {
         return new ArrayList<>(byId.values());
     }
 
+    @Nullable
     public Dialogue byId(String id) {
         return byId.get(id);
     }

@@ -24,6 +24,9 @@ First working version.
 - World and NPC control through the game's own systems: `weather`, `time`,
   `npc_name`, `state`, `despawn`, `spawn`; objective lines, cancel and task
   completion; `t()` translations, `weather()`, `objective_line()`.
+- `.talk` is an Asset Editor asset type: creators edit dialogues in the game's
+  own editor under `Server/LowTalk/Dialogues`, with live loading and
+  line-numbered feedback as editor notifications.
 - Hooks into official extension points: a `LowTalkDialogue` trigger-volume
   effect, a `LowTalk` page for `OpenCustomUI` interactions, a `LowTalkDialogue`
   choice interaction, and `on: join` dialogues.

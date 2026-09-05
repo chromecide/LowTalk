@@ -63,6 +63,10 @@ conversation. Each one remembers each player separately.
   also start from the in-game Trigger Volume Tool, from any `OpenCustomUI`
   interaction, from shop-style choice pages, or when a player joins.
 - A validator with file and line numbers, usable in game and from the shell.
+- Creators author in the game's own Asset Editor: `.talk` is a registered
+  asset type, edited in the editor's text mode under
+  `Server/LowTalk/Dialogues` in any asset pack, hot-loaded on save with
+  problems shown as editor notifications.
 - An API for other plugins: add functions and commands, listen to
   conversations, open dialogues.
 
@@ -95,6 +99,23 @@ Permissions: `lowtalk.creator` covers authoring (`list`, `open`, `tags`, `vars`,
 `reset`, `test`); `lowtalk.admin` covers server operation (`reload`, `tag`,
 `untag`, `thaw`, `testworld`). Give admins `lowtalk.*`. Players need nothing:
 they reach dialogues only by using an NPC, and `stop` is open to everyone.
+
+## Editing in game
+
+LowTalk registers `.talk` with Hytale's Asset Editor, so dialogue authoring
+uses the game's own tooling rather than a separate editor:
+
+1. Open the Asset Editor and create or open a writable asset pack.
+2. Create the folder `Server/LowTalk/Dialogues` and add a `.talk` file there.
+   Files starting with `_` are shared includes and are not dialogues by
+   themselves.
+3. Edit it in the editor's text mode. Each save is parsed, validated and
+   loaded live; errors and warnings arrive as editor notifications with line
+   numbers, and selecting a file shows what is loaded from it.
+4. Talk to a bound NPC, or use `/lowtalk open <id>`, to try it.
+
+Dialogues in the plugin's own `dialogues` folder keep working alongside the
+pack ones; ids must be unique across both.
 
 ## Configuration
 

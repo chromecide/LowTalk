@@ -105,6 +105,14 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
             getLogger().at(Level.WARNING).log("Could not register the LowTalk page for OpenCustomUI interactions: %s", e.toString());
         }
         try {
+            com.hypixel.hytale.builtin.asseteditor.AssetEditorPlugin.get().getAssetTypeRegistry()
+                    .registerAssetType(new com.chromecide.lowtalk.hytale.integrations.LowTalkAssetTypeHandler(this));
+            this.getEventRegistry().register(com.hypixel.hytale.builtin.asseteditor.event.AssetEditorSelectAssetEvent.class,
+                    e -> com.chromecide.lowtalk.hytale.integrations.LowTalkAssetTypeHandler.onSelect(this, e));
+        } catch (RuntimeException e) {
+            getLogger().at(Level.WARNING).log("Could not register .talk files with the Asset Editor: %s", e.toString());
+        }
+        try {
             com.hypixel.hytale.server.core.entity.entities.player.pages.choices.ChoiceInteraction.CODEC.register(
                     com.chromecide.lowtalk.hytale.integrations.LowTalkChoiceInteraction.TYPE_ID,
                     com.chromecide.lowtalk.hytale.integrations.LowTalkChoiceInteraction.class,
