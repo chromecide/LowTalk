@@ -36,7 +36,7 @@ nameplate says what it tests and whose dialogue tells you what to do and what
 should happen. Build it once, then visit it whenever you like:
 
 ```
-/lowtalk testworld build     # creates the world "lowtalk_test", builds the corridor, spawns the stations
+/lowtalk testworld build     # creates the world "lowtalk_test", builds the corridor, spawns the stations; run again to rebuild in place
 /lowtalk reload              # picks up the station dialogues copied into dialogues/tests/
 /lowtalk testworld go        # teleports you to the corridor entrance
 /lowtalk testworld respawn   # fresh run: forgets your dialogue memory, resets standing with LowTalk_Testers,

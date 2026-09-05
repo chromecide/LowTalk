@@ -93,10 +93,10 @@ public final class TestWorld {
             boolean built = Boolean.TRUE.equals(plugin.getStore().get(plugin.getStore().world(), WORLD_NAME, "built"));
             Object storedEnd = plugin.getStore().get(plugin.getStore().world(), WORLD_NAME, "end");
             if (built && storedEnd instanceof Number n && n.intValue() == CORRIDOR_END) {
-                out.accept("The test corridor is already built. Use /lowtalk testworld go.");
-                return;
+                out.accept("Rebuilding the corridor in place (blocks are reset, stations respawn).");
+            } else if (built) {
+                out.accept("The corridor has grown since it was built; extending it and respawning the stations.");
             }
-            if (built) out.accept("The corridor has grown since it was built; extending it and respawning the stations.");
             world.getWorldConfig().setSpawningNPC(false);
             world.getWorldConfig().markChanged();
             WorldTimeResource time = store.getResource(WorldTimeResource.getResourceType());
@@ -294,6 +294,10 @@ public final class TestWorld {
             boolean stripe = stationXs.contains(x);
             for (int z = -HALF_WIDTH; z <= HALF_WIDTH; z++) {
                 placed += set(world, chunkStore, x, FLOOR_Y, z, stripe ? STRIPE : FLOOR) ? 1 : 0;
+                // Clear the walkway so an end cap from a shorter corridor, or anything built inside, is removed.
+                for (int y = 1; y <= WALL_HEIGHT; y++) {
+                    placed += set(world, chunkStore, x, FLOOR_Y + y, z, BlockType.EMPTY_KEY) ? 1 : 0;
+                }
             }
             for (int side = -1; side <= 1; side += 2) {
                 int z = side * (HALF_WIDTH + 1);
