@@ -2,6 +2,7 @@ package com.chromecide.lowtalk.hytale;
 
 import com.chromecide.lowtalk.LowTalkPlugin;
 import com.hypixel.hytale.component.Ref;
+import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.math.vector.Rotation3f;
@@ -44,17 +45,20 @@ public final class TestWorld {
     /** A test station: where it stands, what NPC role plays it, the tag its dialogue binds to, and the nameplate. */
     public record Station(int x, String role, String tag, String label) {}
 
+    /** LowTalk's own static talker role, shipped in the asset pack (Server/NPC/Roles/LowTalk/). */
+    public static final String TESTER = "LowTalk_Tester";
+
     public static final List<Station> STATIONS = List.of(
-            new Station(6, "Kweebec_Elder", "test_basics", "1 - Basics: choices, hubs, Continue, Leave"),
-            new Station(16, "Kweebec_Elder", "test_memory", "2A - Memory: per-NPC variables"),
-            new Station(18, "Kweebec_Elder", "test_memory", "2B - Memory: talk to A first, then me"),
-            new Station(28, "Kweebec_Elder", "test_input", "3 - Text input"),
-            new Station(38, "Kweebec_Elder", "test_items", "4 - Items: give, take, has, count"),
-            new Station(48, "Kweebec_Elder", "test_feedback", "5 - Feedback: notify, title, sound, anim"),
-            new Station(58, "Kweebec_Elder", "test_body", "6 - Body: heal, effects, stats"),
-            new Station(68, "Kweebec_Elder", "test_progress", "7 - Objectives and reputation"),
+            new Station(6, TESTER, "test_basics", "1 - Basics: choices, hubs, Continue, Leave"),
+            new Station(16, TESTER, "test_memory", "2A - Memory: per-NPC variables"),
+            new Station(18, TESTER, "test_memory", "2B - Memory: talk to A first, then me"),
+            new Station(28, TESTER, "test_input", "3 - Text input"),
+            new Station(38, TESTER, "test_items", "4 - Items: give, take, has, count"),
+            new Station(48, TESTER, "test_feedback", "5 - Feedback: notify, title, sound, anim"),
+            new Station(58, TESTER, "test_body", "6 - Body: heal, effects, stats"),
+            new Station(68, TESTER, "test_progress", "7 - Objectives and reputation"),
             new Station(78, "Kweebec_Merchant", "test_travel", "8 - Shop and teleport"),
-            new Station(88, "Kweebec_Elder", "test_random", "9 - Random, chance, ordinal, time")
+            new Station(88, TESTER, "test_random", "9 - Random, chance, ordinal, time")
     );
 
     private static final int CORRIDOR_START = -4;
@@ -126,15 +130,35 @@ public final class TestWorld {
         });
     }
 
+    /** Remove every NPC in the corridor and spawn the stations again on their marks. */
+    public static void respawn(@Nonnull LowTalkPlugin plugin, @Nonnull Consumer<String> out) {
+        withWorld(plugin, out, world -> world.execute(() -> {
+            Store<EntityStore> store = world.getEntityStore().getStore();
+            int removed = 0;
+            for (Ref<EntityStore> ref : corridorNpcs(store)) {
+                store.removeEntity(ref, RemoveReason.REMOVE);
+                removed++;
+            }
+            int spawned = spawnStations(plugin, world, store, out);
+            out.accept("Removed " + removed + " NPC(s) and spawned " + spawned + " fresh station(s).");
+        }));
+    }
+
+    private static List<Ref<EntityStore>> corridorNpcs(Store<EntityStore> store) {
+        Vector3d centre = new Vector3d((CORRIDOR_START + CORRIDOR_END) / 2.0, FLOOR_Y + 1.0, 0.5);
+        List<Ref<EntityStore>> out = new ArrayList<>();
+        for (Ref<EntityStore> ref : new ArrayList<>(TargetUtil.getAllEntitiesInSphere(centre, (CORRIDOR_END - CORRIDOR_START), store))) {
+            if (ref.isValid() && store.getComponent(ref, NPCEntity.getComponentType()) != null) out.add(ref);
+        }
+        return out;
+    }
+
     /** Freeze every NPC in the corridor (for a corridor built before stations were frozen at spawn). */
     public static void freezeAll(@Nonnull LowTalkPlugin plugin, @Nonnull Consumer<String> out) {
         withWorld(plugin, out, world -> world.execute(() -> {
             Store<EntityStore> store = world.getEntityStore().getStore();
-            Vector3d centre = new Vector3d((CORRIDOR_START + CORRIDOR_END) / 2.0, FLOOR_Y + 1.0, 0.5);
-            List<Ref<EntityStore>> nearby = new ArrayList<>(TargetUtil.getAllEntitiesInSphere(centre, (CORRIDOR_END - CORRIDOR_START), store));
             int frozen = 0;
-            for (Ref<EntityStore> ref : nearby) {
-                if (!ref.isValid() || store.getComponent(ref, NPCEntity.getComponentType()) == null) continue;
+            for (Ref<EntityStore> ref : corridorNpcs(store)) {
                 if (!store.getArchetype(ref).contains(Frozen.getComponentType())) {
                     store.ensureComponent(ref, Frozen.getComponentType());
                     frozen++;

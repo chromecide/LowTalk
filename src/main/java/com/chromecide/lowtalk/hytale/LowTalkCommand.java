@@ -296,6 +296,23 @@ public class LowTalkCommand extends AbstractCommandCollection {
             this.addSubCommand(new TestWorldBuild(plugin));
             this.addSubCommand(new TestWorldGo(plugin));
             this.addSubCommand(new TestWorldFreeze(plugin));
+            this.addSubCommand(new TestWorldRespawn(plugin));
+        }
+    }
+
+    static class TestWorldRespawn extends AbstractPlayerCommand {
+        private final LowTalkPlugin plugin;
+
+        TestWorldRespawn(LowTalkPlugin plugin) {
+            super("respawn", "Remove the corridor's NPCs and spawn fresh stations on their marks");
+            this.plugin = plugin;
+            this.requirePermission(ADMIN);
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef player, @Nonnull World world) {
+            TestWorld.respawn(plugin, reporter(plugin, player));
         }
     }
 

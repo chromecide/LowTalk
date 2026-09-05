@@ -1,0 +1,10 @@
+{
+  "Type": "Variant",
+  "Reference": "Template_Temple",
+  "Modify": {
+    "Appearance": "Kweebec_Sapling_Treesinger",
+    "GreetAnimation": "Wave",
+    "MotionStatic": true,
+    "IsMemory": false
+  }
+}
