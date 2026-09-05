@@ -1,0 +1,7 @@
+$C = "../../Common.ui";
+
+Label {
+  Anchor: (Bottom: 6, Height: 36);
+  Padding: (Horizontal: 12);
+  Style: (FontSize: 16, TextColor: #5a6a80, VerticalAlignment: Center);
+}

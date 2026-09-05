@@ -69,6 +69,8 @@ tasks.named<Test>("test") {
 // Runtime data written into the plugin folder must not be packaged into the jar.
 tasks.named<ProcessResources>("processResources") {
     exclude("data/**", "lowtalk.json", "*.bak", "*.tmp")
+    // Ship the example dialogues so the plugin can copy them into a fresh server.
+    from("examples") { into("lowtalk-examples") }
 }
 
 // Validate .talk files from the command line without a server:

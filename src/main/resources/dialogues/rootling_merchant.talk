@@ -1,0 +1,58 @@
+# A shopkeeper with a memory. Binds to every Kweebec merchant.
+
+npc: Kweebec_Merchant
+start: returning when $met
+start: first_meeting
+
+== first_meeting
+Well met, traveler. I'm the Rootling Merchant, and this is my humble stall.
+<<set $met = true>>
+<<jump hub>>
+
+== returning
+<<if hour() >= 20 or hour() < 5>>
+  Back again, {player}? It's late for trading.
+<<else>>
+  Ah, {player}. Back again.
+<<endif>>
+<<jump hub>>
+
+== hub
+-> What do you sell?
+    A little of everything, and most of it useful.
+    <<shop>>
+-> I'm hungry and have no coin. <<if not $got_bread>>
+    <<jump charity>>
+-> Where can I find the temple? <<if not $told_temple>>
+    <<jump temple>>
+-> I should be going.
+    Safe travels. Mind the Trorks on the north road.
+    <<end>>
+
+== charity
+Hm. A traveler with an empty purse is a weary sight.
+<<if has("Ingredient_Life_Essence", 5)>>
+  But you carry essence. Trade me five and I'll give you bread and a smile.
+  -> Deal.
+      <<take Ingredient_Life_Essence 5>>
+      <<give Food_Bread 2>>
+      <<set $got_bread = true>>
+      <<attitude friendly>>
+      Pleasure doing business.
+      <<jump hub>>
+  -> No, thank you.
+      Suit yourself.
+      <<jump hub>>
+<<else>>
+  Take this, then. One loaf, and don't tell the Elder I'm going soft.
+  <<give Food_Bread 1>>
+  <<set $got_bread = true>>
+  <<jump hub>>
+<<endif>>
+
+== temple
+North, past the whispering woods. Look for the jagged peaks, the temple sits just beyond.
+<<set $told_temple = true>>
+<<objective Objective_ReachLocation>>
+-> Thank you.
+    <<jump hub>>
