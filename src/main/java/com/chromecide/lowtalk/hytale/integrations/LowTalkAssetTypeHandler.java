@@ -38,9 +38,40 @@ public final class LowTalkAssetTypeHandler extends AssetTypeHandler {
         this.plugin = plugin;
     }
 
+    /** What a brand-new file starts with; the editor's own default for new assets is "{}", which is not a dialogue. */
+    static String template(String id) {
+        return "# " + id + ".talk - a LowTalk dialogue. See docs/format.md in the LowTalk repository.\n"
+                + "npc: Kweebec_Merchant        # role id, or @tag for one NPC tagged with /lowtalk tag <tag>\n"
+                + "speaker: Merchant\n"
+                + "\n"
+                + "== start\n"
+                + "[Well met|Hello], {player}.\n"
+                + "-> What do you sell?\n"
+                + "    A little of everything.\n"
+                + "    <<jump start>>\n"
+                + "-> Goodbye.\n"
+                + "    Safe travels.\n"
+                + "    <<end>>\n";
+    }
+
     @Override
     public AssetLoadResult loadAsset(AssetPath path, Path dataPath, byte[] data, AssetUpdateQuery updateQuery, EditorClient editorClient) {
         String source = data == null ? null : new String(data, StandardCharsets.UTF_8);
+        if (source != null && (source.isBlank() || source.trim().equals("{}"))) {
+            // A freshly created asset: give the author a working starting point instead of the editor's "{}".
+            String name = dataPath.getFileName().toString();
+            String id = name.endsWith(".talk") ? name.substring(0, name.length() - 5) : name;
+            source = template(id);
+            try {
+                java.nio.file.Files.writeString(dataPath, source, StandardCharsets.UTF_8);
+                if (editorClient != null) {
+                    editorClient.sendPopupNotification(AssetEditorPopupNotificationType.Info,
+                            Message.raw("LowTalk: started " + name + " from a template. Reopen it to see the text, then edit and save."));
+                }
+            } catch (java.io.IOException e) {
+                plugin.getLogger().at(Level.WARNING).log("Could not write the dialogue template to %s: %s", dataPath, e.toString());
+            }
+        }
         DialogueRegistry.LoadReport report = plugin.getRegistry().loadFile(dataPath, source, true);
         report(editorClient, dataPath, report, false);
         return AssetLoadResult.ASSETS_CHANGED;
