@@ -98,11 +98,11 @@ eight options at once. If an option's body does not
 | `<<shop>>` | Open this NPC's native barter shop. |
 | `<<attitude friendly>>` | Set this NPC's attitude toward the player: ignore, hostile, neutral, friendly, revered. |
 | `<<objective Objective_Id>>` | Start a native objective for the player. |
-| `<<anim Id>>`, `<<sound Id>>` | Play an animation on the NPC or a sound at the NPC. |
+| `<<anim Id>>`, `<<anim Id Slot>>`, `<<sound Id>>` | Play an animation on the NPC (slot Emote by default; Status is what the game uses for its own greetings) or a sound at the NPC. |
 | `<<run "/command args">>` | Run a server command as the console. `{player}` is expanded. |
 | `<<input $var "Prompt">>` | Show a text box and store what the player types. |
 | `<<once>>` ... `<<endonce>>` | The block between runs at most once per player. |
-| `<<reputation +10>>`, `<<reputation -5 Group_Id>>` | Change the player's standing with this NPC's reputation group, or a named group. |
+| `<<reputation +10>>`, `<<reputation -5 Group_Id>>` | Change the player's standing with this NPC's reputation group, or a named group. An NPC belongs to a group when a `Server/NPC/Reputation/Groups/*.json` asset lists one of its NPC groups; the base game ships none, so without such an asset (or a named group) this raises an error. |
 | `<<notify "Text" ["Detail"] [success\|warning\|danger]>>` | A toast notification in the corner of the screen. |
 | `<<title "Primary" ["Secondary"] [major] [seconds]>>` | A cinematic title across the screen. |
 | `<<effect Effect_Id>>`, `<<cure Effect_Id>>` | Apply or remove an entity effect (regeneration, poison, speed, ...). |
@@ -150,7 +150,7 @@ Used in `if`, `elseif`, option guards, `set`, and `start when`.
   - `hour()` in-game hour, 0 to 23
   - `random(n)` integer from 0 to n-1
   - `chance(p)` true with probability p, 0 to 1
-  - `reputation()` standing with this NPC's group; `reputation("Group_Id")` with a named group
+  - `reputation()` standing with this NPC's group; `reputation("Group_Id")` with a named group (0 when the NPC has no group)
   - `rank()` / `rank("Group_Id")` the current rank id, e.g. "Friendly"
   - `stat("Health")`, `max_stat("Health")` any entity stat
   - `effect("Effect_Id")` the player currently has that entity effect

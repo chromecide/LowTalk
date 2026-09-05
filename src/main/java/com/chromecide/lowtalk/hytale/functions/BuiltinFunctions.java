@@ -140,19 +140,25 @@ public final class BuiltinFunctions {
         return "none";
     }
 
-    /** Reputation with this NPC's group, or with a named group. 0 when the plugin or group is missing. */
+    /**
+     * Reputation with this NPC's group, or with a named group. 0 when the plugin is missing, the group does not
+     * exist, or the NPC belongs to no reputation group (the plugin signals all of those with Integer.MIN_VALUE).
+     */
     public static int reputation(HytaleContext ctx, String group) {
         ReputationPlugin rep = ReputationPlugin.get();
         if (rep == null) return 0;
         Ref<EntityStore> playerRef = playerEntity(ctx);
         Store<EntityStore> store = playerRef.getStore();
         try {
+            int value;
             if (group != null && !group.isBlank()) {
-                return rep.getReputationValue(store, playerRef, group);
+                value = rep.getReputationValue(store, playerRef, group);
+            } else {
+                Ref<EntityStore> npcRef = store.getExternalData().getRefFromUUID(ctx.getNpcId());
+                if (npcRef == null || !npcRef.isValid()) return 0;
+                value = rep.getReputationValue(store, playerRef, npcRef);
             }
-            Ref<EntityStore> npcRef = store.getExternalData().getRefFromUUID(ctx.getNpcId());
-            if (npcRef == null || !npcRef.isValid()) return 0;
-            return rep.getReputationValue(store, playerRef, npcRef);
+            return value == Integer.MIN_VALUE ? 0 : value;
         } catch (RuntimeException e) {
             return 0;
         }

@@ -4,11 +4,11 @@ title: Station 7 - Objectives and reputation
 speaker: Tester
 
 == start
-TEST 7: Progress. Objective_Gather is currently "{objective("Objective_Gather")}". Reputation with my group: {reputation()}, rank "{rank()}".
+TEST 7: Progress. Objective_Gather is currently "{objective("Objective_Gather")}". Reputation with my group (LowTalk_Testers): {reputation()}, rank "{rank()}" (expect LowTalk_Disliked below 0, LowTalk_Neutral 0-19, LowTalk_Liked at 20+).
 -> Start Objective_Gather (expect a "New objective" line and objective state "active" on the next menu)
     <<objective Objective_Gather>>
     <<jump start>>
--> Reputation +10 (expect the number above to rise on the next menu; rank may change)
+-> Reputation +10 (expect the number above to rise by 10 on the next menu; rank changes at 20)
     <<reputation +10>>
     <<jump start>>
 -> Reputation -10

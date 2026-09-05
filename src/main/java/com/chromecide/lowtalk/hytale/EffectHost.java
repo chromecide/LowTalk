@@ -17,6 +17,9 @@ public interface EffectHost {
 
     @Nonnull World getWorld();
 
-    /** The effect took over the screen (e.g. opened the shop); the conversation is over. */
+    /** The effect took over the screen (e.g. opened the shop); the conversation is over, leave the window alone. */
     void detach();
+
+    /** The effect moved the player on (e.g. teleport); end the conversation and close the window. */
+    void end();
 }

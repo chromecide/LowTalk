@@ -162,6 +162,10 @@ public class DialogueSession implements EffectHost {
 
     void onLeave() {
         log("leave pressed");
+        if (ended) {
+            page.closeNow(); // conversation already over but the window is still up
+            return;
+        }
         finish();
     }
 
@@ -177,7 +181,8 @@ public class DialogueSession implements EffectHost {
         }
     }
 
-    /** Close from the server side (reload, NPC gone, player disconnect). */
+    /** Close from the server side (reload, NPC gone, player disconnect, or an effect such as teleport). */
+    @Override
     public void end() {
         finish();
     }

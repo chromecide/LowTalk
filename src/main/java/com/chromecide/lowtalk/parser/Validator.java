@@ -34,7 +34,7 @@ public final class Validator {
             Map.entry("shop", new int[] {0, 0}),
             Map.entry("attitude", new int[] {1, 1}),
             Map.entry("objective", new int[] {1, 1}),
-            Map.entry("anim", new int[] {1, 1}),
+            Map.entry("anim", new int[] {1, 2}),
             Map.entry("sound", new int[] {1, 1}),
             Map.entry("run", new int[] {1, 1}),
             Map.entry("reputation", new int[] {1, 2}),

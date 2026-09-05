@@ -5,6 +5,7 @@
     "Appearance": "Kweebec_Sapling_Treesinger",
     "GreetAnimation": "Wave",
     "MotionStatic": true,
-    "IsMemory": false
+    "IsMemory": false,
+    "NameTranslationKey": "server.npcRoles.LowTalk_Tester.name"
   }
 }

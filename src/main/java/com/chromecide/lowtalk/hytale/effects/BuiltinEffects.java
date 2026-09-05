@@ -169,12 +169,23 @@ public final class BuiltinEffects {
             Store<EntityStore> store = ref.getStore();
             Player player = store.getComponent(ref, Player.getComponentType());
             if (player == null) return null;
+            int result;
             if (effect.args().size() > 1) {
-                rep.changeReputation(player, effect.args().get(1), delta, store);
+                String group = effect.args().get(1);
+                result = rep.changeReputation(player, group, delta, store);
+                if (result == Integer.MIN_VALUE) {
+                    throw new RuntimeError(effect.pos(), "no reputation group called '" + group
+                            + "' (groups are defined in Server/NPC/Reputation/Groups/*.json)");
+                }
             } else {
                 Ref<EntityStore> npcRef = npcRef(session, store);
                 if (npcRef == null) throw new RuntimeError(effect.pos(), "<<reputation>> needs an NPC or a group name");
-                rep.changeReputation(player, npcRef, delta, store);
+                result = rep.changeReputation(player, npcRef, delta, store);
+                if (result == Integer.MIN_VALUE) {
+                    throw new RuntimeError(effect.pos(), "this NPC belongs to no reputation group; the base game defines none, "
+                            + "so add a Server/NPC/Reputation/Groups/*.json that lists its NPC group, or name a group: <<reputation "
+                            + effect.args().get(0) + " Group_Id>>");
+                }
             }
             return delta >= 0 ? "Your standing improves." : "Your standing suffers.";
         });
@@ -302,7 +313,7 @@ public final class BuiltinEffects {
                 if (warp == null) throw new RuntimeError(effect.pos(), "no warp called '" + name + "' (use x y z for coordinates)");
                 target = warp.getTransform();
             }
-            session.detach();
+            session.end();
             store.addComponent(ref, Teleport.getComponentType(), Teleport.createForPlayer(target));
             return null;
         });
@@ -312,9 +323,19 @@ public final class BuiltinEffects {
             Ref<EntityStore> npcRef = npcRef(session, store);
             if (npcRef == null) return null;
             NPCEntity npc = store.getComponent(npcRef, NPCEntity.getComponentType());
-            if (npc != null) {
-                npc.playAnimation(npcRef, AnimationSlot.Emote, effect.args().get(0), store);
+            if (npc == null) return null;
+            AnimationSlot slot = AnimationSlot.Emote;
+            if (effect.args().size() > 1) {
+                try {
+                    slot = AnimationSlot.valueOf(effect.args().get(1));
+                } catch (IllegalArgumentException e) {
+                    throw new RuntimeError(effect.pos(), "unknown animation slot " + effect.args().get(1)
+                            + " (use Movement, Status, Action, Face, Emote or ServerAction)");
+                }
             }
+            // force: the game skips a play request when the slot already holds that animation, which made a
+            // repeated <<anim Wave>> a silent no-op.
+            npc.playAnimation(npcRef, slot, effect.args().get(0), true, store);
             return null;
         });
 

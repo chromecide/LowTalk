@@ -79,6 +79,9 @@ public final class AssetChecks {
                     if (c.args().size() > 1 && c.args().get(1).isStatic()) {
                         String group = c.args().get(1).debugString();
                         if (ReputationGroup.getAssetMap().getAsset(group) == null) out.add(where + "no reputation group called '" + group + "'");
+                    } else if (c.args().size() == 1 && ReputationGroup.getAssetMap().getAssetMap().isEmpty()) {
+                        out.add(where + "no reputation groups are defined on this server, so <<reputation>> will fail "
+                                + "(the base game ships none; add Server/NPC/Reputation/Groups/*.json)");
                     }
                 }
                 case "teleport" -> {
