@@ -88,6 +88,7 @@ public class DialogueSession {
             s.finish();
             return null;
         }
+        s.page.markOpened();
         playerComponent.getPageManager().openCustomPage(playerEntity, store, s.page);
         if (host.config().isLogConversations()) {
             host.logger().at(Level.INFO).log("%s opened '%s' with %s", player.getUsername(), dialogue.id(), npcName);
@@ -103,6 +104,11 @@ public class DialogueSession {
     public HytaleContext getContext() { return context; }
     public Conversation getConversation() { return conversation; }
     public boolean isEnded() { return ended; }
+
+    /** Diagnostic line in the server log, prefixed with the player and dialogue. */
+    void log(String message) {
+        host.logger().at(Level.INFO).log("[%s/%s] %s", player.getUsername(), dialogue.id(), message);
+    }
 
     // ---- page callbacks
 
@@ -122,12 +128,14 @@ public class DialogueSession {
     }
 
     void onLeave() {
+        log("leave pressed");
         finish();
     }
 
     void onDismissed() {
         // Escape: the window is gone, so the conversation is over.
         if (!ended) {
+            log("ended by dismiss");
             ended = true;
             host.store().flush();
             host.sessionEnded(this);
@@ -168,6 +176,7 @@ public class DialogueSession {
             return;
         }
         page.show(r.step());
+        log("step -> " + r.step().getClass().getSimpleName());
         page.refresh();
     }
 
@@ -197,6 +206,7 @@ public class DialogueSession {
 
     private void finish() {
         if (ended) return;
+        log("finished");
         ended = true;
         page.closeNow();
         host.store().flush();

@@ -58,6 +58,7 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
     /** For the current Choose step: slot number -> option index, or -1 for a disabled slot. */
     private final List<Integer> slotToOption = new ArrayList<>();
     private volatile boolean open = true;
+    private volatile long openedAt = System.currentTimeMillis();
 
     public DialoguePage(@Nonnull PlayerRef playerRef, @Nonnull DialogueSession session, @Nonnull String title) {
         super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC);
@@ -115,11 +116,13 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
         }
         cmd.set("#InputRow.Visible", false);
         cmd.set("#ContinueRow.Visible", false);
+        cmd.set("#CloseRow.Visible", true);
 
         switch (current) {
             case Step.Say say -> {
                 setLine(cmd, say);
-                cmd.set("#ContinueRow.Visible", true);
+                cmd.set("#ContinueRow.Visible", !say.last());
+                cmd.set("#CloseRow.Visible", true);
             }
             case Step.Choose choose -> {
                 if (choose.line() != null) {
@@ -177,6 +180,11 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
                 if (slot < 0 || slot >= slotToOption.size()) return;
                 int optionIndex = slotToOption.get(slot);
                 if (optionIndex < 0) return; // disabled option
+                if (current instanceof Step.Choose ch) {
+                    for (Step.Shown o : ch.options()) {
+                        if (o.index() == optionIndex) session.log("chose \"" + o.text() + "\"");
+                    }
+                }
                 session.onChoose(optionIndex);
             }
             case OK -> {
@@ -188,22 +196,30 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
                     session.onAnswer(data.text == null ? "" : data.text);
                 }
             }
-            case CLOSE -> {
-                open = false;
-                session.onLeave();
-            }
+            case CLOSE -> session.onLeave();
         }
     }
 
     @Override
     public void onDismiss(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
+        long age = System.currentTimeMillis() - openedAt;
+        session.log("page dismissed after " + age + " ms (open=" + open + ")");
         open = false;
         session.onDismissed();
     }
 
-    /** Close from the server side. World thread. */
+    /** Called right before the page is handed to the page manager. */
+    public void markOpened() {
+        openedAt = System.currentTimeMillis();
+        open = true;
+    }
+
+    private volatile boolean closeRequested = false;
+
+    /** Close from the server side. World thread. Safe to call more than once. */
     public void closeNow() {
-        if (!open) return;
+        if (closeRequested) return;
+        closeRequested = true;
         open = false;
         close();
     }

@@ -5,8 +5,12 @@ import java.util.List;
 /** What the player should see next. Produced by {@link Conversation}. */
 public sealed interface Step {
 
-    /** A line with a Continue button. */
-    record Say(String speaker, String text) implements Step {}
+    /** A line. {@code last} means nothing follows it, so the button should read Leave rather than Continue. */
+    record Say(String speaker, String text, boolean last) implements Step {
+        public Say(String speaker, String text) {
+            this(speaker, text, false);
+        }
+    }
 
     /** An optional line plus buttons. {@code line} is null when the options stand alone. */
     record Choose(Say line, List<Shown> options) implements Step {}

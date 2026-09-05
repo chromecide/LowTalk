@@ -143,7 +143,7 @@ public final class Conversation {
         while (true) {
             Frame f = stack.peek();
             if (f == null) {
-                if (held != null) return result(held);
+                if (held != null) return result(new Step.Say(held.speaker(), held.text(), true));
                 return finish();
             }
             if (f.index >= f.body.size()) {
@@ -189,7 +189,7 @@ public final class Conversation {
                     case Statement.End e -> {
                         if (held != null) {
                             // Show the last line; the next call finds the end again.
-                            return result(held);
+                            return result(new Step.Say(held.speaker(), held.text(), true));
                         }
                         return finish();
                     }
