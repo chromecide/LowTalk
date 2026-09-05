@@ -52,7 +52,8 @@ public class DialogueRegistry {
     private record Source(String label, Path root) {
         String display(Path file) {
             String rel = root.relativize(file).toString().replace('\\', '/');
-            return label.isEmpty() ? rel : label + ":" + rel;
+            // A slash, not a colon: the dialogue id is everything after the last slash of this display name.
+            return label.isEmpty() ? rel : label + "/" + rel;
         }
     }
 
