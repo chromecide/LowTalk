@@ -5,7 +5,8 @@ speaker: Tester
 
 == start
 TEST 4: Items. You currently hold {count("Food_Bread")} bread. Expected: this number changes as you use the options below.
--> Give me 2 bread (expect a grey "You receive 2 Bread" line and +2 in your inventory)
+-> Give me 2 bread (expect a grey "You receive 2 Bread" line and +2 in your inventory; handout {$handouts + 1})
+    <<set $handouts = $handouts + 1>>
     <<give Food_Bread 2>>
     <<jump start>>
 -> Take 1 bread (expect "You hand over 1 Bread"; if you have none, expect a "You don't have" line) 

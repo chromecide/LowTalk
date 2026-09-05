@@ -83,7 +83,10 @@ conversation. Each one remembers each player separately.
 | `/lowtalk thaw` | Unfreeze the NPC you're looking at |
 | `/lowtalk stop` | Leave your current conversation |
 
-Everything except `stop` needs the `lowtalk.admin` permission.
+Permissions: `lowtalk.creator` covers authoring (`list`, `open`, `tags`, `vars`,
+`reset`, `test`); `lowtalk.admin` covers server operation (`reload`, `tag`,
+`untag`, `thaw`, `testworld`). Give admins `lowtalk.*`. Players need nothing:
+they reach dialogues only by using an NPC, and `stop` is open to everyone.
 
 ## Configuration
 

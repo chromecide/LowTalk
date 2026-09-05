@@ -52,6 +52,8 @@ public final class Validator {
     public static final int MAX_OPTIONS = 8;
 
     public static final Set<String> ATTITUDES = Set.of("ignore", "hostile", "neutral", "friendly", "revered");
+    /** Commands that hand the player something of value; repeatable access to them is usually a mistake. */
+    public static final Set<String> REWARD_COMMANDS = Set.of("give", "reputation", "learn", "objective", "run");
 
     public static final Set<String> BUILTIN_FUNCTIONS = Set.of(
             "player", "npc", "has", "count", "visited", "objective", "attitude", "perm", "hour", "random", "chance", "ordinal", "plural", "reputation", "rank", "stat", "max_stat", "effect", "knows"
@@ -217,6 +219,7 @@ public final class Validator {
                         if (o.guard() != null) checkExpr(o.guard(), o.pos(), out);
                         if (o.showGuard() != null) checkExpr(o.showGuard(), o.pos(), out);
                         checkBlock(o.body(), d, inputVars, out, true);
+                        checkFarmable(o, out);
                     }
                 }
                 case Statement.Conditional c -> {
@@ -261,6 +264,71 @@ public final class Validator {
         }
     }
 
+    /**
+     * An option that hands out a reward, can be picked again and again (no once, no guard, no state change
+     * in its body, and it returns to the hub), is farmable. Warn so authors add <<once>> or a guard.
+     */
+    private static void checkFarmable(Option o, List<Problem> out) {
+        if (o.once() || o.guard() != null || o.showGuard() != null) return;
+        String reward = firstReward(o.body());
+        if (reward == null) return;
+        if (containsStateChange(o.body())) return;
+        out.add(new Problem(o.pos(), false, "this option gives a reward (<<" + reward + ">>) but nothing stops the player picking it again; "
+                + "add <<once>> or an <<if>> guard, or set a variable in its body"));
+    }
+    private static String firstReward(List<Statement> body) {
+        for (Statement s : body) {
+            switch (s) {
+                case Statement.Command c -> {
+                    if (REWARD_COMMANDS.contains(c.name())) {
+                        if (c.name().equals("reputation") && !c.args().isEmpty() && c.args().get(0).debugString().startsWith("-")) continue;
+                        return c.name();
+                    }
+                }
+                case Statement.Conditional c -> {
+                    for (Statement.Branch b : c.branches()) {
+                        String r = firstReward(b.body());
+                        if (r != null) return r;
+                    }
+                }
+                case Statement.Random r -> {
+                    for (List<Statement> a : r.alternatives()) {
+                        String x = firstReward(a);
+                        if (x != null) return x;
+                    }
+                }
+                default -> {}
+            }
+        }
+        return null;
+    }
+    /** A set, a once-block, an end, or a take (paying for the reward) means the author is managing repeats. */
+    private static boolean containsStateChange(List<Statement> body) {
+        for (Statement s : body) {
+            switch (s) {
+                case Statement.Set set -> {
+                    if (!set.target().scope().equals("tmp")) return true;
+                }
+                case Statement.Once o -> {
+                    return true;
+                }
+                case Statement.End e -> {
+                    return true;
+                }
+                case Statement.Command c -> {
+                    if (c.name().equals("take")) return true;
+                }
+                case Statement.Conditional c -> {
+                    for (Statement.Branch b : c.branches()) if (containsStateChange(b.body())) return true;
+                }
+                case Statement.Random r -> {
+                    for (List<Statement> a : r.alternatives()) if (containsStateChange(a)) return true;
+                }
+                default -> {}
+            }
+        }
+        return false;
+    }
     private void checkCommand(Statement.Command cmd, Set<String> inputVars, List<Problem> out) {
         for (Text t : cmd.args()) checkText(t, cmd.pos(), out);
         int[] arity = BUILTIN_COMMANDS.get(cmd.name());

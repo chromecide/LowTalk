@@ -185,10 +185,23 @@ Observed in the shipped plugins and followed here:
 
 ## Safety and permissions
 
-- `<<run>>` executes as the console. Only trusted admins should edit dialogue
+- Two roles. Creators (`lowtalk.creator`) author and test: open any dialogue
+  by id, list, inspect and reset variables, run headless tests. Admins
+  (`lowtalk.admin`, or `lowtalk.*` for both) operate the server: reload, tag
+  NPCs, thaw, the test world. Players need no permission and can only reach a
+  dialogue by using an NPC that an author bound it to. `reset` is deliberately
+  not a player command: resetting your own memory is how once-only rewards
+  would be farmed.
+- `<<run>>` executes as the console. Only trusted people should edit dialogue
   files, which is already true of anything in the server folder.
 - Text input is stored verbatim as a string variable and never executed.
-  Interpolating it into `<<run>>` is disallowed by the validator.
+  Interpolating it into `<<run>>` is rejected by the validator, and the runtime
+  refuses it again as a backstop, along with any interpolated value that is
+  not a plain name or id and any `[a|b]` variation.
+- The validator warns when an option hands out a reward (`give`, positive
+  `reputation`, `learn`, `objective`, `run`) and nothing stops the player
+  picking it repeatedly: no `<<once>>`, no guard, no variable set, no `end`,
+  no `take`.
 - Dialogue files live in the server folder, not in player-reachable places.
 
 ## Roadmap

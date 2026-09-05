@@ -55,8 +55,9 @@ their state. It leaves journals and trackers to the mods that do those well.
 **Open source, MIT.** Fork it, extend it, ship it with your adventure map.
 
 **Commands:** `/lowtalk reload`, `list`, `open <id>`, `tag <name>`,
-`untag <name>`, `tags`, `vars`, `reset`, `stop`. Admin commands need the
-`lowtalk.admin` permission.
+`untag <name>`, `tags`, `vars`, `reset`, `stop`. Authoring commands need
+`lowtalk.creator`, server operation needs `lowtalk.admin` (give admins
+`lowtalk.*`); players need nothing.
 
 **Requirements:** Hytale 0.6.x server. No dependencies.
 

@@ -21,6 +21,9 @@ First working version.
 - Format extras: `[a|b|c]` text variation, `<<random>>`/`<<or>>`/`<<endrandom>>`
   blocks, self-hiding `<<once>>` options, `cond ? a : b` expressions,
   `<<wait seconds>>` pauses, and `include:` of shared `_name.talk` files.
+- Creator/admin permission split (`lowtalk.creator`, `lowtalk.admin`); runtime
+  backstop against player text reaching `<<run>>`; validator warns about
+  farmable reward options.
 - Test corridor (`/lowtalk testworld`) with ten labelled stations; `respawn`
   resets the player's test state. Ships a `LowTalk_Testers` reputation group
   and three `LowTalk_*` ranks for testing, since the base game defines none.

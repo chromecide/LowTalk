@@ -6,9 +6,11 @@ speaker: Tester
 == start
 TEST 7: Progress. Objective_Gather is currently "{objective("Objective_Gather")}". Reputation with my group (LowTalk_Testers): {reputation()}, rank "{rank()}" (expect LowTalk_Disliked below 0, LowTalk_Neutral 0-19, LowTalk_Liked at 20+).
 -> Start Objective_Gather (expect a "New objective" line and objective state "active" on the next menu)
+    <<set $started_objective = true>>
     <<objective Objective_Gather>>
     <<jump start>>
 -> Reputation +10 (expect the number above to rise by 10 on the next menu; rank changes at 20)
+    <<set $praises = $praises + 1>>
     <<reputation +10>>
     <<jump start>>
 -> Reputation -10

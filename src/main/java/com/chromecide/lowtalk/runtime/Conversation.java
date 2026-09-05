@@ -1,6 +1,7 @@
 package com.chromecide.lowtalk.runtime;
 
 import com.chromecide.lowtalk.model.Dialogue;
+import com.chromecide.lowtalk.model.Expr;
 import com.chromecide.lowtalk.model.Node;
 import com.chromecide.lowtalk.model.Option;
 import com.chromecide.lowtalk.model.Pos;
@@ -42,6 +43,10 @@ public final class Conversation {
     private Statement.Choice pendingChoice;
     private Statement.Input pendingInput;
     private boolean finished = false;
+    /** Variables that received text typed by the player during this conversation. */
+    private final java.util.Set<String> typedVars = new java.util.HashSet<>();
+    /** What an interpolated value may look like inside <<run>>: names, ids, numbers. */
+    private static final java.util.regex.Pattern SAFE_RUN_VALUE = java.util.regex.Pattern.compile("[A-Za-z0-9_.:@-]{0,64}");
 
     public Conversation(@Nonnull Dialogue dialogue, @Nonnull Context ctx) {
         this.dialogue = dialogue;
@@ -117,6 +122,7 @@ public final class Conversation {
         Statement.Input in = pendingInput;
         pendingInput = null;
         ctx.setVar(in.target().scope(), in.target().name(), text == null ? "" : text);
+        typedVars.add(in.target().scope() + "." + in.target().name());
         stack.peek().index++;
         return advance();
     }
@@ -215,13 +221,63 @@ public final class Conversation {
                     case Statement.Command cmd -> {
                         f.index++;
                         List<String> args = new ArrayList<>(cmd.args().size());
-                        for (Text t : cmd.args()) args.add(Evaluator.render(t, ctx));
+                        for (Text t : cmd.args()) {
+                            if (cmd.name().equals("run")) guardRunArgument(t);
+                            args.add(Evaluator.render(t, ctx));
+                        }
                         effects.add(new Effect(cmd.pos(), cmd.name(), List.copyOf(args)));
                     }
                 }
             } catch (RuntimeError e) {
                 throw e.at(s.pos());
             }
+        }
+    }
+
+    /**
+     * <<run>> executes as the console, so nothing the player typed may reach it, and any interpolated
+     * value must look like a plain name or id. The validator catches the static cases; this is the
+     * runtime backstop for values that arrive from other files or plugins.
+     */
+    private void guardRunArgument(Text t) {
+        for (Text.Part p : t.parts()) {
+            if (p instanceof Text.Part.Interp in) {
+                for (Expr.Var v : varsIn(in.expr())) {
+                    if (typedVars.contains(v.scope() + "." + v.name())) {
+                        throw new RuntimeError("<<run>> may not include $" + v.name() + ", which holds text the player typed");
+                    }
+                }
+                String value = Values.text(Evaluator.eval(in.expr(), ctx));
+                if (!SAFE_RUN_VALUE.matcher(value).matches()) {
+                    throw new RuntimeError("<<run>> refused: interpolated value '" + value + "' is not a plain name or id");
+                }
+            } else if (p instanceof Text.Part.Pick) {
+                throw new RuntimeError("<<run>> may not contain [a|b] variation");
+            }
+        }
+    }
+
+    private static List<Expr.Var> varsIn(Expr e) {
+        List<Expr.Var> out = new ArrayList<>();
+        collectVars(e, out);
+        return out;
+    }
+
+    private static void collectVars(Expr e, List<Expr.Var> out) {
+        switch (e) {
+            case Expr.Var v -> out.add(v);
+            case Expr.Unary u -> collectVars(u.operand(), out);
+            case Expr.Binary b -> {
+                collectVars(b.left(), out);
+                collectVars(b.right(), out);
+            }
+            case Expr.Call c -> c.args().forEach(a -> collectVars(a, out));
+            case Expr.Ternary t -> {
+                collectVars(t.cond(), out);
+                collectVars(t.ifTrue(), out);
+                collectVars(t.ifFalse(), out);
+            }
+            case Expr.Literal l -> {}
         }
     }
 

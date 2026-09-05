@@ -25,7 +25,10 @@ import java.util.Map;
  */
 public class LowTalkCommand extends AbstractCommandCollection {
 
+    /** Server operation: reload, tagging NPCs, thawing, the test world. Give admins lowtalk.* to cover both. */
     static final String ADMIN = "lowtalk.admin";
+    /** Authoring: open any dialogue by id, list, inspect and reset variables, headless tests. */
+    static final String CREATOR = "lowtalk.creator";
 
     public LowTalkCommand(@Nonnull LowTalkPlugin plugin) {
         super("lowtalk", "LowTalk dialogue tools");
@@ -75,7 +78,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         ListDialogues(LowTalkPlugin plugin) {
             super("list", "List loaded dialogues and their bindings");
             this.plugin = plugin;
-            this.requirePermission(ADMIN);
+            this.requirePermission(CREATOR);
         }
 
         @Override
@@ -101,7 +104,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         Open(LowTalkPlugin plugin) {
             super("open", "Open a dialogue by id");
             this.plugin = plugin;
-            this.requirePermission(ADMIN);
+            this.requirePermission(CREATOR);
         }
 
         @Override
@@ -163,7 +166,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         Tags(LowTalkPlugin plugin) {
             super("tags", "Show the tags and bound dialogues of the NPC you are looking at");
             this.plugin = plugin;
-            this.requirePermission(ADMIN);
+            this.requirePermission(CREATOR);
         }
 
         @Override
@@ -188,7 +191,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         Vars(LowTalkPlugin plugin) {
             super("vars", "Show your saved dialogue variables");
             this.plugin = plugin;
-            this.requirePermission(ADMIN);
+            this.requirePermission(CREATOR);
         }
 
         @Override
@@ -212,7 +215,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         Reset(LowTalkPlugin plugin) {
             super("reset", "Forget everything every dialogue knows about you");
             this.plugin = plugin;
-            this.requirePermission(ADMIN);
+            this.requirePermission(CREATOR);
         }
 
         @Override
@@ -260,7 +263,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         TestDialogue(LowTalkPlugin plugin) {
             super("test", "Play a dialogue from the console with scripted choices");
             this.plugin = plugin;
-            this.requirePermission(ADMIN);
+            this.requirePermission(CREATOR);
         }
 
         @Override
