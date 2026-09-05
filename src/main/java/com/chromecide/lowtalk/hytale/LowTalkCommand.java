@@ -304,7 +304,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         private final LowTalkPlugin plugin;
 
         TestWorldRespawn(LowTalkPlugin plugin) {
-            super("respawn", "Remove the corridor's NPCs and spawn fresh stations on their marks");
+            super("respawn", "Reset your test state, respawn the corridor's NPCs and return to the entrance");
             this.plugin = plugin;
             this.requirePermission(ADMIN);
         }
@@ -312,7 +312,11 @@ public class LowTalkCommand extends AbstractCommandCollection {
         @Override
         protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
                                @Nonnull PlayerRef player, @Nonnull World world) {
-            TestWorld.respawn(plugin, reporter(plugin, player));
+            java.util.function.Consumer<String> out = reporter(plugin, player);
+            plugin.getSessions().end(player.getUuid());
+            TestWorld.resetPlayer(plugin, ref, store, player, out);
+            TestWorld.respawn(plugin, out);
+            TestWorld.teleport(plugin, player, out);
         }
     }
 

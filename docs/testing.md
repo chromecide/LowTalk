@@ -39,6 +39,10 @@ should happen. Build it once, then visit it whenever you like:
 /lowtalk testworld build     # creates the world "lowtalk_test", builds the corridor, spawns the stations
 /lowtalk reload              # picks up the station dialogues copied into dialogues/tests/
 /lowtalk testworld go        # teleports you to the corridor entrance
+/lowtalk testworld respawn   # fresh run: forgets your dialogue memory, resets standing with LowTalk_Testers,
+                             # cancels your active objectives, restores health, clears effects, removes the
+                             # bread the stations gave you, respawns every station NPC and returns you to the entrance
+/lowtalk testworld freeze    # freezes any station NPC that is still wandering
 ```
 
 Walk east. Stations, in order:

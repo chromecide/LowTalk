@@ -7,7 +7,16 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.builtin.adventure.objectives.ObjectivePlugin;
+import com.hypixel.hytale.builtin.adventure.reputation.ReputationPlugin;
+import com.hypixel.hytale.builtin.adventure.reputation.assets.ReputationGroup;
 import com.hypixel.hytale.server.core.entity.Frozen;
+import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.entity.effect.EffectControllerComponent;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
+import com.hypixel.hytale.server.core.modules.entitystats.EntityStatMap;
+import com.hypixel.hytale.server.core.modules.entitystats.asset.EntityStatType;
+import java.util.UUID;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
 import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.hypixel.hytale.server.core.entity.nameplate.Nameplate;
@@ -128,6 +137,75 @@ public final class TestWorld {
                 out.accept("Off you go. Walk along the corridor; each NPC is a test station.");
             });
         });
+    }
+
+    /** The reputation group the tester role belongs to (shipped in Server/NPC/Reputation/Groups). */
+    public static final String TEST_REPUTATION_GROUP = "LowTalk_Testers";
+    /** Items the stations hand out. */
+    private static final String[] TEST_ITEMS = {"Food_Bread"};
+
+    /**
+     * Put the player back to a clean slate so the corridor can be walked again: dialogue memory, standing with the
+     * test group, active objectives, health, entity effects and the items the stations give. Runs on the player's
+     * world thread (the caller is a player command).
+     */
+    public static void resetPlayer(@Nonnull LowTalkPlugin plugin, @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store,
+                                   @Nonnull PlayerRef playerRef, @Nonnull Consumer<String> out) {
+        List<String> done = new ArrayList<>();
+        UUID uuid = playerRef.getUuid();
+        int forgotten = plugin.getStore().resetPlayer(uuid);
+        done.add(forgotten + " dialogue record(s) forgotten");
+
+        Player player = store.getComponent(ref, Player.getComponentType());
+        if (player == null) {
+            out.accept("Reset: " + String.join(", ", done) + ".");
+            return;
+        }
+
+        ReputationPlugin rep = ReputationPlugin.get();
+        ReputationGroup group = rep == null ? null : ReputationGroup.getAssetMap().getAsset(TEST_REPUTATION_GROUP);
+        if (group != null) {
+            int current = rep.getReputationValue(store, ref, TEST_REPUTATION_GROUP);
+            if (current != Integer.MIN_VALUE && current != group.getInitialReputationValue()) {
+                rep.changeReputation(player, TEST_REPUTATION_GROUP, group.getInitialReputationValue() - current, store);
+                done.add("standing with " + TEST_REPUTATION_GROUP + " back to " + group.getInitialReputationValue());
+            }
+        }
+
+        ObjectivePlugin objectives = ObjectivePlugin.get();
+        Set<UUID> active = player.getPlayerConfigData().getActiveObjectiveUUIDs();
+        if (objectives != null && active != null && !active.isEmpty()) {
+            int cancelled = 0;
+            for (UUID id : new ArrayList<>(active)) {
+                try {
+                    objectives.cancelObjective(id, store);
+                    cancelled++;
+                } catch (RuntimeException e) {
+                    plugin.getLogger().at(Level.WARNING).withCause(e).log("[testworld] could not cancel objective %s", id);
+                }
+            }
+            done.add(cancelled + " objective(s) cancelled");
+        }
+
+        EntityStatMap stats = store.getComponent(ref, EntityStatMap.getComponentType());
+        int health = EntityStatType.getAssetMap().getIndex("Health");
+        if (stats != null && health >= 0 && stats.get(health) != null) {
+            stats.setStatValue(health, stats.get(health).getMax());
+            done.add("health restored");
+        }
+
+        EffectControllerComponent effects = store.getComponent(ref, EffectControllerComponent.getComponentType());
+        if (effects != null && effects.getActiveEffectIndexes().length > 0) {
+            effects.clearEffects(ref, store);
+            done.add("effects cleared");
+        }
+
+        for (String item : TEST_ITEMS) {
+            var tx = player.getInventory().getCombinedHotbarFirst().removeItemStack(new ItemStack(item, 999), false, false);
+            if (tx.succeeded()) done.add(item + " removed");
+        }
+
+        out.accept("Reset: " + String.join(", ", done) + ".");
     }
 
     /** Remove every NPC in the corridor and spawn the stations again on their marks. */
