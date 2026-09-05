@@ -61,6 +61,13 @@ public class SessionManager {
         }
     }
 
+    public boolean isTalkingTo(UUID npcId) {
+        for (DialogueSession s : sessions.values()) {
+            if (!s.isEnded() && s.getNpcId().equals(npcId)) return true;
+        }
+        return false;
+    }
+
     public int count() {
         return sessions.size();
     }

@@ -96,6 +96,9 @@ public class DialogueSession {
         if (host.config().isLogConversations()) {
             host.logger().at(Level.INFO).log("%s opened '%s' with %s", player.getUsername(), dialogue.id(), npcName);
         }
+        if (host.config().isHoldNpcDuringDialogue() && npcId.getMostSignificantBits() != 0L) {
+            NpcHold.hold(world, npcId, player.getUuid(), host.store());
+        }
         s.notify(l -> l.onStart(ctx));
         s.lastNode = s.conversation.getCurrentNode();
         if (s.lastNode != null) s.notify(l -> l.onNode(ctx, s.lastNode));
@@ -167,6 +170,7 @@ public class DialogueSession {
         if (!ended) {
             log("ended by dismiss");
             ended = true;
+            releaseNpc();
             host.store().flush();
             host.sessionEnded(this);
             notify(l -> l.onEnd(context));
@@ -185,6 +189,7 @@ public class DialogueSession {
     public void detach() {
         if (ended) return;
         ended = true;
+        releaseNpc();
         host.store().flush();
         host.sessionEnded(this);
         notify(l -> l.onEnd(context));
@@ -242,8 +247,15 @@ public class DialogueSession {
         log("finished");
         ended = true;
         page.closeNow();
+        releaseNpc();
         host.store().flush();
         host.sessionEnded(this);
         notify(l -> l.onEnd(context));
+    }
+
+    private void releaseNpc() {
+        if (npcId.getMostSignificantBits() != 0L) {
+            NpcHold.release(world, npcId, host.store());
+        }
     }
 }

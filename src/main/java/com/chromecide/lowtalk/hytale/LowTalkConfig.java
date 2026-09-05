@@ -20,6 +20,8 @@ public class LowTalkConfig {
                     (c, v, e) -> c.infoColor = v, (c, e) -> c.infoColor).add()
             .append(new KeyedCodec<>("LogConversations", Codec.BOOLEAN),
                     (c, v, e) -> c.logConversations = v, (c, e) -> c.logConversations).add()
+            .append(new KeyedCodec<>("HoldNpcDuringDialogue", Codec.BOOLEAN),
+                    (c, v, e) -> c.holdNpc = v, (c, e) -> c.holdNpc).add()
             .build();
 
     /** How a binding opens: "crouch" = crouch and use; "replace" = plain use, native interaction suppressed. */
@@ -32,6 +34,7 @@ public class LowTalkConfig {
     private String tagBindingMode = MODE_REPLACE;
     private String infoColor = "#A0A0A0";
     private boolean logConversations = false;
+    private boolean holdNpc = true;
 
     private LowTalkConfig() {}
 
@@ -41,4 +44,5 @@ public class LowTalkConfig {
     public String getTagBindingMode() { return tagBindingMode; }
     public String getInfoColor() { return infoColor; }
     public boolean isLogConversations() { return logConversations; }
+    public boolean isHoldNpcDuringDialogue() { return holdNpc; }
 }

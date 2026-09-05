@@ -37,6 +37,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         this.addSubCommand(new Tags(plugin));
         this.addSubCommand(new Vars(plugin));
         this.addSubCommand(new Reset(plugin));
+        this.addSubCommand(new Thaw(plugin));
         this.addSubCommand(new Stop(plugin));
     }
 
@@ -217,6 +218,29 @@ public class LowTalkCommand extends AbstractCommandCollection {
             plugin.getSessions().end(player.getUuid());
             int removed = plugin.getStore().resetPlayer(player.getUuid());
             context.sendMessage(info(plugin, "Forgotten. " + removed + " memory file(s) removed; every NPC meets you fresh now."));
+        }
+    }
+
+    /** Free an NPC that was left frozen. */
+    static class Thaw extends AbstractPlayerCommand {
+        private final LowTalkPlugin plugin;
+
+        Thaw(LowTalkPlugin plugin) {
+            super("thaw", "Unfreeze the NPC you are looking at");
+            this.plugin = plugin;
+            this.requirePermission(ADMIN);
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef player, @Nonnull World world) {
+            NpcInfo npc = lookedAtNpc(ref, store, player, plugin);
+            if (npc == null) {
+                context.sendMessage(info(plugin, "Look at an NPC first."));
+                return;
+            }
+            boolean was = NpcHold.thawNow(store, npc.ref(), npc.id(), plugin.getStore());
+            context.sendMessage(info(plugin, was ? npc.name() + " is free to move again." : npc.name() + " was not frozen."));
         }
     }
 

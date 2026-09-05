@@ -37,6 +37,8 @@ public class VariableStore {
         public Map<String, List<String>> once = new LinkedHashMap<>();
         /** NPCs only: tags applied with /lowtalk tag. */
         public List<String> tags = new ArrayList<>();
+        /** World only: NPCs currently frozen by LowTalk for a conversation. */
+        public List<String> held = new ArrayList<>();
 
         transient boolean dirty = false;
     }
@@ -146,6 +148,30 @@ public class VariableStore {
         }
     }
 
+    public boolean isHeld(UUID npcId) {
+        Record w = world();
+        synchronized (w) {
+            return w.held.contains(npcId.toString());
+        }
+    }
+
+    public void addHeld(UUID npcId) {
+        Record w = world();
+        synchronized (w) {
+            if (!w.held.contains(npcId.toString())) {
+                w.held.add(npcId.toString());
+                w.dirty = true;
+            }
+        }
+    }
+
+    public void removeHeld(UUID npcId) {
+        Record w = world();
+        synchronized (w) {
+            if (w.held.remove(npcId.toString())) w.dirty = true;
+        }
+    }
+
     /** Wipe a player's variables for one dialogue scope (used by /lowtalk reset). */
     public void resetScope(Record r, String scope, String dialogueId) {
         synchronized (r) {
@@ -192,6 +218,7 @@ public class VariableStore {
                 if (r.visited == null) r.visited = new LinkedHashMap<>();
                 if (r.once == null) r.once = new LinkedHashMap<>();
                 if (r.tags == null) r.tags = new ArrayList<>();
+                if (r.held == null) r.held = new ArrayList<>();
                 return r;
             } catch (Exception e) {
                 logger.at(Level.WARNING).log("Could not read %s: %s", p, e.toString());

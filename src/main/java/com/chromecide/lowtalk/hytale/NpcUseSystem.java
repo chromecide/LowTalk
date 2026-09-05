@@ -46,6 +46,12 @@ public class NpcUseSystem extends EntityEventSystem<EntityStore, UseEntityEvent.
         NpcInfo npc = NpcInfo.of(target, commandBuffer, player, plugin.getStore());
         if (npc == null) return;
 
+        // An NPC left frozen by a crash mid-conversation is freed the next time anyone talks to it.
+        if (plugin.getStore().isHeld(npc.id()) && !plugin.getSessions().isTalkingTo(npc.id())) {
+            World w = store.getExternalData().getWorld();
+            NpcHold.release(w, npc.id(), plugin.getStore());
+        }
+
         MovementStatesComponent movement = commandBuffer.getComponent(playerEntity, MovementStatesComponent.getComponentType());
         boolean crouching = movement != null && movement.getMovementStates() != null && movement.getMovementStates().crouching;
 
