@@ -63,6 +63,7 @@ conversation. Each one remembers each player separately.
 - [The dialogue format](docs/format.md), the full reference.
 - [Design](docs/DESIGN.md), how it works and why.
 - [API for other plugins](docs/api.md).
+- [Testing](docs/testing.md): unit tests, the headless `/lowtalk test` runner, and the in-game test corridor.
 - [Examples](examples/): a merchant, a unique village elder, a fortune
   teller that asks your name.
 
@@ -77,6 +78,9 @@ conversation. Each one remembers each player separately.
 | `/lowtalk tags` | Show an NPC's tags and dialogues |
 | `/lowtalk vars` | Your saved variables |
 | `/lowtalk reset` | Forget everything every dialogue knows about you |
+| `/lowtalk test <id> [apply] [choices...]` | Play a dialogue headlessly with scripted choices |
+| `/lowtalk testworld [build]` | Build or visit the test corridor world |
+| `/lowtalk thaw` | Unfreeze the NPC you're looking at |
 | `/lowtalk stop` | Leave your current conversation |
 
 Everything except `stop` needs the `lowtalk.admin` permission.

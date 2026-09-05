@@ -77,6 +77,32 @@ public class DialogueRegistry {
         }
     }
 
+    private static final String[] TEST_DIALOGUES = {
+            "test_basics.talk", "test_memory.talk", "test_input.talk", "test_items.talk", "test_feedback.talk",
+            "test_body.talk", "test_progress.talk", "test_travel.talk", "test_random.talk"
+    };
+
+    /** Copy the test-corridor dialogues into dialogues/tests/, overwriting, so they match this build. */
+    public void copyTestDialogues() {
+        Path dir = folder.resolve("tests");
+        try {
+            Files.createDirectories(dir);
+            for (String name : TEST_DIALOGUES) {
+                InputStream in = getClass().getClassLoader().getResourceAsStream("lowtalk-examples/tests/" + name);
+                if (in == null) in = DialogueRegistry.class.getResourceAsStream("/lowtalk-examples/tests/" + name);
+                if (in == null) {
+                    logger.at(Level.WARNING).log("Bundled test dialogue %s not found", name);
+                    continue;
+                }
+                try (InputStream stream = in) {
+                    Files.write(dir.resolve(name), stream.readAllBytes());
+                }
+            }
+        } catch (IOException e) {
+            logger.at(Level.WARNING).log("Could not copy test dialogues: %s", e.toString());
+        }
+    }
+
     public LoadReport reload() {
         return reload(true);
     }

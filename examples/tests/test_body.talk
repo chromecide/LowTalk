@@ -1,0 +1,31 @@
+# STATION 6: heal, stat, effect, cure, and reading stats.
+npc: @test_body
+title: Station 6 - Body
+speaker: Tester
+
+== start
+TEST 6: Body. Your health is {stat("Health")} of {max_stat("Health")}. Take some fall damage first for a useful test.
+-> Heal fully (expect health back to max and a "You feel better" line)
+    <<heal>>
+    <<jump start>>
+-> Set health to 10 (expect your health bar to drop)
+    <<stat Health 10>>
+    <<jump start>>
+-> Add 5 health (expect +5)
+    <<stat Health +5>>
+    <<jump start>>
+-> Apply regeneration buff (expect a buff icon; effect("HealthRegen_Buff_T1") becomes true)
+    <<effect HealthRegen_Buff_T1>>
+    <<jump start>>
+-> Do I have the regen buff? (expect yes right after applying it)
+    <<if effect("HealthRegen_Buff_T1")>>
+      Yes, the regeneration buff is active.
+    <<else>>
+      No buff active.
+    <<endif>>
+    <<jump start>>
+-> Cure the regen buff (expect the icon to disappear)
+    <<cure HealthRegen_Buff_T1>>
+    <<jump start>>
+-> Leave
+    <<end>>

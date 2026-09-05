@@ -1,0 +1,18 @@
+# STATION 9: random(), chance(), ordinal(), hour(), NPC-wide counters.
+npc: @test_random
+title: Station 9 - Random and time
+speaker: Tester
+
+== start
+<<set $npc.rolls = $npc.rolls + 1>>
+TEST 9: Random and time. This is roll number {ordinal($npc.rolls)} for this NPC (shared by every player). In-game hour: {hour()}.
+<<if chance(0.5)>>
+  Coin flip: HEADS. Expected: roughly half the time.
+<<else>>
+  Coin flip: TAILS. Expected: roughly half the time.
+<<endif>>
+Random 0-5: {random(6)}. Expected: a whole number from 0 to 5, different most times.
+-> Roll again
+    <<jump start>>
+-> Leave
+    <<end>>

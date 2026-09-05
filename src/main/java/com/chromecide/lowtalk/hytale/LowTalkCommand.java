@@ -40,6 +40,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         this.addSubCommand(new Reset(plugin));
         this.addSubCommand(new Thaw(plugin));
         this.addSubCommand(new TestDialogue(plugin));
+        this.addSubCommand(new TestWorldCommand(plugin));
         this.addSubCommand(new Stop(plugin));
     }
 
@@ -284,6 +285,34 @@ public class LowTalkCommand extends AbstractCommandCollection {
                 plugin.getLogger().at(java.util.logging.Level.INFO).log("[test] %s", line);
             });
             runner.run(tokens);
+        }
+    }
+
+    /** /lowtalk testworld [build] : build the test corridor world, or teleport to it. */
+    static class TestWorldCommand extends AbstractPlayerCommand {
+        private final LowTalkPlugin plugin;
+        private final OptionalArg<String> actionArg = withOptionalArg("action", "'build' to create the corridor; nothing to teleport there", ArgTypes.STRING);
+
+        TestWorldCommand(LowTalkPlugin plugin) {
+            super("testworld", "Build or visit the LowTalk test corridor");
+            this.plugin = plugin;
+            this.requirePermission(ADMIN);
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef player, @Nonnull World world) {
+            java.util.function.Consumer<String> out = line -> {
+                player.sendMessage(info(plugin, line));
+                plugin.getLogger().at(java.util.logging.Level.INFO).log("[testworld] %s", line);
+            };
+            String action = actionArg.provided(context) ? actionArg.get(context).trim().toLowerCase() : "";
+            if (action.equals("build")) {
+                plugin.getRegistry().copyTestDialogues();
+                TestWorld.build(plugin, out);
+            } else {
+                TestWorld.teleport(plugin, player, out);
+            }
         }
     }
 

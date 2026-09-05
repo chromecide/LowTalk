@@ -1,0 +1,27 @@
+# STATION 5: notify, title, sound, anim.
+npc: @test_feedback
+title: Station 5 - Feedback
+speaker: Tester
+
+== start
+TEST 5: Feedback. Each option should produce something visible or audible outside this window.
+-> Toast notification (expect a small notification in the corner: "LowTalk test" / "Notification works")
+    <<notify "LowTalk test" "Notification works" success>>
+    <<jump start>>
+-> Warning toast (expect an orange/warning style)
+    <<notify "Careful" "This is the warning style" warning>>
+    <<jump start>>
+-> Minor title (expect a small title across the screen for 3 seconds)
+    <<title "Minor title" "Secondary line">>
+    <<jump start>>
+-> Major title (expect a big cinematic title for 4 seconds)
+    <<title "MAJOR TITLE" "The grove remembers" major 4>>
+    <<jump start>>
+-> Play a sound at the NPC (expect the item-pickup sound)
+    <<sound SFX_Player_Pickup_Item>>
+    <<jump start>>
+-> NPC animation (expect the NPC to wave or emote; if nothing happens, note it)
+    <<anim Wave>>
+    <<jump start>>
+-> Leave
+    <<end>>

@@ -1,0 +1,42 @@
+# STATION 2: per-NPC memory, player-wide memory, once-blocks, visited(), guarded starts.
+# Two NPCs share this file. Talk to A first, then B.
+npc: @test_memory
+title: Station 2 - Memory
+speaker: Tester
+
+start: returning when $met
+start: first
+
+== first
+TEST 2: Memory. This is our FIRST meeting. Expected: NPC B will also say "first meeting" even after you finish here, because $met is per NPC.
+<<set $met = true>>
+<<set $player.visits = $player.visits + 1>>
+<<once>>
+  This once-block line should appear exactly once per NPC, ever.
+<<endonce>>
+<<jump menu>>
+
+== returning
+TEST 2: Memory. Welcome BACK. Expected: you only see this after finishing a first meeting with THIS NPC.
+<<jump menu>>
+
+== menu
+Player-wide counter: you have opened this station's dialogue {$player.visits} time(s) across both NPCs.
+-> Check visited(): have I seen the "elsewhere" node? (expect no the first time, yes after visiting it)
+    <<if visited("elsewhere")>>
+      Yes, you have visited "elsewhere" with this NPC.
+    <<else>>
+      Not yet. Pick the "Visit elsewhere" option, then ask again.
+    <<endif>>
+-> Visit elsewhere
+    <<jump elsewhere>>
+-> Reset my memory of this NPC (sets $met back to false; next open should be a first meeting again)
+    <<set $met = false>>
+    Done. Leave and talk to me again.
+-> Leave
+    <<end>>
+
+== elsewhere
+You are in "elsewhere". visited("elsewhere") is now true for this NPC.
+-> Back
+    <<jump menu>>

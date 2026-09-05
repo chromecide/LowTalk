@@ -1,0 +1,19 @@
+# STATION 3: text input, Enter key, interpolation, string comparison, plural().
+npc: @test_input
+title: Station 3 - Text input
+speaker: Tester
+
+== start
+TEST 3: Text input. You will be asked to type. Try pressing Enter as well as clicking OK.
+<<input $tmp.word "Type any word and press Enter (or OK)">>
+<<if $tmp.word == "">>
+  You submitted an empty box. Expected: this message, then the menu.
+<<else>>
+  You typed "{$tmp.word}". Expected: your text echoed exactly, including capitals and spaces.
+<<endif>>
+<<input $tmp.n "Now type a number">>
+You typed {$tmp.n}, which reads as {plural($tmp.n, "apple", "apples")}: "{$tmp.n} {plural($tmp.n, "apple", "apples")}".
+-> Try again
+    <<jump start>>
+-> Leave
+    <<end>>

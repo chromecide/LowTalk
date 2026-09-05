@@ -1,0 +1,21 @@
+# STATION 7: objectives (start, state) and reputation (change, read, rank).
+npc: @test_progress
+title: Station 7 - Objectives and reputation
+speaker: Tester
+
+== start
+TEST 7: Progress. Objective_Gather is currently "{objective("Objective_Gather")}". Reputation with my group: {reputation()}, rank "{rank()}".
+-> Start Objective_Gather (expect a "New objective" line and objective state "active" on the next menu)
+    <<objective Objective_Gather>>
+    <<jump start>>
+-> Reputation +10 (expect the number above to rise on the next menu; rank may change)
+    <<reputation +10>>
+    <<jump start>>
+-> Reputation -10
+    <<reputation -10>>
+    <<jump start>>
+-> Only visible when the objective is active <<if objective("Objective_Gather") == "active">>
+    Correct: the objective is active.
+    <<jump start>>
+-> Leave
+    <<end>>

@@ -1,0 +1,21 @@
+# STATION 4: give, take, has, count, and a narration line for each.
+npc: @test_items
+title: Station 4 - Items
+speaker: Tester
+
+== start
+TEST 4: Items. You currently hold {count("Food_Bread")} bread. Expected: this number changes as you use the options below.
+-> Give me 2 bread (expect a grey "You receive 2 Bread" line and +2 in your inventory)
+    <<give Food_Bread 2>>
+    <<jump start>>
+-> Take 1 bread (expect "You hand over 1 Bread"; if you have none, expect a "You don't have" line) 
+    <<take Food_Bread 1>>
+    <<jump start>>
+-> Only visible while I hold at least 3 bread <<if has("Food_Bread", 3)>>
+    Correct: has("Food_Bread", 3) is true.
+    <<jump start>>
+-> Greyed out until I hold 5 bread <<show if has("Food_Bread", 5)>>
+    Correct: you had five or more.
+    <<jump start>>
+-> Leave
+    <<end>>

@@ -1,0 +1,13 @@
+# STATION 8: the shop hand-off and teleport. This NPC is a merchant so it has a real barter shop.
+npc: @test_travel
+title: Station 8 - Shop and travel
+speaker: Tester
+
+== start
+TEST 8: Shop and travel. This NPC is a real Kweebec merchant.
+-> Open the shop (expect this window to close and the barter shop to open in its place)
+    <<shop>>
+-> Teleport to the start of the corridor (expect to appear at the entrance; the window closes)
+    <<teleport 0 1 0>>
+-> Leave
+    <<end>>
