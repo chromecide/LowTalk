@@ -41,6 +41,9 @@ Elder: Sit, child. There is much to tell.
 ```
 
 A bare line uses the default speaker. `Name: text` overrides it for that line.
+A line that happens to start with a word and a colon, like `Note: bring bread`,
+would be read as a speaker; put a backslash in front (`\Note: bring bread`) to
+keep it as text. The same escape works for a line that must start with `->`.
 Text may include `{player}` (the player's name), `{npc}` (the NPC's name), and
 `{$var}` (a variable's value).
 
@@ -71,7 +74,15 @@ A trailing `<<if expr>>` hides the option unless the expression is true. Use
 <<endif>>
 ```
 
-**Command.** Anything in `<<...>>` that is not a conditional.
+**Once block.** Runs the first time a player reaches it and never again.
+
+```
+<<once>>
+  You're new here. Let me explain how things work.
+<<endonce>>
+```
+
+**Command.** Anything in `<<...>>` that is not a conditional or once block.
 
 | Command | Effect |
 |---------|--------|
@@ -86,7 +97,7 @@ A trailing `<<if expr>>` hides the option unless the expression is true. Use
 | `<<anim Id>>`, `<<sound Id>>` | Play an animation on the NPC or a sound at the NPC. |
 | `<<run "/command args">>` | Run a server command as the console. `{player}` is expanded. |
 | `<<input $var "Prompt">>` | Show a text box and store what the player types. |
-| `<<once>>` | The rest of this node runs at most once per player. |
+| `<<once>>` ... `<<endonce>>` | The block between runs at most once per player. |
 
 Plugins can register additional commands.
 

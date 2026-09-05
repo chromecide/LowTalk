@@ -70,3 +70,12 @@ tasks.named<Test>("test") {
 tasks.named<ProcessResources>("processResources") {
     exclude("data/**", "lowtalk.json", "*.bak", "*.tmp")
 }
+
+// Validate .talk files from the command line without a server:
+//   ./gradlew validate --args="examples"
+tasks.register<JavaExec>("validate") {
+    group = "lowtalk"
+    description = "Parses and validates .talk dialogue files."
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.chromecide.lowtalk.parser.ValidateMain")
+}

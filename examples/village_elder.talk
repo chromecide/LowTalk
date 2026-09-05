@@ -11,7 +11,7 @@ start: greeting
 == greeting
 <<once>>
   Elder: You are new to the grove. Sit. There is much to tell, and my roots are tired.
-<<endif>>
+<<endonce>>
 Elder: The Scarak grow bold this season. We need hands, not words.
 -> I can help. What do you need?
     <<jump offer>>
