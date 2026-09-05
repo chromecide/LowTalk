@@ -113,13 +113,15 @@ guard wins, then the most specific binding (tag beats role).
 
 ### Interaction
 
-LowTalk hooks the same use-entity event as the NPC's native interaction.
-Configurable per dialogue and globally:
+LowTalk hooks the same use-entity event as the NPC's native interaction and
+only acts when a dialogue is bound to that NPC; every other NPC keeps its
+default behaviour untouched. For bound NPCs the mode is configurable:
 
-- `replace` (default for tagged NPCs): the dialogue opens, the native use
-  (shop, etc.) does not. `<<shop>>` re-opens it on demand.
-- `crouch` (default for role bindings): crouch and use opens the dialogue,
-  plain use keeps the native behavior.
+- `replace` (default): the interact key opens the dialogue and the native use
+  (shop, etc.) does not run. A dialogue reaches the shop with `<<shop>>`, so
+  the store is one choice away rather than gone.
+- `crouch`: crouch and use opens the dialogue, plain use keeps the native
+  behaviour. For servers that want dialogue as an extra layer only.
 
 ### The window
 

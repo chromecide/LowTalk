@@ -28,7 +28,7 @@ public class LowTalkConfig {
 
     private String dialoguesFolder = "dialogues";
     private boolean copyExamples = true;
-    private String roleBindingMode = MODE_CROUCH;
+    private String roleBindingMode = MODE_REPLACE;
     private String tagBindingMode = MODE_REPLACE;
     private String infoColor = "#A0A0A0";
     private boolean logConversations = true;
