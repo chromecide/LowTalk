@@ -6,7 +6,9 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
+import com.hypixel.hytale.server.core.entity.Frozen;
 import com.hypixel.hytale.server.core.entity.UUIDComponent;
+import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.hypixel.hytale.server.core.entity.nameplate.Nameplate;
 import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
 import com.hypixel.hytale.server.core.modules.time.WorldTimeResource;
@@ -124,6 +126,24 @@ public final class TestWorld {
         });
     }
 
+    /** Freeze every NPC in the corridor (for a corridor built before stations were frozen at spawn). */
+    public static void freezeAll(@Nonnull LowTalkPlugin plugin, @Nonnull Consumer<String> out) {
+        withWorld(plugin, out, world -> world.execute(() -> {
+            Store<EntityStore> store = world.getEntityStore().getStore();
+            Vector3d centre = new Vector3d((CORRIDOR_START + CORRIDOR_END) / 2.0, FLOOR_Y + 1.0, 0.5);
+            List<Ref<EntityStore>> nearby = new ArrayList<>(TargetUtil.getAllEntitiesInSphere(centre, (CORRIDOR_END - CORRIDOR_START), store));
+            int frozen = 0;
+            for (Ref<EntityStore> ref : nearby) {
+                if (!ref.isValid() || store.getComponent(ref, NPCEntity.getComponentType()) == null) continue;
+                if (!store.getArchetype(ref).contains(Frozen.getComponentType())) {
+                    store.ensureComponent(ref, Frozen.getComponentType());
+                    frozen++;
+                }
+            }
+            out.accept("Froze " + frozen + " NPC(s) in the corridor.");
+        }));
+    }
+
     private static void withWorld(LowTalkPlugin plugin, Consumer<String> out, Consumer<World> then) {
         Universe universe = Universe.get();
         World existing = universe.getWorld(WORLD_NAME);
@@ -203,6 +223,8 @@ public final class TestWorld {
             }
             Ref<EntityStore> ref = pair.first();
             store.ensureAndGetComponent(ref, Nameplate.getComponentType()).setText(s.label());
+            // Stations stand still forever; the conversation hold leaves pre-frozen NPCs frozen.
+            store.ensureComponent(ref, Frozen.getComponentType());
             UUIDComponent uuid = store.getComponent(ref, UUIDComponent.getComponentType());
             if (uuid != null) {
                 VariableStore vs = plugin.getStore();

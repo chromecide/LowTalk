@@ -91,6 +91,11 @@ public class DialogueRegistry {
                 InputStream in = getClass().getClassLoader().getResourceAsStream("lowtalk-examples/tests/" + name);
                 if (in == null) in = DialogueRegistry.class.getResourceAsStream("/lowtalk-examples/tests/" + name);
                 if (in == null) {
+                    // Dev server runs from source: fall back to the project's examples folder.
+                    Path dev = Path.of("examples", "tests", name);
+                    if (Files.exists(dev)) in = Files.newInputStream(dev);
+                }
+                if (in == null) {
                     logger.at(Level.WARNING).log("Bundled test dialogue %s not found", name);
                     continue;
                 }
