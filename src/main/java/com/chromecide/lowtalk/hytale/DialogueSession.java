@@ -77,6 +77,7 @@ public class DialogueSession {
             return null;
         }
         s.applyEffects(first.effects());
+        if (s.ended) return null;
         if (first.step() instanceof Step.Finish) {
             s.finish();
             return null;
@@ -138,6 +139,17 @@ public class DialogueSession {
         finish();
     }
 
+    /**
+     * End the conversation without touching the window, for effects that open another page
+     * (the barter shop) in its place. Effects after this one in the same step are still applied.
+     */
+    public void detach() {
+        if (ended) return;
+        ended = true;
+        host.store().flush();
+        host.sessionEnded(this);
+    }
+
     // ---- internals
 
     private void advance(Supplier<Conversation.Result> step) {
@@ -150,6 +162,7 @@ public class DialogueSession {
             return;
         }
         applyEffects(r.effects());
+        if (ended) return; // an effect (e.g. shop) took over the screen
         if (r.step() instanceof Step.Finish) {
             finish();
             return;
