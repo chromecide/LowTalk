@@ -1,4 +1,4 @@
-# Parley design
+# LowTalk design
 
 ## Goals
 
@@ -10,18 +10,25 @@
    of it.
 3. **Native where possible.** Give items, change attitudes, start objectives,
    open barter shops, and trigger role actions using Hytale's own systems, so
-   Parley content coexists with everything else on the server.
+   LowTalk content coexists with everything else on the server.
 4. **Open.** MIT licensed, with an API other plugins can call and extend.
+   Contributors sign a short CLA so the project can be relicensed or
+   transferred as a whole if that ever makes sense.
 5. **Deterministic.** No language model in the loop. Every line a player sees
    was written by a person.
+6. **Idiomatic.** Written the way Hypixel writes their own plugins: codec
+   defined config, ECS systems for entity hooks, custom UI pages, the
+   standard logger and command base classes. If LowTalk were ever folded into
+   the game, it should read like it was always there. No decompiled code is
+   ever copied; only the public API is used.
 
 ## Non-goals
 
 - A general quest journal or objective tracker. Hytale has objectives; other
-  mods have journals. Parley hands out objectives and reads their state.
+  mods have journals. LowTalk hands out objectives and reads their state.
 - An in-game visual editor in the first release. A validator and a live
   reload are enough to iterate quickly.
-- Client-side anything. Hytale streams server mods to players; Parley is a
+- Client-side anything. Hytale streams server mods to players; LowTalk is a
   server plugin only.
 
 ## The landscape
@@ -31,12 +38,12 @@ linear pages with command buttons, edited in game, all rights reserved.
 QuestLines Core offers a capable branching tree inside a large proprietary
 quest engine. Neither is open source, neither treats dialogue as a craft, and
 neither builds on Hytale's native objectives, attitudes, or shops. That is the
-gap Parley aims at.
+gap LowTalk aims at.
 
 ## Architecture
 
 ```
-com.chromecide.parley
+com.chromecide.lowtalk
   parser/     text -> AST. No Hytale imports. Fully unit tested.
   model/      AST types: Dialogue, Node, Line, Option, Conditional, Command, Expr.
   runtime/    Interpreter: walks a node for one player, evaluates expressions,
@@ -48,8 +55,8 @@ com.chromecide.parley
                 effect implementations (give, take, shop, attitude, ...),
                 function implementations (has, objective, attitude, ...),
                 the dialogue window, commands.
-  api/        ParleyApi: register functions, commands, and listeners.
-  ParleyPlugin  wires it together.
+  api/        LowTalkApi: register functions, commands, and listeners.
+  LowTalkPlugin  wires it together.
 ```
 
 The split matters: the parser and interpreter know nothing about Hytale, so
@@ -96,9 +103,9 @@ conversation ending, a server save, and a shutdown all flush.
 1. **By role.** `npc: Kweebec_Merchant` applies to every NPC of that role.
    Cheap, needs no in-world setup, right for shopkeepers and guards.
 2. **By tag.** `npc: @elder` applies to NPCs an admin has tagged with
-   `/parley tag elder` while looking at them. Tags are stored by entity UUID
+   `/lowtalk tag elder` while looking at them. Tags are stored by entity UUID
    in `npcs/<uuid>.json`. Right for unique characters.
-3. **By command.** `/parley open <dialogue> [player]` starts a dialogue from
+3. **By command.** `/lowtalk open <dialogue> [player]` starts a dialogue from
    anywhere, for cutscenes, signs, or other plugins.
 
 If several dialogues bind the same NPC, the one with a matching `start when`
@@ -106,7 +113,7 @@ guard wins, then the most specific binding (tag beats role).
 
 ### Interaction
 
-Parley hooks the same use-entity event as the NPC's native interaction.
+LowTalk hooks the same use-entity event as the NPC's native interaction.
 Configurable per dialogue and globally:
 
 - `replace` (default for tagged NPCs): the dialogue opens, the native use
@@ -125,7 +132,7 @@ right feel for a conversation.
 
 ### Reloading
 
-`/parley reload` re-parses every file, reports errors with file and line, and
+`/lowtalk reload` re-parses every file, reports errors with file and line, and
 swaps the dialogue set atomically. Conversations already in progress keep the
 old tree until they end.
 
@@ -147,6 +154,23 @@ See [format.md](format.md). Design notes on the choices:
 - **Effects are commands, checks are functions.** `<<give>>` does something;
   `has()` asks something. Never the same word for both.
 
+## Alignment with Hypixel's conventions
+
+Observed in the shipped plugins and followed here:
+
+- Config objects are plain classes with a `BuilderCodec`; the plugin calls
+  `withConfig` in its constructor and `save()` in `setup()`.
+- Entity hooks are `EntityEventSystem`s registered on the entity store
+  registry, not ad hoc listeners.
+- Windows are `InteractiveCustomUIPage`s with an event data codec; layouts
+  are `.ui` files shipped in the asset pack.
+- Commands extend the command base classes and declare arguments with
+  `withRequiredArg` and friends, with permissions from `HytalePermissions`.
+- Player-facing text goes through `Message`; console output through
+  `HytaleLogger`.
+- Asset-like data (dialogues) is loaded from files in the plugin folder and
+  reloadable, the way NPC roles and objectives are.
+
 ## Safety and permissions
 
 - `<<run>>` executes as the console. Only trusted admins should edit dialogue
@@ -166,7 +190,7 @@ crouch-use. Enough to ship the merchant example.
 
 **M3, effects and functions.** give, take, has, count, shop, attitude,
 objective, anim, sound, run, input, once, visited. NPC and world scopes.
-Tags and `/parley tag`, `/parley open`, `/parley reload`, `/parley vars`.
+Tags and `/lowtalk tag`, `/lowtalk open`, `/lowtalk reload`, `/lowtalk vars`.
 
 **M4, polish.** Portrait area, greyed options, per-dialogue interaction mode,
 hour and chance functions, localisation of UI strings, documentation pass,

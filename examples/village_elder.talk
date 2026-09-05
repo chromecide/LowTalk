@@ -1,4 +1,4 @@
-# A unique character. Tag one NPC in game with:  /parley tag elder
+# A unique character. Tag one NPC in game with:  /lowtalk tag elder
 
 npc: @elder
 title: Elder Rootbark

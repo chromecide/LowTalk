@@ -8,7 +8,7 @@ run/
 
 # Runtime data the plugin writes into its own folder during development
 src/main/resources/data/
-src/main/resources/parley.json
+src/main/resources/lowtalk.json
 *.bak
 *.tmp
 

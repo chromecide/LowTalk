@@ -1,8 +1,8 @@
-# Parley
+# LowTalk
 
 Hand-written branching dialogue for Hytale NPCs.
 
-Parley lets you give any NPC a conversation: lines, choices, conditions, and
+LowTalk lets you give any NPC a conversation: lines, choices, conditions, and
 consequences, written in a small plain-text format that is pleasant to type,
 diff, and version. It runs entirely server-side, remembers what each player
 has said and done, and plugs into Hytale's own systems (items, attitudes,
@@ -53,7 +53,7 @@ Early development. Nothing is released yet. The roadmap is in
 Requires Java 25. The Gradle wrapper is included.
 
 ```
-./gradlew build          # builds build/libs/Parley-<version>.jar
+./gradlew build          # builds build/libs/LowTalk-<version>.jar
 ./gradlew test           # parser and runtime tests, no server needed
 ./gradlew runServer      # local dev server with the plugin loaded
 ```

@@ -1,6 +1,6 @@
-# The Parley dialogue format
+# The LowTalk dialogue format
 
-A dialogue is a plain text file with the extension `.parley`, encoded as UTF-8.
+A dialogue is a plain text file with the extension `.talk`, encoded as UTF-8.
 It is made of a short header and one or more nodes. Indentation is two spaces
 and is significant only inside options and conditionals.
 
@@ -13,7 +13,7 @@ Lines before the first node are directives, `key: value`, one per line.
 
 | Directive | Meaning |
 |-----------|---------|
-| `npc:` | Which NPCs use this dialogue. A role id (`Kweebec_Merchant`) binds every NPC of that role. A tag (`@elder`) binds NPCs tagged in-game with `/parley tag elder`. Repeatable. |
+| `npc:` | Which NPCs use this dialogue. A role id (`Kweebec_Merchant`) binds every NPC of that role. A tag (`@elder`) binds NPCs tagged in-game with `/lowtalk tag elder`. Repeatable. |
 | `start:` | The node to begin at. Defaults to the first node. May be repeated with a guard: `start: returning when $met` is tried before an unguarded `start:`. |
 | `speaker:` | Default speaker name for bare lines. Defaults to the NPC's in-game name. |
 | `title:` | Shown in the window header. Defaults to the speaker. |
@@ -122,12 +122,12 @@ Plugins can register additional functions.
 
 ## A complete example
 
-See [examples/rootling_merchant.parley](../examples/rootling_merchant.parley)
-and [examples/village_elder.parley](../examples/village_elder.parley).
+See [examples/rootling_merchant.talk](../examples/rootling_merchant.talk)
+and [examples/village_elder.talk](../examples/village_elder.talk).
 
 ## Validation
 
-`./gradlew validate --args="path/to/file.parley"` parses a file and reports
-errors with line numbers, without starting a server. `/parley reload` on a
+`./gradlew validate --args="path/to/file.talk"` parses a file and reports
+errors with line numbers, without starting a server. `/lowtalk reload` on a
 running server does the same for every file in the dialogues folder and
 prints the results to the console.

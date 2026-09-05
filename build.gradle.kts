@@ -68,5 +68,5 @@ tasks.named<Test>("test") {
 
 // Runtime data written into the plugin folder must not be packaged into the jar.
 tasks.named<ProcessResources>("processResources") {
-    exclude("data/**", "parley.json", "*.bak", "*.tmp")
+    exclude("data/**", "lowtalk.json", "*.bak", "*.tmp")
 }

@@ -1,4 +1,4 @@
-package com.chromecide.parley;
+package com.chromecide.lowtalk;
 
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
@@ -7,26 +7,26 @@ import javax.annotation.Nonnull;
 import java.util.logging.Level;
 
 /**
- * Parley: hand-written branching dialogue for NPCs.
+ * LowTalk: hand-written branching dialogue for NPCs.
  *
  * This is the entry point. The parser and runtime live in their own packages and have no
  * dependency on the server; everything that touches Hytale is under {@code hytale}.
  */
-public class ParleyPlugin extends JavaPlugin {
+public class LowTalkPlugin extends JavaPlugin {
 
-    private static ParleyPlugin instance;
+    private static LowTalkPlugin instance;
 
-    public ParleyPlugin(@Nonnull JavaPluginInit init) {
+    public LowTalkPlugin(@Nonnull JavaPluginInit init) {
         super(init);
         instance = this;
     }
 
     @Override
     protected void setup() {
-        getLogger().at(Level.INFO).log("Parley loaded. Dialogue support arrives in milestone 2.");
+        getLogger().at(Level.INFO).log("LowTalk loaded. Dialogue support arrives in milestone 2.");
     }
 
-    public static ParleyPlugin get() {
+    public static LowTalkPlugin get() {
         return instance;
     }
 }
