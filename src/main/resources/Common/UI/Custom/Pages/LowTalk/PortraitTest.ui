@@ -1,0 +1,67 @@
+$C = "../../Common.ui";
+
+// Diagnostic: the same texture referenced in several ways, to see which form the client resolves from this page.
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  $C.@DecoratedContainer {
+    Anchor: (Width: 900, Height: 640);
+
+    #Title {
+      $C.@Title #PageTitle {
+        @Text = "Portrait path test";
+      }
+    }
+
+    #Content {
+      LayoutMode: Top;
+      Padding: (Full: 12);
+
+      Group { LayoutMode: Left; Anchor: (Height: 70, Bottom: 6);
+        Label { Anchor: (Width: 420); Style: (FontSize: 13, TextColor: #b7cedd, VerticalAlignment: Center); Text: "S1 static Group Background \"../RespawnPageSkull.png\""; }
+        Group { Anchor: (Width: 64, Height: 64); Background: "../RespawnPageSkull.png"; }
+        Label { Anchor: (Width: 20); }
+        Label { Anchor: (Width: 300); Style: (FontSize: 13, TextColor: #b7cedd, VerticalAlignment: Center); Text: "S2 static Sprite \"../RespawnPageSkull.png\""; }
+        Sprite { Anchor: (Width: 64, Height: 64); TexturePath: "../RespawnPageSkull.png"; }
+      }
+      Group { LayoutMode: Left; Anchor: (Height: 70, Bottom: 6);
+        Label { Anchor: (Width: 420); Style: (FontSize: 13, TextColor: #b7cedd, VerticalAlignment: Center); Text: "S3 static Group Background \"UI/Custom/Pages/RespawnPageSkull.png\""; }
+        Group { Anchor: (Width: 64, Height: 64); Background: "UI/Custom/Pages/RespawnPageSkull.png"; }
+        Label { Anchor: (Width: 20); }
+        Label { Anchor: (Width: 300); Style: (FontSize: 13, TextColor: #b7cedd, VerticalAlignment: Center); Text: "S4 static Sprite \"UI/Custom/Pages/RespawnPageSkull.png\""; }
+        Sprite { Anchor: (Width: 64, Height: 64); TexturePath: "UI/Custom/Pages/RespawnPageSkull.png"; }
+      }
+      Group { LayoutMode: Left; Anchor: (Height: 70, Bottom: 6);
+        Label #L1 { Anchor: (Width: 420); Style: (FontSize: 13, TextColor: #ffd37a, VerticalAlignment: Center); }
+        Group #D1 { Anchor: (Width: 64, Height: 64); }
+        Label { Anchor: (Width: 20); }
+        Label #L2 { Anchor: (Width: 300); Style: (FontSize: 13, TextColor: #ffd37a, VerticalAlignment: Center); }
+        Group #D2 { Anchor: (Width: 64, Height: 64); }
+      }
+      Group { LayoutMode: Left; Anchor: (Height: 70, Bottom: 6);
+        Label #L3 { Anchor: (Width: 420); Style: (FontSize: 13, TextColor: #ffd37a, VerticalAlignment: Center); }
+        Group #D3 { Anchor: (Width: 64, Height: 64); }
+        Label { Anchor: (Width: 20); }
+        Label #L4 { Anchor: (Width: 300); Style: (FontSize: 13, TextColor: #ffd37a, VerticalAlignment: Center); }
+        Group #D4 { Anchor: (Width: 64, Height: 64); }
+      }
+      Group { LayoutMode: Left; Anchor: (Height: 70, Bottom: 6);
+        Label #L5 { Anchor: (Width: 420); Style: (FontSize: 13, TextColor: #ffd37a, VerticalAlignment: Center); }
+        Sprite #D5 { Anchor: (Width: 64, Height: 64); }
+        Label { Anchor: (Width: 20); }
+        Label #L6 { Anchor: (Width: 300); Style: (FontSize: 13, TextColor: #ffd37a, VerticalAlignment: Center); }
+        Sprite #D6 { Anchor: (Width: 64, Height: 64); }
+      }
+      Group { LayoutMode: Left; Anchor: (Height: 70, Bottom: 6);
+        Label #L7 { Anchor: (Width: 420); Style: (FontSize: 13, TextColor: #ffd37a, VerticalAlignment: Center); }
+        Group #D7 { Anchor: (Width: 64, Height: 64); }
+        Label { Anchor: (Width: 20); }
+        Label #L8 { Anchor: (Width: 300); Style: (FontSize: 13, TextColor: #ffd37a, VerticalAlignment: Center); }
+        Group #D8 { Anchor: (Width: 64, Height: 64); }
+      }
+      Group { LayoutMode: Center; Anchor: (Top: 10, Height: 38);
+        $C.@SecondaryTextButton #CloseButton { @Anchor = (Width: 140); @Text = "Close"; }
+      }
+    }
+  }
+}
