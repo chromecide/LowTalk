@@ -98,7 +98,7 @@ conversation. Each one remembers each player separately.
 | `/lowtalk stop` | Leave your current conversation |
 | `/lowtalk help [name]` | The format reference in chat: commands, functions, keywords, or one entry |
 | `/lowtalk info <id>` | Outline of a dialogue: nodes, options, variables, unreachable nodes |
-| `/lowtalk convert <id> json\|talk [pack]` | Write a dialogue in the other format |
+| `/lowtalk convert json\|talk <id> <pack>` | Write a dialogue in the other format into an asset pack (`server` = plugin folder for talk) |
 
 Permissions: `lowtalk.creator` covers authoring (`list`, `open`, `tags`, `vars`,
 `reset`, `test`, `help`, `info`); `lowtalk.admin` covers server operation (`reload`, `tag`,
