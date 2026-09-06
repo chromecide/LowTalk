@@ -108,6 +108,16 @@ Permissions: `lowtalk.creator` covers authoring (`list`, `open`, `tags`, `vars`,
 `untag`, `thaw`, `testworld`). Give admins `lowtalk.*`. Players need nothing:
 they reach dialogues only by using an NPC, and `stop` is open to everyone.
 
+## Removing the mod
+
+LowTalk registers no entity components, so a world that had LowTalk installed keeps loading without it. What it
+leaves behind degrades quietly: the game keeps unknown item ids as a placeholder item (the LowTalk tool), trigger
+volumes skip effect and condition types they no longer know, objectives whose asset is gone are dropped with a
+warning, and an NPC still carrying one of LowTalk's own roles (the test corridor's stations) is logged as a missing
+role and lost rather than crashing the chunk. Dialogue memory, tags and bindings live in `lowtalk.json` and the
+plugin's `data` folder and can be deleted with the plugin. Mods built on LowTalk may have their own step; Companions,
+for example, asks you to run `/companions dismissall` first.
+
 ## Editing in game
 
 **In place, with the LowTalk tool.** `/lowtalk tool` puts a tool in your hand (it is also in the
