@@ -32,6 +32,8 @@ public final class LowTalkPageSupplier implements OpenCustomUIInteraction.Custom
     @Nonnull
     public static final BuilderCodec<LowTalkPageSupplier> CODEC = BuilderCodec.builder(LowTalkPageSupplier.class, LowTalkPageSupplier::new)
             .append(new KeyedCodec<>("Dialogue", Codec.STRING), (s, v) -> s.dialogueId = v, s -> s.dialogueId)
+            .documentation("The LowTalk dialogue to open, by id (file name without extension).")
+            .metadata(new com.hypixel.hytale.codec.schema.metadata.ui.UIEditor(new com.hypixel.hytale.codec.schema.metadata.ui.UIEditor.TextField(com.chromecide.lowtalk.hytale.json.JsonDialogues.DATASET_DIALOGUES)))
             .add()
             .build();
 

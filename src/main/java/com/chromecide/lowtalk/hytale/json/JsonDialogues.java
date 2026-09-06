@@ -48,6 +48,8 @@ public final class JsonDialogues {
     public static final String DATASET_TIMES = "LowTalkTimes";
     public static final String DATASET_REPUTATION_GROUPS = "LowTalkReputationGroups";
     public static final String DATASET_SHOPS = "LowTalkShops";
+    /** Loaded dialogue ids: for the trigger tool's picker and for Dialogue fields in interaction JSON. */
+    public static final String DATASET_DIALOGUES = "LowTalkDialogues";
     private static final int MAX_SUGGESTIONS = 40;
 
     private static HytaleAssetStore<String, DialogueAsset, DefaultAssetMap<String, DialogueAsset>> store;
@@ -80,6 +82,7 @@ public final class JsonDialogues {
         plugin.getEventRegistry().register(com.hypixel.hytale.builtin.asseteditor.event.AssetEditorFetchAutoCompleteDataEvent.class, DATASET_COMMANDS,
                 e -> e.setResults(commandSuggestions(plugin, e.getQuery())));
         dataset(plugin, DATASET_ROLES, () -> new java.util.ArrayList<>(com.hypixel.hytale.server.npc.NPCPlugin.get().getRoleTemplateNames(false)));
+        dataset(plugin, DATASET_DIALOGUES, () -> plugin.getRegistry().ids());
         dataset(plugin, DATASET_ATTITUDES, () -> java.util.List.of("ignore", "hostile", "neutral", "friendly", "revered"));
         dataset(plugin, DATASET_ANIMATION_SLOTS, () -> java.util.List.of("Emote", "Status", "Action", "Movement", "Face", "ServerAction"));
         dataset(plugin, DATASET_NOTIFY_STYLES, () -> java.util.List.of("success", "warning", "danger"));

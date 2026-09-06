@@ -28,6 +28,8 @@ public final class LowTalkTriggerEffect extends TriggerEffect {
     @Nonnull
     public static final BuilderCodec<LowTalkTriggerEffect> CODEC = BuilderCodec.builder(LowTalkTriggerEffect.class, LowTalkTriggerEffect::new, BASE_CODEC)
             .append(new KeyedCodec<>("Dialogue", Codec.STRING), (e, v) -> e.dialogueId = v, e -> e.dialogueId)
+            .documentation("The LowTalk dialogue to open, by id (file name without extension).")
+            .metadata(new com.hypixel.hytale.codec.schema.metadata.ui.UIEditor(new com.hypixel.hytale.codec.schema.metadata.ui.UIEditor.TextField(com.chromecide.lowtalk.hytale.json.JsonDialogues.DATASET_DIALOGUES)))
             .add()
             .build();
 

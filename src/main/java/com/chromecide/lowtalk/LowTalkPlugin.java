@@ -94,10 +94,15 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
             getLogger().at(Level.WARNING).log("Could not register the JSON dialogue asset type: %s", e.toString());
         }
         try {
-            com.hypixel.hytale.builtin.triggervolumes.TriggerVolumesPlugin.get().registerEffectType(
+            com.hypixel.hytale.builtin.triggervolumes.TriggerVolumesPlugin tv = com.hypixel.hytale.builtin.triggervolumes.TriggerVolumesPlugin.get();
+            tv.registerEffectType(
                     com.chromecide.lowtalk.hytale.integrations.LowTalkTriggerEffect.TYPE_ID,
                     com.chromecide.lowtalk.hytale.integrations.LowTalkTriggerEffect.class,
                     com.chromecide.lowtalk.hytale.integrations.LowTalkTriggerEffect.CODEC);
+            // The Trigger Volume Tool shows a picker of loaded dialogue ids for the effect's Dialogue field.
+            tv.registerAssetSource(com.chromecide.lowtalk.hytale.json.JsonDialogues.DATASET_DIALOGUES, () -> registry.ids());
+            tv.registerAssetField(com.chromecide.lowtalk.hytale.integrations.LowTalkTriggerEffect.TYPE_ID, "Dialogue",
+                    com.chromecide.lowtalk.hytale.json.JsonDialogues.DATASET_DIALOGUES);
         } catch (RuntimeException e) {
             getLogger().at(Level.WARNING).log("Could not register the LowTalkDialogue trigger effect: %s", e.toString());
         }
