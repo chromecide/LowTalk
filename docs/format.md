@@ -314,6 +314,22 @@ dialogue without touching Java or `.talk` bindings:
   and an entry can be gated by what was said:
   `"Requirements": [ { "Type": "LowTalkCondition", "Dialogue": "haggle", "If": "$player.trusted" } ]`.
 
+**NPC roles.** Two role components let an NPC's own behaviour tree start and
+gate conversations. `LowTalkOpenDialogue` is an action that opens a dialogue
+for the player the NPC is interacting with (`Dialogue` names one; empty uses
+whatever is bound to the NPC). `LowTalkCondition` is a sensor that matches
+when an expression holds for that player, in the NPC's own memory, so `$met`
+works. Inside a role's `InteractionInstruction`:
+
+```json
+{ "Sensor": { "Type": "HasInteracted" },
+  "Instructions": [
+    { "Sensor": { "Type": "LowTalkCondition", "Dialogue": "innkeeper", "If": "not $player.banned" },
+      "Actions": [ { "Type": "LockOnInteractionTarget" },
+                   { "Type": "LowTalkOpenDialogue", "Dialogue": "innkeeper" },
+                   { "Type": "State", "State": "$Interaction" } ] } ] }
+```
+
 Dialogue variables also reach the trigger-volume tool the other way round.
 The `LowTalkCondition` condition (`Dialogue`, `If`) makes a volume's effects
 fire only when an expression holds for the player, and the

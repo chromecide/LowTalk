@@ -90,6 +90,15 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
      */
     private void registerGameHooks() {
         try {
+            com.hypixel.hytale.server.npc.NPCPlugin.get()
+                    .registerCoreComponentType(com.chromecide.lowtalk.hytale.npc.BuilderActionLowTalkOpenDialogue.TYPE_ID,
+                            com.chromecide.lowtalk.hytale.npc.BuilderActionLowTalkOpenDialogue::new)
+                    .registerCoreComponentType(com.chromecide.lowtalk.hytale.npc.BuilderSensorLowTalkCondition.TYPE_ID,
+                            com.chromecide.lowtalk.hytale.npc.BuilderSensorLowTalkCondition::new);
+        } catch (RuntimeException e) {
+            getLogger().at(Level.WARNING).log("Could not register the LowTalk NPC role components: %s", e.toString());
+        }
+        try {
             com.chromecide.lowtalk.hytale.objectives.ObjectiveNodes.register(this);
         } catch (RuntimeException e) {
             getLogger().at(Level.WARNING).log("Could not register the LowTalkNode objective task: %s", e.toString());

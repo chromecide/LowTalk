@@ -24,6 +24,8 @@ First working version.
 - World and NPC control through the game's own systems: `weather`, `time`,
   `npc_name`, `state`, `despawn`, `spawn`; objective lines, cancel and task
   completion; `t()` translations, `weather()`, `objective_line()`.
+- NPC role components: the `LowTalkOpenDialogue` action and `LowTalkCondition`
+  sensor, so role behaviour trees can start and gate conversations.
 - `music`, `vfx` and `camera` commands, using the game's music tracker, particle
   utility and camera-shake effects; window labels come from language keys.
 - `LowTalkNode` objective task type: quests complete when the player reaches a
