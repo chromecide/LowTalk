@@ -167,8 +167,16 @@ public final class TestWorld {
             World from = store.getExternalData().getWorld();
             from.execute(() -> {
                 if (!ref.isValid()) return;
-                // Read this before the teleport: the reference is not usable once the player is leaving the world.
-                String note = EntityDetectionUtil.isDetectableByNPCs(ref, store) ? null : "Note: " + detectability(ref, store);
+                // The corridor is played in Adventure mode: NPC brains ignore Creative players, and station 14 needs to
+                // see you. Same call as the game's /gamemode command. Done before the teleport, while the reference is usable.
+                Player p = store.getComponent(ref, Player.getComponentType());
+                String note = null;
+                if (p != null && p.getGameMode() != com.hypixel.hytale.protocol.GameMode.Adventure) {
+                    Player.setGameMode(ref, com.hypixel.hytale.protocol.GameMode.Adventure, store);
+                    note = "Switched you to Adventure mode so the stations can see you (/gamemode creative to go back).";
+                } else if (!EntityDetectionUtil.isDetectableByNPCs(ref, store)) {
+                    note = "Note: " + detectability(ref, store);
+                }
                 Teleport t = new Teleport(world, new Vector3d(CORRIDOR_START + 1.5, FLOOR_Y + 1.0, 0.5), new Rotation3f(0.0f, 0.0f, 0.0f));
                 store.addComponent(ref, Teleport.getComponentType(), t);
                 out.accept("Off you go. Walk along the corridor; each NPC is a test station.");
