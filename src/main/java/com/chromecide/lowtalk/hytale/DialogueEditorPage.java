@@ -72,7 +72,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
     private static final String NONE = "$none";
 
     /** Which game list feeds the picker for a command's arguments, by argument position. */
-    private static final Map<String, String[]> PICKERS = Map.ofEntries(
+    private static final Map<String, String[]> PICKERS = new java.util.concurrent.ConcurrentHashMap<>(Map.ofEntries(
             Map.entry("attitude", new String[] {JsonDialogues.DATASET_ATTITUDES}),
             Map.entry("anim", new String[] {JsonDialogues.DATASET_ANIMATIONS, JsonDialogues.DATASET_ANIMATION_SLOTS}),
             Map.entry("weather", new String[] {JsonDialogues.DATASET_WEATHERS}),
@@ -88,7 +88,12 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             Map.entry("notify", new String[] {null, JsonDialogues.DATASET_NOTIFY_STYLES}),
             Map.entry("title", new String[] {null, JsonDialogues.DATASET_NOTIFY_STYLES}),
             Map.entry("time", new String[] {JsonDialogues.DATASET_TIMES}),
-            Map.entry("objective", new String[] {null, JsonDialogues.DATASET_DIALOGUES}));
+            Map.entry("objective", new String[] {null, JsonDialogues.DATASET_DIALOGUES})));
+
+    /** Let another plugin's command get a picker: one data set id per argument position, null for none. */
+    public static void registerPicker(String command, String... dataSetsByArgument) {
+        PICKERS.put(command, dataSetsByArgument.clone());
+    }
 
     public enum Action {
         LINE_TEXT, LINE_SPEAKER,

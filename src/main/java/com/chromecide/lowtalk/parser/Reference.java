@@ -113,6 +113,16 @@ public final class Reference {
 
     private Reference() {}
 
+    /** Another plugin's command, so help, error suggestions and the in-game editor know it. */
+    public static void registerCommand(String name, String usage, String description) {
+        COMMANDS.put(name, new Entry(name, usage == null || usage.isBlank() ? "<<" + name + ">>" : usage, description == null ? "" : description));
+    }
+
+    /** Another plugin's function. */
+    public static void registerFunction(String name, String usage, String description) {
+        FUNCTIONS.put(name, new Entry(name, usage == null || usage.isBlank() ? name + "()" : usage, description == null ? "" : description));
+    }
+
     public static List<Entry> commands() {
         return List.copyOf(COMMANDS.values());
     }

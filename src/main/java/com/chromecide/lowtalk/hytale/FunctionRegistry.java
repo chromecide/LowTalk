@@ -27,7 +27,7 @@ public class FunctionRegistry {
     }
 
     public Set<String> names() {
-        return Set.copyOf(functions.keySet());
+        return java.util.Collections.unmodifiableSet(functions.keySet()); // live: commands registered later still count as known
     }
 
     public Object call(HytaleContext ctx, String name, List<Object> args) {

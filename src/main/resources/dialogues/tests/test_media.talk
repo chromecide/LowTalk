@@ -1,7 +1,6 @@
-# STATION 13: media through the game's own systems: <<music>>, <<vfx>>, <<camera>>.
 npc: @test_media
-title: Station 13 - Music, effects, camera
 speaker: Tester
+title: Station 13 - Music, effects, camera
 
 == start
 TEST 13: Media. Each option uses a game asset by id; the Asset Editor form and the node editor offer these ids as suggestions.
@@ -18,7 +17,7 @@ TEST 13: Media. Each option uses a game asset by id; the Asset Editor form and t
     <<vfx Totem_Heal_Simple_Test 2 3>>
     <<jump start>>
 -> Shake my camera (expect a short shake)
-    <<camera Battleaxe_Bash>>
+    <<camera Mace_Explode>>
     <<jump start>>
 -> Gentle shake (expect a much weaker one)
     <<camera Battleaxe_Bash 0.2>>

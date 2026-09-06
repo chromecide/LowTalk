@@ -27,4 +27,13 @@ public interface DialogueContext {
     void setVar(@Nonnull String scope, @Nonnull String name, @Nullable Object value);
 
     boolean hasVisited(@Nonnull String node);
+
+    /** The NPC entity, or null for a narrator conversation or an NPC that is gone. World thread only. */
+    @Nullable com.hypixel.hytale.component.Ref<com.hypixel.hytale.server.core.universe.world.storage.EntityStore> getNpcRef();
+
+    /** The world the conversation happens in, or null if the player has left. */
+    @Nullable com.hypixel.hytale.server.core.universe.world.World getWorld();
+
+    /** The entity store of that world, or null if the player has left. World thread only. */
+    @Nullable com.hypixel.hytale.component.Store<com.hypixel.hytale.server.core.universe.world.storage.EntityStore> getEntityStore();
 }

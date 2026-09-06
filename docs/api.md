@@ -52,6 +52,18 @@ run on the world thread, so entity access is safe.
 Registered names also stop the validator warning about unknown functions and
 commands in `/lowtalk reload`.
 
+Give the command help text and pickers so `/lowtalk help`, error suggestions
+and the in-game editor treat it like a built-in:
+
+```java
+api.registerCommand("grant_title", "<<grant_title name>>", "Give the player a title.", (ctx, args) -> ...);
+api.registerDataSet("MyTitles", () -> myTitles.ids());
+api.registerCommandPicker("grant_title", "MyTitles");   // one data set per argument, null for free text
+```
+
+`ctx` also reaches the game: `ctx.getNpcRef()`, `ctx.getWorld()` and
+`ctx.getEntityStore()` (world thread only; null for a narrator conversation).
+
 ## Listen to conversations
 
 ```java
@@ -88,12 +100,25 @@ No Java is needed to start a dialogue from game content: trigger volumes
 `on: join` directive all open dialogues through the game's own systems. See
 [format.md](format.md#opening-dialogues-from-the-games-own-systems).
 
+## Binding a dialogue to one NPC at run time
+
+```java
+api.bindNpc(npcId, "companion");     // this NPC now opens "companion" on use, whatever its role
+api.unbindNpc(npcId, "companion");
+api.tagNpc(npcId, "elder");          // the same as /lowtalk tag elder
+```
+
+Useful when a plugin changes an NPC's role: bindings by role stop matching,
+bindings by NPC keep working. Stored with LowTalk's data, so they survive
+restarts.
+
 ## Variables outside a conversation
 
 ```java
 Object stage = api.getPlayerVar(playerId, "village_elder", "stage");
 api.setPlayerVar(playerId, "village_elder", "stage", 2.0);
 api.setWorldVar("festival", "day", 3.0);
+api.getNpcVar(npcId, "village_elder", "mood");
 ```
 
 The second argument is the dialogue's scope, which is its file name unless

@@ -447,7 +447,18 @@ public class DialogueRegistry {
         return l == null ? List.of() : l;
     }
 
+    /** Tag prefix that binds one dialogue to one NPC at run time (see LowTalkApi.bindNpc). */
+    public static final String BOUND_TAG_PREFIX = "dialogue:";
+
     public List<Dialogue> forTag(String tag) {
+        if (tag != null && tag.startsWith(BOUND_TAG_PREFIX)) {
+            Dialogue d = byId.get(tag.substring(BOUND_TAG_PREFIX.length()));
+            return d == null ? List.of() : List.of(d);
+        }
+        return forTagDeclared(tag);
+    }
+
+    private List<Dialogue> forTagDeclared(String tag) {
         List<Dialogue> l = byTag.get(tag);
         return l == null ? List.of() : l;
     }

@@ -45,6 +45,27 @@ public class HytaleContext implements Context, DialogueContext {
     @Override public String getDialogueId() { return dialogue.id(); }
     @Override public PlayerRef getPlayer() { return player; }
     @Override public UUID getNpcId() { return npcId; }
+
+    @Override
+    public com.hypixel.hytale.component.Store<com.hypixel.hytale.server.core.universe.world.storage.EntityStore> getEntityStore() {
+        com.hypixel.hytale.component.Ref<com.hypixel.hytale.server.core.universe.world.storage.EntityStore> ref = player.getReference();
+        return ref == null || !ref.isValid() ? null : ref.getStore();
+    }
+
+    @Override
+    public com.hypixel.hytale.server.core.universe.world.World getWorld() {
+        var store = getEntityStore();
+        return store == null ? null : store.getExternalData().getWorld();
+    }
+
+    @Override
+    public com.hypixel.hytale.component.Ref<com.hypixel.hytale.server.core.universe.world.storage.EntityStore> getNpcRef() {
+        if (npcId.getMostSignificantBits() == 0L && npcId.getLeastSignificantBits() == 0L) return null;
+        var store = getEntityStore();
+        if (store == null) return null;
+        var ref = store.getExternalData().getRefFromUUID(npcId);
+        return ref != null && ref.isValid() ? ref : null;
+    }
     @Override public String getNpcName() { return npcName; }
     public VariableStore getStore() { return store; }
 

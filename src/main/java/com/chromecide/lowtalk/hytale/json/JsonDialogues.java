@@ -149,6 +149,11 @@ public final class JsonDialogues {
         }
     }
 
+    /** Register a named list for pickers and Asset Editor autocomplete (other plugins use LowTalkApi.registerDataSet). */
+    public static void registerDataSet(LowTalkPlugin plugin, String id, java.util.function.Supplier<java.util.List<String>> names) {
+        dataset(plugin, id, names);
+    }
+
     private static void dataset(LowTalkPlugin plugin, String id, java.util.function.Supplier<java.util.List<String>> names) {
         DATASETS.put(id, names);
         plugin.getEventRegistry().register(com.hypixel.hytale.builtin.asseteditor.event.AssetEditorFetchAutoCompleteDataEvent.class, id, e -> {

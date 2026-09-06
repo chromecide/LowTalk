@@ -67,6 +67,36 @@ public final class LowTalkApi {
         plugin.getEffects().register(name, (session, effect) -> command.apply(session.getContext(), effect.args()));
     }
 
+    /**
+     * Register a command with the text shown by /lowtalk help, error suggestions and the in-game editor's command
+     * list. {@code usage} looks like {@code <<grant_title name>>}.
+     */
+    public void registerCommand(@Nonnull String name, @Nullable String usage, @Nullable String description,
+                                @Nonnull BiFunction<DialogueContext, List<String>, String> command) {
+        registerCommand(name, command);
+        com.chromecide.lowtalk.parser.Reference.registerCommand(name, usage, description);
+    }
+
+    /** Register a function with help text, e.g. usage {@code reputation()}. */
+    public void registerFunction(@Nonnull String name, @Nullable String usage, @Nullable String description,
+                                 @Nonnull BiFunction<DialogueContext, List<Object>, Object> function) {
+        registerFunction(name, function);
+        com.chromecide.lowtalk.parser.Reference.registerFunction(name, usage, description);
+    }
+
+    /**
+     * Give a command's arguments pickers in the in-game editor: one data set id per argument position, null for a
+     * free-text argument. Data sets are LowTalk's own (see {@code JsonDialogues.DATASET_*}) or ones you register.
+     */
+    public void registerCommandPicker(@Nonnull String command, String... dataSetsByArgument) {
+        com.chromecide.lowtalk.hytale.DialogueEditorPage.registerPicker(command, dataSetsByArgument);
+    }
+
+    /** Register a named list of ids for pickers and Asset Editor autocomplete. The supplier is called when needed. */
+    public void registerDataSet(@Nonnull String id, @Nonnull java.util.function.Supplier<List<String>> names) {
+        com.chromecide.lowtalk.hytale.json.JsonDialogues.registerDataSet(plugin, id, names);
+    }
+
     public void addListener(@Nonnull DialogueListener listener) {
         plugin.getListeners().add(listener);
     }
@@ -119,7 +149,59 @@ public final class LowTalkApi {
         return plugin.reloadDialogues();
     }
 
+    // ---- binding dialogues to NPCs at run time
+
+    /**
+     * Bind a dialogue to one NPC without editing any file: the NPC opens it on use, alongside anything bound to its
+     * role or tags. Persists with LowTalk's data. Used when a plugin changes an NPC's role and wants the same
+     * conversation to keep working.
+     */
+    public void bindNpc(@Nonnull UUID npcId, @Nonnull String dialogueId) {
+        VariableStore vs = plugin.getStore();
+        vs.addTag(vs.npc(npcId), DialogueRegistry.BOUND_TAG_PREFIX + dialogueId);
+        vs.flush();
+    }
+
+    public void unbindNpc(@Nonnull UUID npcId, @Nonnull String dialogueId) {
+        VariableStore vs = plugin.getStore();
+        vs.removeTag(vs.npc(npcId), DialogueRegistry.BOUND_TAG_PREFIX + dialogueId);
+        vs.flush();
+    }
+
+    /** Tags on an NPC (the @tag bindings and run-time bindings). */
+    @Nonnull
+    public java.util.Set<String> npcTags(@Nonnull UUID npcId) {
+        VariableStore vs = plugin.getStore();
+        return vs.tags(vs.npc(npcId));
+    }
+
+    public void tagNpc(@Nonnull UUID npcId, @Nonnull String tag) {
+        VariableStore vs = plugin.getStore();
+        vs.addTag(vs.npc(npcId), tag);
+        vs.flush();
+    }
+
+    public void untagNpc(@Nonnull UUID npcId, @Nonnull String tag) {
+        VariableStore vs = plugin.getStore();
+        vs.removeTag(vs.npc(npcId), tag);
+        vs.flush();
+    }
+
     // ---- variables outside a conversation
+
+    /** An NPC's own variable (the {@code $npc.} scope) outside a conversation. */
+    @Nullable
+    public Object getNpcVar(@Nonnull UUID npcId, @Nonnull String dialogueScope, @Nonnull String name) {
+        VariableStore vs = plugin.getStore();
+        return vs.get(vs.npc(npcId), dialogueScope, name);
+    }
+
+    public void setNpcVar(@Nonnull UUID npcId, @Nonnull String dialogueScope, @Nonnull String name, @Nullable Object value) {
+        VariableStore vs = plugin.getStore();
+        vs.set(vs.npc(npcId), dialogueScope, name, value);
+        vs.flush();
+    }
+
 
     /** Read a "player" scope variable. {@code scope} is the dialogue's scope (its file name unless it declares one). */
     @Nullable

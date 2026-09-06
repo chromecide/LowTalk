@@ -27,7 +27,7 @@ public class EffectRegistry {
     }
 
     public Set<String> names() {
-        return Set.copyOf(handlers.keySet());
+        return java.util.Collections.unmodifiableSet(handlers.keySet()); // live: commands registered later still count as known
     }
 
     public Handler get(String name) {
