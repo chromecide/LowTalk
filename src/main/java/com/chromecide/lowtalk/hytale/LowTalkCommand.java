@@ -214,19 +214,24 @@ public class LowTalkCommand extends AbstractCommandCollection {
             try {
                 java.nio.file.Files.createDirectories(dir);
                 if (format.equals("json")) {
-                    java.nio.file.Path out = dir.resolve(id + ".json");
+                    // Assets are named Capitalised_Words; this also keeps the copy's id clear of the .talk original.
+                    String jsonId = assetName(id);
+                    java.nio.file.Path out = dir.resolve(jsonId + ".json");
                     if (java.nio.file.Files.exists(out)) {
                         context.sendMessage(info(plugin, out.getFileName() + " already exists in that pack; delete or rename it first."));
                         return;
                     }
                     com.chromecide.lowtalk.hytale.json.DialogueAsset asset = com.chromecide.lowtalk.hytale.json.JsonConvert.toAsset(d);
+                    asset.setId(jsonId);
+                    if (asset.scope == null && !jsonId.equals(d.scope())) asset.scope = d.scope(); // share memory with the original
                     String json = com.chromecide.lowtalk.hytale.json.JsonCodecs.DIALOGUE
                             .encode(asset, com.hypixel.hytale.codec.EmptyExtraInfo.EMPTY).asDocument()
                             .toJson(org.bson.json.JsonWriterSettings.builder().indent(true).build());
                     java.nio.file.Files.writeString(out, json + "\n", java.nio.charset.StandardCharsets.UTF_8);
                     var store = com.chromecide.lowtalk.hytale.json.JsonDialogues.store();
                     if (store != null) store.loadAssetsFromPaths(packName, java.util.List.of(out));
-                    context.sendMessage(info(plugin, "Wrote " + out.getFileName() + " into " + packName + ". While both files exist the .talk one wins; remove one of them."));
+                    context.sendMessage(info(plugin, "Wrote " + out.getFileName() + " into " + packName + " as dialogue '" + jsonId + "'"
+                            + (jsonId.equals(id) ? "." : " (the original keeps '" + id + "'; both are loaded and share the same variables, so remove one when you have chosen).")));
                 } else {
                     java.nio.file.Path out = dir.resolve(id + ".talk");
                     if (java.nio.file.Files.exists(out)) {
@@ -241,6 +246,17 @@ public class LowTalkCommand extends AbstractCommandCollection {
                 context.sendMessage(info(plugin, "Could not write the file: " + e.getMessage()));
             }
         }
+    }
+
+    /** village_elder -> Village_Elder, the way the game names assets. */
+    static String assetName(String id) {
+        StringBuilder sb = new StringBuilder();
+        for (String part : id.split("_")) {
+            if (part.isEmpty()) continue;
+            if (!sb.isEmpty()) sb.append('_');
+            sb.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+        }
+        return sb.isEmpty() ? id : sb.toString();
     }
 
     /** /lowtalk info <id>: nodes, options, variables and unreachable nodes of a loaded dialogue. */
