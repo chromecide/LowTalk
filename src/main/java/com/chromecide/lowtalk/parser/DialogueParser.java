@@ -148,7 +148,11 @@ public final class DialogueParser {
             switch (key) {
                 case "npc" -> {
                     if (value.isEmpty()) throw new ParseException(pos(l), "npc: needs a role id or @tag");
-                    bindings.add(value);
+                    if (value.equalsIgnoreCase("none")) {
+                        other.put("npc", "none"); // opened by a role action, interaction, trigger or command; not a mistake
+                    } else {
+                        bindings.add(value);
+                    }
                 }
                 case "start" -> starts.add(parseStart(value, pos(l)));
                 case "speaker" -> speaker = value;

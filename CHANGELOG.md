@@ -24,6 +24,9 @@ First working version.
 - World and NPC control through the game's own systems: `weather`, `time`,
   `npc_name`, `state`, `despawn`, `spawn`; objective lines, cancel and task
   completion; `t()` translations, `weather()`, `objective_line()`.
+- `UseHook` config switch to disable the use-event binding; `npc: none` for
+  dialogues opened only by roles, interactions, triggers or commands; a
+  `LowTalk_Talker` test role built on the role action.
 - NPC role components: the `LowTalkOpenDialogue` action and `LowTalkCondition`
   sensor, so role behaviour trees can start and gate conversations.
 - `music`, `vfx` and `camera` commands, using the game's music tracker, particle

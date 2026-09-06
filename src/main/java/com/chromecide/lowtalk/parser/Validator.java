@@ -98,8 +98,8 @@ public final class Validator {
         if (!hasFallback) {
             out.add(new Problem(d.starts().get(0).pos(), false, "every start: has a 'when' guard; add an unguarded start: as a fallback"));
         }
-        if (d.bindings().isEmpty()) {
-            out.add(new Problem(new Pos(d.file(), 1), false, "no npc: binding; this dialogue can only be opened by command"));
+        if (d.bindings().isEmpty() && !"none".equalsIgnoreCase(d.otherDirectives().get("npc"))) {
+            out.add(new Problem(new Pos(d.file(), 1), false, "no npc: binding; this dialogue can only be opened by command (write npc: none if that is intended)"));
         }
         for (String b : d.bindings()) {
             if (b == null || b.isBlank() || b.equals("@")) {

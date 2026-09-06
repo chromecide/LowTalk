@@ -1,0 +1,12 @@
+# STATION 14: the NPC's own role opens this dialogue through the LowTalkOpenDialogue action; LowTalk's use hook is not involved.
+npc: none
+title: Station 14 - Opened by the role
+speaker: Talker
+
+== start
+TEST 14: Role action. This window was opened by the LowTalk Talker's own interaction instruction, not by LowTalk's use hook. Expected: the hint over the NPC read "Talk" before you clicked, and /lowtalk tags on this NPC lists no bound dialogue.
+-> Show me the difference (expect: this station keeps the NPC's own role behaviour, so its greet and idle logic still run)
+    The merchant role this NPC is based on would have opened a barter shop here. Its role JSON swaps that action for LowTalkOpenDialogue.
+    <<jump start>>
+-> Leave
+    <<end>>

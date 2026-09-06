@@ -92,7 +92,7 @@ public final class Reference {
         fn("t", "\"key\"", "A string from the server's language files in the player's language.");
 
         // ---- keywords (structure, not commands)
-        kw("npc:", "npc: Role_Id  or  npc: @tag", "Header: which NPCs use this dialogue. Repeatable.");
+        kw("npc:", "npc: Role_Id  or  npc: @tag  or  npc: none", "Header: which NPCs use this dialogue. Repeatable. none = opened only by roles, interactions, triggers or commands.");
         kw("start:", "start: node [when expr]", "Header: where to begin; guarded starts are tried first.");
         kw("speaker:", "speaker: Name", "Header: default speaker for bare lines.");
         kw("title:", "title: Text", "Header: window title.");

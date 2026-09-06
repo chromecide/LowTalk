@@ -13,7 +13,7 @@ Lines before the first node are directives, `key: value`, one per line.
 
 | Directive | Meaning |
 |-----------|---------|
-| `npc:` | Which NPCs use this dialogue. A role id (`Kweebec_Merchant`) binds every NPC of that role. A tag (`@elder`) binds NPCs tagged in-game with `/lowtalk tag elder`. Repeatable. |
+| `npc:` | Which NPCs use this dialogue. A role id (`Kweebec_Merchant`) binds every NPC of that role. A tag (`@elder`) binds NPCs tagged in-game with `/lowtalk tag elder`. Repeatable. `npc: none` says the dialogue is opened by a role action, interaction, trigger or command on purpose. |
 | `start:` | The node to begin at. Defaults to the first node. May be repeated with a guard: `start: returning when $met` is tried before an unguarded `start:`. |
 | `speaker:` | Default speaker name for bare lines. Defaults to the NPC's in-game name. |
 | `title:` | Shown in the window header. Defaults to the speaker. |
@@ -315,7 +315,12 @@ dialogue without touching Java or `.talk` bindings:
   `"Requirements": [ { "Type": "LowTalkCondition", "Dialogue": "haggle", "If": "$player.trusted" } ]`.
 
 **NPC roles.** Two role components let an NPC's own behaviour tree start and
-gate conversations. `LowTalkOpenDialogue` is an action that opens a dialogue
+gate conversations. This is the native path for an NPC you author; the
+`npc:` binding in a dialogue file is the no-configuration path for vanilla
+roles, and works by intercepting the game's use event (switch it off with
+`"UseHook": false` in lowtalk.json to route everything through roles). The
+shipped `LowTalk_Talker` role is an example: a merchant whose click opens a
+dialogue instead of the shop. `LowTalkOpenDialogue` is an action that opens a dialogue
 for the player the NPC is interacting with (`Dialogue` names one; empty uses
 whatever is bound to the NPC). `LowTalkCondition` is a sensor that matches
 when an expression holds for that player, in the NPC's own memory, so `$met`

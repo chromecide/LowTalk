@@ -131,7 +131,13 @@ pack ones; ids must be unique across both.
 - `RoleBindingMode` and `TagBindingMode`: `replace` (default; the interact key
   opens the dialogue, and `<<shop>>` reaches the store) or `crouch` (crouch
   and interact opens the dialogue, plain interact keeps the native behaviour).
-- `DialoguesFolder`, `CopyExamplesOnFirstRun`, `LogConversations`.
+- `UseHook` (default true): open bound dialogues when a player uses an NPC by
+  intercepting the game's use event. Set false to route every conversation
+  through NPC roles (`LowTalkOpenDialogue`) and interaction JSON instead.
+- `HoldNpcDuringDialogue` (default true): freeze and face the NPC while talking.
+- `ClearSkyWeather` (default `Default_Flat`): what `<<weather clear>>` shows in
+  worlds that have no natural weather.
+- `DialoguesFolder`, `CopyExamplesOnFirstRun`, `LogConversations`, `InfoColor`.
 
 ## Building
 

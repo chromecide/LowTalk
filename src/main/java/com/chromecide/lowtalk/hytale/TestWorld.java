@@ -72,11 +72,12 @@ public final class TestWorld {
             new Station(98, TESTER, "test_format", "10 - Format extras"),
             new Station(108, TESTER, "test_world", "11 - Weather, time, translation"),
             new Station(118, TESTER, "test_npc", "12 - NPC control and objectives"),
-            new Station(128, TESTER, "test_media", "13 - Music, effects, camera")
+            new Station(128, TESTER, "test_media", "13 - Music, effects, camera"),
+            new Station(138, "LowTalk_Talker", "test_talker", "14 - Opened by the role")
     );
 
     private static final int CORRIDOR_START = -4;
-    private static final int CORRIDOR_END = 134;
+    private static final int CORRIDOR_END = 144;
     private static final int HALF_WIDTH = 2;       // floor spans z = -2 .. 2
     private static final int FLOOR_Y = 0;          // the flat world's single layer is y = 0
     private static final int WALL_HEIGHT = 3;

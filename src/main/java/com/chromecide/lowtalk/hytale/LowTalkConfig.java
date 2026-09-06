@@ -24,6 +24,8 @@ public class LowTalkConfig {
                     (c, v, e) -> c.holdNpc = v, (c, e) -> c.holdNpc).add()
             .append(new KeyedCodec<>("ClearSkyWeather", Codec.STRING),
                     (c, v, e) -> c.clearSkyWeather = v, (c, e) -> c.clearSkyWeather).add()
+            .append(new KeyedCodec<>("UseHook", Codec.BOOLEAN),
+                    (c, v, e) -> c.useHook = v, (c, e) -> c.useHook).add()
             .build();
 
     /** How a binding opens: "crouch" = crouch and use; "replace" = plain use, native interaction suppressed. */
@@ -39,6 +41,11 @@ public class LowTalkConfig {
     private boolean holdNpc = true;
     /** Weather to show when <<weather clear>> finds no natural weather for the area (flat and void worlds have none). */
     private String clearSkyWeather = "Default_Flat";
+    /**
+     * Open bound dialogues when a player uses an NPC, by intercepting the game's use event. Turn off to route every
+     * conversation through NPC roles (the LowTalkOpenDialogue action) and interaction JSON instead.
+     */
+    private boolean useHook = true;
 
     private LowTalkConfig() {}
 
@@ -50,4 +57,5 @@ public class LowTalkConfig {
     public boolean isLogConversations() { return logConversations; }
     public boolean isHoldNpcDuringDialogue() { return holdNpc; }
     public String getClearSkyWeather() { return clearSkyWeather; }
+    public boolean isUseHook() { return useHook; }
 }

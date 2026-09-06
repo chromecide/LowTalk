@@ -37,6 +37,7 @@ public class NpcUseSystem extends EntityEventSystem<EntityStore, UseEntityEvent.
     public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk, @Nonnull Store<EntityStore> store,
                        @Nonnull CommandBuffer<EntityStore> commandBuffer, @Nonnull UseEntityEvent.Pre event) {
         if (event.getInteractionType() != InteractionType.Use) return;
+        if (!plugin.getSettings().isUseHook()) return; // roles and interaction JSON open dialogues instead
 
         Ref<EntityStore> playerEntity = chunk.getReferenceTo(index);
         PlayerRef player = commandBuffer.getComponent(playerEntity, PlayerRef.getComponentType());

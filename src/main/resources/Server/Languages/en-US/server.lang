@@ -6,3 +6,5 @@ objectives.Objective_LowTalk_Talk.taskSet.0.task.0 = Talk to the station 1 teste
 lowtalk.ui.ok = OK
 lowtalk.ui.continue = Continue
 lowtalk.ui.leave = Leave
+npcRoles.LowTalk_Talker.name = LowTalk Talker
+lowtalk.hint.talk = Talk
