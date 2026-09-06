@@ -343,7 +343,12 @@ public final class TestWorld {
         int spawned = 0;
         for (Station s : STATIONS) {
             Vector3d pos = new Vector3d(s.x() + 0.5, FLOOR_Y + 1.0, 0.5);
-            var pair = npcs.spawnNPC(store, s.role(), null, pos, new Rotation3f(0.0f, (float) Math.PI / 2.0f, 0.0f));
+            // Frozen stations stand sideways; a live one faces the entrance, since the game's CanInteract sensor only
+            // accepts players inside the NPC's front view sector.
+            Rotation3f facing = s.frozen()
+                    ? new Rotation3f(0.0f, (float) Math.PI / 2.0f, 0.0f)
+                    : new Rotation3f(0.0f, Rotation3f.lookAt(pos, new Vector3d(pos.x - 5.0, pos.y, pos.z)).yaw(), 0.0f);
+            var pair = npcs.spawnNPC(store, s.role(), null, pos, facing);
             if (pair == null) {
                 out.accept("Could not spawn " + s.role() + " for station '" + s.label() + "'");
                 continue;
