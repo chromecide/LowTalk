@@ -267,9 +267,9 @@ Statement types: `Say`, `Choice`, `If`, `Once`, `Random`, `Set`, `Jump`,
 adds (`Name` and `Args`). In the Asset Editor's form, id fields offer pickers
 or autocomplete backed by the live server: NPC roles and tags, items, sounds,
 effects, objectives and lines, animations, stats, recipes, warps, reputation
-groups, shops, weathers, attitudes and notify styles. `/lowtalk convert <id> json <pack>` writes a loaded `.talk`
-dialogue as JSON into a pack, and `/lowtalk convert <id> talk [pack]` goes
-the other way. Ids must be unique across both formats; a `.talk` file wins a
+groups, shops, weathers, attitudes and notify styles. `/lowtalk convert json <id> <pack>` writes a loaded `.talk`
+dialogue as JSON into a pack, and `/lowtalk convert talk <id> <pack>` goes
+the other way (`server` as the pack means the plugin's own folder). Ids must be unique across both formats; a `.talk` file wins a
 clash. JSON files do not support `include:`. Name JSON dialogues the way the
 game names assets, `Capitalised_Words.json`, or the asset store logs a
 format warning (harmless, but noisy).
