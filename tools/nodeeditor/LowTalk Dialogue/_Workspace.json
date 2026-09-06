@@ -58,6 +58,9 @@
       "Weather",
       "Time",
       "Run",
+      "Music",
+      "Vfx",
+      "Camera",
       "Command"
     ]
   },
@@ -101,6 +104,9 @@
         "Weather": "Weather",
         "Time": "Time",
         "Run": "Run",
+        "Music": "Music",
+        "Vfx": "Vfx",
+        "Camera": "Camera",
         "Command": "Command"
       }
     }

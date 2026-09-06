@@ -168,6 +168,16 @@ public final class JsonConvert {
             case JsonStatement.ObjectiveLine ol -> command(p, "objective", "line", ol.line);
             case JsonStatement.ObjectiveCancel oc -> command(p, "objective", "cancel", oc.objective);
             case JsonStatement.ObjectiveTask ot -> command(p, "objective", "task", ot.task);
+            case JsonStatement.Music mu -> command(p, "music", blank(mu.music) ? "clear" : mu.music, null);
+            case JsonStatement.Vfx vx -> {
+                if (blank(vx.particles)) throw new ParseException(p, "a Vfx needs Particles");
+                List<String> args = new ArrayList<>();
+                args.add(vx.particles);
+                if (vx.scale != 1.0 || vx.seconds > 0) args.add(Printer.expr(new Expr.Literal(vx.scale)));
+                if (vx.seconds > 0) args.add(Printer.expr(new Expr.Literal(vx.seconds)));
+                yield commandText(p, "vfx", args);
+            }
+            case JsonStatement.Camera cam -> command(p, "camera", cam.effect, cam.intensity == 1.0 ? null : Printer.expr(new Expr.Literal(cam.intensity)));
             default -> throw new ParseException(p, "unknown statement type " + s.getClass().getSimpleName());
         };
     }
@@ -436,6 +446,38 @@ public final class JsonConvert {
                 }
                 case "despawn" -> {
                     if (args.isEmpty()) return new JsonStatement.Despawn();
+                }
+                case "music" -> {
+                    if (a0 != null && a1 == null) {
+                        JsonStatement.Music mu = new JsonStatement.Music();
+                        mu.music = a0;
+                        return mu;
+                    }
+                }
+                case "vfx" -> {
+                    if (a0 != null && args.size() <= 3) {
+                        try {
+                            JsonStatement.Vfx vx = new JsonStatement.Vfx();
+                            vx.particles = a0;
+                            if (a1 != null) vx.scale = Double.parseDouble(a1);
+                            if (args.size() > 2) vx.seconds = Double.parseDouble(args.get(2).debugString());
+                            return vx;
+                        } catch (NumberFormatException ignored) {
+                            // generic
+                        }
+                    }
+                }
+                case "camera" -> {
+                    if (a0 != null && args.size() <= 2) {
+                        try {
+                            JsonStatement.Camera cam = new JsonStatement.Camera();
+                            cam.effect = a0;
+                            if (a1 != null) cam.intensity = Double.parseDouble(a1);
+                            return cam;
+                        } catch (NumberFormatException ignored) {
+                            // generic
+                        }
+                    }
                 }
                 case "shop" -> {
                     if (args.size() <= 1) {

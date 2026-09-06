@@ -58,6 +58,22 @@ public final class AssetChecks {
                 case "give", "take" -> {
                     if (Item.getAssetMap().getAsset(id) == null) out.add(where + "no item called '" + id + "'");
                 }
+                case "music" -> {
+                    if (!id.equalsIgnoreCase("clear") && !id.equalsIgnoreCase("none")
+                            && com.hypixel.hytale.server.core.asset.type.musiccontainer.config.MusicContainer.getAssetMap().getIndex(id) <= 0) {
+                        out.add(where + "no music container called '" + id + "'");
+                    }
+                }
+                case "vfx" -> {
+                    if (com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem.getAssetMap().getAsset(id) == null) {
+                        out.add(where + "no particle system called '" + id + "'");
+                    }
+                }
+                case "camera" -> {
+                    if (com.hypixel.hytale.server.core.asset.type.camera.CameraEffect.getAssetMap().getIndex(id) == Integer.MIN_VALUE) {
+                        out.add(where + "no camera effect called '" + id + "'");
+                    }
+                }
                 case "weather" -> {
                     if (!id.equalsIgnoreCase("clear") && !id.equalsIgnoreCase("reset") && !id.equalsIgnoreCase("none")) {
                         int idx = com.hypixel.hytale.server.core.asset.type.weather.config.Weather.getAssetMap().getIndex(id);

@@ -314,6 +314,26 @@ public final class JsonCodecs {
                     b.append(new KeyedCodec<>("Task", Codec.STRING), (o, v) -> o.task = v, o -> o.task).addValidator(Validators.nonNull())
                             .documentation("The task id from the objective's task set.").add());
 
+    public static final BuilderCodec<JsonStatement.Music> MUSIC = statement(JsonStatement.Music.class, JsonStatement.Music::new,
+            "Force a music playlist for this player, or return to the area's music.", b ->
+                    b.append(new KeyedCodec<>("Music", Codec.STRING), (m, v) -> m.music = v, m -> m.music).addValidator(Validators.nonNull())
+                            .metadata(pick(JsonDialogues.DATASET_MUSIC)).documentation("A music container id, or clear.").add());
+
+    public static final BuilderCodec<JsonStatement.Vfx> VFX = statement(JsonStatement.Vfx.class, JsonStatement.Vfx::new,
+            "Play a particle effect at the NPC (or the player when there is no NPC).", b -> {
+                b.append(new KeyedCodec<>("Particles", Codec.STRING), (x, v) -> x.particles = v, x -> x.particles).addValidator(Validators.nonNull())
+                        .metadata(pick(JsonDialogues.DATASET_PARTICLES)).documentation("The particle system.").add();
+                b.append(new KeyedCodec<>("Scale", Codec.DOUBLE), (x, v) -> x.scale = v, x -> x.scale).documentation("Size multiplier (default 1).").add();
+                b.append(new KeyedCodec<>("Seconds", Codec.DOUBLE), (x, v) -> x.seconds = v, x -> x.seconds).documentation("How long it runs; 0 for the effect's own length.").add();
+            });
+
+    public static final BuilderCodec<JsonStatement.Camera> CAMERA = statement(JsonStatement.Camera.class, JsonStatement.Camera::new,
+            "Shake this player's camera with a camera effect.", b -> {
+                b.append(new KeyedCodec<>("Effect", Codec.STRING), (c, v) -> c.effect = v, c -> c.effect).addValidator(Validators.nonNull())
+                        .metadata(pick(JsonDialogues.DATASET_CAMERA_EFFECTS)).documentation("The camera effect.").add();
+                b.append(new KeyedCodec<>("Intensity", Codec.DOUBLE), (c, v) -> c.intensity = v, c -> c.intensity).documentation("0 to 1 (default 1).").add();
+            });
+
     // ---- the asset
 
     public static final BuilderCodec<DialogueAsset.StartEntry> START = statement(DialogueAsset.StartEntry.class, DialogueAsset.StartEntry::new,
@@ -399,5 +419,8 @@ public final class JsonCodecs {
         STATEMENT.register("ObjectiveLine", JsonStatement.ObjectiveLine.class, OBJECTIVE_LINE);
         STATEMENT.register("ObjectiveCancel", JsonStatement.ObjectiveCancel.class, OBJECTIVE_CANCEL);
         STATEMENT.register("ObjectiveTask", JsonStatement.ObjectiveTask.class, OBJECTIVE_TASK);
+        STATEMENT.register("Music", JsonStatement.Music.class, MUSIC);
+        STATEMENT.register("Vfx", JsonStatement.Vfx.class, VFX);
+        STATEMENT.register("Camera", JsonStatement.Camera.class, CAMERA);
     }
 }

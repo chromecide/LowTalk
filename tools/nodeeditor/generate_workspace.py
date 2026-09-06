@@ -284,6 +284,13 @@ statement("Time", "Time of day", "Set the time, or pause and resume the clock.",
            small("FadeSeconds", "Fade seconds", "Fade over this many seconds; empty for instant.", width=100)], color="Green")
 statement("Run", "Run command", "Run a server command as the console. Never include text the player typed.",
           [small("Command", "Command", "e.g. /give {player} Food_Bread 1", width=350)], color="Red")
+statement("Music", "Music", "Force a music playlist for this player, or return to the area's music.",
+          [small("Music", "Music container", "A music container id, or clear.", default="clear")], color="Pink")
+statement("Vfx", "Particle effect", "Play a particle effect at the NPC (or the player when there is no NPC).",
+          [small("Particles", "Particle system", "Particle system id."), number("Scale", "Scale", "Size multiplier.", 1.0),
+           number("Seconds", "Seconds", "0 for the effect's own length.", 0.0)], color="Pink")
+statement("Camera", "Camera shake", "Shake this player's camera with a camera effect.",
+          [small("Effect", "Camera effect", "Camera effect id, e.g. Default."), number("Intensity", "Intensity", "0 to 1.", 1.0)], color="Pink")
 statement("Command", "Plugin command", "A command added by another plugin, by name. Built-in commands have their own nodes.",
           [small("Name", "Name", "Command name as in <<name ...>>."), string_list("Args", "Arguments", "One per entry, as they would appear inside <<...>>.")],
           color="Grey")

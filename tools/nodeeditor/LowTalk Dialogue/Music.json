@@ -1,0 +1,31 @@
+{
+  "Id": "Music",
+  "Title": "Music",
+  "Description": "Force a music playlist for this player, or return to the area's music.",
+  "Color": "Pink",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Music",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Music container",
+        "Description": "A music container id, or clear.",
+        "Default": "clear",
+        "Width": 200
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Music",
+    "Music": "Music"
+  }
+}

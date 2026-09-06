@@ -1,0 +1,42 @@
+{
+  "Id": "Camera",
+  "Title": "Camera shake",
+  "Description": "Shake this player's camera with a camera effect.",
+  "Color": "Pink",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Effect",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Camera effect",
+        "Description": "Camera effect id, e.g. Default.",
+        "Default": "",
+        "Width": 200
+      }
+    },
+    {
+      "Id": "Intensity",
+      "Type": "Float",
+      "Options": {
+        "Label": "Intensity",
+        "Description": "0 to 1.",
+        "Default": 1.0,
+        "Width": 100
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Camera",
+    "Effect": "Effect",
+    "Intensity": "Intensity"
+  }
+}

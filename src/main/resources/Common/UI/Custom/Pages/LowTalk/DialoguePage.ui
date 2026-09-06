@@ -128,7 +128,7 @@ $C.@PageOverlay {
 
         $C.@TextButton #OkButton {
           @Anchor = (Width: 100);
-          @Text = "OK";
+          @Text = %server.lowtalk.ui.ok;
         }
       }
 
@@ -139,7 +139,7 @@ $C.@PageOverlay {
 
         $C.@TextButton #ContinueButton {
           @Anchor = (Width: 200);
-          @Text = "Continue";
+          @Text = %server.lowtalk.ui.continue;
         }
       }
 
@@ -149,7 +149,7 @@ $C.@PageOverlay {
 
         $C.@SecondaryTextButton #CloseButton {
           @Anchor = (Width: 140);
-          @Text = "Leave";
+          @Text = %server.lowtalk.ui.leave;
         }
       }
     }

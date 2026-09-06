@@ -3,3 +3,6 @@ lowtalk.test.hello = Hello from the language file
 objectives.Objective_LowTalk_Talk.title = Talk to station 1
 objectives.Objective_LowTalk_Talk.desc = A LowTalk test objective: it completes when you open the station 1 dialogue.
 objectives.Objective_LowTalk_Talk.taskSet.0.task.0 = Talk to the station 1 tester
+lowtalk.ui.ok = OK
+lowtalk.ui.continue = Continue
+lowtalk.ui.leave = Leave

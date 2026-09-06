@@ -206,4 +206,20 @@ public abstract class JsonStatement {
     public static final class ObjectiveTask extends JsonStatement {
         public String task = "";
     }
+
+    public static final class Music extends JsonStatement {
+        /** A music container id, or "clear". */
+        public String music = "clear";
+    }
+
+    public static final class Vfx extends JsonStatement {
+        public String particles;
+        public double scale = 1.0;
+        public double seconds;
+    }
+
+    public static final class Camera extends JsonStatement {
+        public String effect;
+        public double intensity = 1.0;
+    }
 }

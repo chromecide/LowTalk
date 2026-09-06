@@ -61,6 +61,7 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
         BuiltinFunctions.register(functions);
         BuiltinEffects.register(effects, this);
         com.chromecide.lowtalk.hytale.effects.WorldEffects.register(effects, this);
+        com.chromecide.lowtalk.hytale.effects.WorldEffects.registerMedia(effects, this);
         com.chromecide.lowtalk.hytale.effects.NpcEffects.register(effects, this);
         this.sessions = new SessionManager(this);
         this.registry = new DialogueRegistry(data.resolve(cfg.getDialoguesFolder()), getLogger(), effects.names(), functions.names());

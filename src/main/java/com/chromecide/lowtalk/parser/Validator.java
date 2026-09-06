@@ -51,7 +51,10 @@ public final class Validator {
             Map.entry("npc_name", new int[] {1, 1}),
             Map.entry("state", new int[] {1, 2}),
             Map.entry("despawn", new int[] {0, 0}),
-            Map.entry("spawn", new int[] {1, 4})
+            Map.entry("spawn", new int[] {1, 4}),
+            Map.entry("music", new int[] {1, 1}),
+            Map.entry("vfx", new int[] {1, 3}),
+            Map.entry("camera", new int[] {1, 2})
     );
     public static final Set<String> OBJECTIVE_VERBS = Set.of("start", "cancel", "line", "task");
 

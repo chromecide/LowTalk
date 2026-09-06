@@ -28,10 +28,26 @@ public class LowTalkNodeTask extends CountObjectiveTask {
         return (LowTalkNodeTaskAsset) super.getAsset();
     }
 
-    /** Nothing to register: progress comes from the dialogue runtime, not from an event hook. */
+    /**
+     * Nothing to register: progress comes from the dialogue runtime. If the objective was started with an NPC as its
+     * marker (as <<objective>> does), put a tracker marker on that NPC so the player knows who to talk to.
+     */
     @Nullable
     @Override
     protected TransactionRecord[] setup0(@Nonnull Objective objective, @Nonnull World world, @Nonnull Store<EntityStore> store) {
+        if (objective.getMarkerUUID() != null) {
+            try {
+                org.joml.Vector3d position = objective.getPosition(store);
+                if (position != null) {
+                    addMarker(new com.hypixel.hytale.builtin.adventure.objectives.markers.ObjectiveTaskMarker(
+                            "LowTalk_" + objective.getObjectiveUUID() + "_" + taskIndex,
+                            new com.hypixel.hytale.math.vector.Transform(position), "Home.png",
+                            com.hypixel.hytale.server.core.Message.translation(getAsset().getDescriptionKey(objective.getObjectiveId(), taskSetIndex, taskIndex))));
+                }
+            } catch (RuntimeException ignored) {
+                // no marker, the tracker text still shows
+            }
+        }
         return null;
     }
 }

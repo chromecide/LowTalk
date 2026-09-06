@@ -1,0 +1,53 @@
+{
+  "Id": "Vfx",
+  "Title": "Particle effect",
+  "Description": "Play a particle effect at the NPC (or the player when there is no NPC).",
+  "Color": "Pink",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Particles",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Particle system",
+        "Description": "Particle system id.",
+        "Default": "",
+        "Width": 200
+      }
+    },
+    {
+      "Id": "Scale",
+      "Type": "Float",
+      "Options": {
+        "Label": "Scale",
+        "Description": "Size multiplier.",
+        "Default": 1.0,
+        "Width": 100
+      }
+    },
+    {
+      "Id": "Seconds",
+      "Type": "Float",
+      "Options": {
+        "Label": "Seconds",
+        "Description": "0 for the effect's own length.",
+        "Default": 0.0,
+        "Width": 100
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Vfx",
+    "Particles": "Particles",
+    "Scale": "Scale",
+    "Seconds": "Seconds"
+  }
+}

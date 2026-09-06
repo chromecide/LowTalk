@@ -1,0 +1,27 @@
+# STATION 13: media through the game's own systems: <<music>>, <<vfx>>, <<camera>>.
+npc: @test_media
+title: Station 13 - Music, effects, camera
+speaker: Tester
+
+== start
+TEST 13: Media. Each option uses a game asset by id; the Asset Editor form and the node editor offer these ids as suggestions.
+-> Play the Zone 0 playlist for me (expect the music to change within a few seconds)
+    <<music MC_Zone0>>
+    <<jump start>>
+-> Back to the area's music (expect it to return to normal)
+    <<music clear>>
+    <<jump start>>
+-> Particles at this NPC (expect a burst of Totem_Heal_Simple_Test at chest height)
+    <<vfx Totem_Heal_Simple_Test>>
+    <<jump start>>
+-> Bigger, longer particles (expect the same effect at twice the size for 3 seconds)
+    <<vfx Totem_Heal_Simple_Test 2 3>>
+    <<jump start>>
+-> Shake my camera (expect a short shake)
+    <<camera Battleaxe_Bash>>
+    <<jump start>>
+-> Gentle shake (expect a much weaker one)
+    <<camera Battleaxe_Bash 0.2>>
+    <<jump start>>
+-> Leave
+    <<end>>

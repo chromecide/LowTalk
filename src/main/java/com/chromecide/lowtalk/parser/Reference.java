@@ -62,6 +62,10 @@ public final class Reference {
         cmd("weather", "Weather_Id [player] | clear [player]", "Force a weather for the world or just this player; clear returns to the natural sky.");
         cmd("time", "dawn|noon|dusk|midnight|hour [fade seconds] | pause | resume", "Set the time of day, optionally fading, or pause and resume the clock.");
         cmd("run", "\"/command {player}\"", "Run a server command as the console; never include player-typed text.");
+        // ---- media
+        cmd("music", "Music_Container_Id | clear", "Force a music playlist for this player, or return to the area's music.");
+        cmd("vfx", "Particle_System_Id [scale] [seconds]", "Play a particle effect at the NPC (or the player when there is no NPC).");
+        cmd("camera", "Camera_Effect_Id [intensity]", "Shake this player's camera with a camera effect, intensity 0 to 1.");
 
         // ---- functions
         fn("player", "", "The player's name.");

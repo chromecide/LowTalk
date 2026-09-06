@@ -52,6 +52,9 @@ public final class JsonDialogues {
     public static final String DATASET_DIALOGUES = "LowTalkDialogues";
     /** Every node name in every loaded dialogue, for objective task fields. */
     public static final String DATASET_NODES = "LowTalkNodes";
+    public static final String DATASET_MUSIC = "LowTalkMusic";
+    public static final String DATASET_PARTICLES = "LowTalkParticles";
+    public static final String DATASET_CAMERA_EFFECTS = "LowTalkCameraEffects";
     private static final int MAX_SUGGESTIONS = 40;
 
     private static HytaleAssetStore<String, DialogueAsset, DefaultAssetMap<String, DialogueAsset>> store;
@@ -112,6 +115,16 @@ public final class JsonDialogues {
         });
         dataset(plugin, DATASET_REPUTATION_GROUPS, () -> new java.util.ArrayList<>(
                 com.hypixel.hytale.builtin.adventure.reputation.assets.ReputationGroup.getAssetMap().getAssetMap().keySet()));
+        dataset(plugin, DATASET_MUSIC, () -> {
+            java.util.List<String> out = new java.util.ArrayList<>(
+                    com.hypixel.hytale.server.core.asset.type.musiccontainer.config.MusicContainer.getAssetMap().getAssetMap().keySet());
+            out.add("clear");
+            return out;
+        });
+        dataset(plugin, DATASET_PARTICLES, () -> new java.util.ArrayList<>(
+                com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem.getAssetMap().getAssetMap().keySet()));
+        dataset(plugin, DATASET_CAMERA_EFFECTS, () -> new java.util.ArrayList<>(
+                com.hypixel.hytale.server.core.asset.type.camera.CameraEffect.getAssetMap().getAssetMap().keySet()));
         dataset(plugin, DATASET_SHOPS, () -> new java.util.ArrayList<>(
                 com.hypixel.hytale.builtin.adventure.shop.barter.BarterShopAsset.getAssetMap().getAssetMap().keySet()));
     }
