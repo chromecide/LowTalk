@@ -57,12 +57,8 @@ public class NpcUseSystem extends EntityEventSystem<EntityStore, UseEntityEvent.
                 return;
             }
             List<Dialogue> bound = plugin.getRegistry().candidates(npc.role(), npc.tags());
-            if (bound.isEmpty()) {
-                player.sendMessage(com.hypixel.hytale.server.core.Message.raw("LowTalk: nothing is bound to " + npc.name()
-                        + ". Bind a dialogue with npc: " + npc.role() + " in its file, or tag the NPC with /lowtalk tag <name> and use npc: @<name>."));
-                return;
-            }
-            DialogueEditorPage.open(plugin, bound.get(0), player, playerEntity, store, npc);
+            if (bound.isEmpty()) NewDialoguePage.open(plugin, player, playerEntity, store, npc);
+            else DialogueEditorPage.open(plugin, bound.get(0), player, playerEntity, store, npc);
             return;
         }
 

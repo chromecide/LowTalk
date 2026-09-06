@@ -86,6 +86,9 @@ public final class JsonDialogues {
                 e -> e.setResults(weatherSuggestions(e.getQuery())));
         plugin.getEventRegistry().register(com.hypixel.hytale.builtin.asseteditor.event.AssetEditorFetchAutoCompleteDataEvent.class, DATASET_COMMANDS,
                 e -> e.setResults(commandSuggestions(plugin, e.getQuery())));
+        DATASETS.put(DATASET_NPCS, () -> java.util.Arrays.asList(npcSuggestions(plugin, "")));
+        DATASETS.put(DATASET_WEATHERS, () -> java.util.Arrays.asList(weatherSuggestions("")));
+        DATASETS.put(DATASET_COMMANDS, () -> java.util.Arrays.asList(commandSuggestions(plugin, "")));
         dataset(plugin, DATASET_ROLES, () -> new java.util.ArrayList<>(com.hypixel.hytale.server.npc.NPCPlugin.get().getRoleTemplateNames(false)));
         dataset(plugin, DATASET_DIALOGUES, () -> plugin.getRegistry().ids());
         dataset(plugin, DATASET_NODES, () -> {
@@ -130,7 +133,24 @@ public final class JsonDialogues {
     }
 
     /** Register an autocomplete data set: the supplier's names, filtered by the typed prefix or fragment, sorted. */
+    private static final java.util.Map<String, java.util.function.Supplier<java.util.List<String>>> DATASETS = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /** The full, sorted contents of a data set (for in-game pickers); empty when unknown or unavailable. */
+    public static java.util.List<String> names(String id) {
+        java.util.function.Supplier<java.util.List<String>> s = DATASETS.get(id);
+        if (s == null) return java.util.List.of();
+        try {
+            java.util.List<String> all = new java.util.ArrayList<>(s.get());
+            all.removeIf(java.util.Objects::isNull);
+            java.util.Collections.sort(all);
+            return all;
+        } catch (RuntimeException e) {
+            return java.util.List.of();
+        }
+    }
+
     private static void dataset(LowTalkPlugin plugin, String id, java.util.function.Supplier<java.util.List<String>> names) {
+        DATASETS.put(id, names);
         plugin.getEventRegistry().register(com.hypixel.hytale.builtin.asseteditor.event.AssetEditorFetchAutoCompleteDataEvent.class, id, e -> {
             String q = e.getQuery() == null ? "" : e.getQuery().trim().toLowerCase(java.util.Locale.ROOT);
             java.util.List<String> out = new java.util.ArrayList<>();

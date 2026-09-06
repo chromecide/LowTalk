@@ -1,11 +1,11 @@
 $C = "../../Common.ui";
 
-// The dialogue window in edit mode: the same conversation, with every line and option editable in place.
+// The dialogue window in edit mode: the same conversation, with every line, option and command editable in place.
 $C.@PageOverlay {
   LayoutMode: Middle;
 
   $C.@DecoratedContainer {
-    Anchor: (Width: 1000, Height: 680);
+    Anchor: (Width: 1040, Height: 700);
 
     #Title {
       $C.@Title #PageTitle {
@@ -28,27 +28,32 @@ $C.@PageOverlay {
         }
 
         $C.@TextField #NodeName {
-          @Anchor = (Width: 200, Right: 6);
+          @Anchor = (Width: 190, Right: 6);
           PlaceholderText: %server.lowtalk.editor.nodeName;
         }
 
         $C.@SecondaryTextButton #RenameButton {
-          @Anchor = (Width: 120, Right: 14);
+          @Anchor = (Width: 110, Right: 14);
           @Text = %server.lowtalk.editor.rename;
         }
 
         DropdownBox #NodeJump {
-          Anchor: (Width: 240, Right: 6, Height: $C.@DropdownBoxHeight);
-          Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 240);
+          Anchor: (Width: 220, Right: 6, Height: $C.@DropdownBoxHeight);
+          Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 260);
         }
 
         $C.@SecondaryTextButton #BackButton {
-          @Anchor = (Width: 100, Right: 6);
+          @Anchor = (Width: 90, Right: 6);
           @Text = %server.lowtalk.editor.back;
         }
 
+        $C.@SecondaryTextButton #HeaderButton {
+          @Anchor = (Width: 120, Right: 6);
+          @Text = %server.lowtalk.editor.header;
+        }
+
         $C.@SecondaryTextButton #DeleteNodeButton {
-          @Anchor = (Width: 170);
+          @Anchor = (Width: 160);
           @Text = %server.lowtalk.editor.deleteNode;
         }
       }
@@ -67,16 +72,22 @@ $C.@PageOverlay {
 
       Group #AddRow {
         LayoutMode: Left;
-        Anchor: (Top: 8, Height: 36);
+        Anchor: (Top: 8, Height: 38);
 
-        $C.@SecondaryTextButton #AddLineButton {
-          @Anchor = (Width: 130, Right: 6);
-          @Text = %server.lowtalk.editor.addLine;
+        Label #AddLabel {
+          Anchor: (Width: 44);
+          Style: (FontSize: 13, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+          Text: %server.lowtalk.editor.add;
         }
 
-        $C.@SecondaryTextButton #AddOptionButton {
-          @Anchor = (Width: 150, Right: 6);
-          @Text = %server.lowtalk.editor.addOption;
+        DropdownBox #AddKind {
+          Anchor: (Width: 260, Right: 6, Height: $C.@DropdownBoxHeight);
+          Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 320);
+        }
+
+        $C.@SecondaryTextButton #AddButton {
+          @Anchor = (Width: 90, Right: 14);
+          @Text = %server.lowtalk.editor.addIt;
         }
 
         $C.@SecondaryTextButton #AddNodeButton {

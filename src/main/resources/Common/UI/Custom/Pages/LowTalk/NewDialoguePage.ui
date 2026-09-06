@@ -1,0 +1,114 @@
+$C = "../../Common.ui";
+
+// Create a dialogue for an NPC that has none, then open it in the editor.
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  $C.@DecoratedContainer {
+    Anchor: (Width: 640, Height: 420);
+
+    #Title {
+      $C.@Title #PageTitle {
+        @Text = %server.lowtalk.newdialog.title;
+      }
+    }
+
+    #Content {
+      LayoutMode: Top;
+      Padding: (Full: 16);
+
+      Label #Intro {
+        Anchor: (Bottom: 12);
+        Style: (FontSize: 13, TextColor: #b7cedd, Wrap: true);
+        Text: "";
+      }
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 38, Bottom: 8);
+
+        Label {
+          Anchor: (Width: 120);
+          Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+          Text: %server.lowtalk.newdialog.id;
+        }
+
+        $C.@TextField #Id {
+          @Anchor = ();
+          FlexWeight: 1;
+          PlaceholderText: %server.lowtalk.newdialog.idHint;
+        }
+      }
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 38, Bottom: 8);
+
+        Label {
+          Anchor: (Width: 120);
+          Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+          Text: %server.lowtalk.editor.speaker;
+        }
+
+        $C.@TextField #Speaker {
+          @Anchor = ();
+          FlexWeight: 1;
+          PlaceholderText: %server.lowtalk.editor.speakerHint;
+        }
+      }
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 38, Bottom: 8);
+
+        Label {
+          Anchor: (Width: 120);
+          Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+          Text: %server.lowtalk.newdialog.bind;
+        }
+
+        DropdownBox #Bind {
+          Anchor: (Width: 460, Height: $C.@DropdownBoxHeight);
+          Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 460);
+        }
+      }
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 38, Bottom: 8);
+
+        Label {
+          Anchor: (Width: 120);
+          Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+          Text: %server.lowtalk.newdialog.where;
+        }
+
+        DropdownBox #Where {
+          Anchor: (Width: 460, Height: $C.@DropdownBoxHeight);
+          Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 460);
+        }
+      }
+
+      Label #Status {
+        Anchor: (Height: 36, Top: 4);
+        Style: (FontSize: 13, TextColor: #ffd37a, Wrap: true);
+        Text: "";
+      }
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Top: 8, Height: 38);
+
+        $C.@TextButton #CreateButton {
+          @Anchor = (Width: 160, Right: 8);
+          @Text = %server.lowtalk.newdialog.create;
+        }
+
+        $C.@SecondaryTextButton #CancelButton {
+          @Anchor = (Width: 120);
+          @Text = %server.lowtalk.editor.close;
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,42 @@
+$C = "../../Common.ui";
+
+// <<jump node>>
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 38, Bottom: 6);
+
+  Label #Tag {
+    Anchor: (Width: 90);
+    Style: (FontSize: 12, TextColor: #8fd0ff, RenderUppercase: true, VerticalAlignment: Center);
+    Text: %server.lowtalk.editor.jumpTo;
+  }
+
+  DropdownBox #Node {
+    Anchor: (Width: 260, Right: 6, Height: $C.@DropdownBoxHeight);
+    Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
+  }
+
+  $C.@SecondaryTextButton #Go {
+    @Anchor = (Width: 60, Right: 8);
+    @Text = %server.lowtalk.editor.go;
+  }
+
+  Label #Fill {
+    FlexWeight: 1;
+  }
+
+  $C.@SecondaryTextButton #Up {
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "^";
+  }
+
+  $C.@SecondaryTextButton #Down {
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "v";
+  }
+
+  $C.@SecondaryTextButton #Del {
+    @Anchor = (Width: 34);
+    @Text = "x";
+  }
+}

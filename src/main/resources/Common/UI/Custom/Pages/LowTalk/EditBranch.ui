@@ -1,0 +1,44 @@
+$C = "../../Common.ui";
+
+// One branch of an if-block: if / else if / else, its condition, and a button into its body.
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 38, Bottom: 6);
+
+  Label #Tag {
+    Anchor: (Width: 90);
+    Style: (FontSize: 12, TextColor: #ffb86b, RenderUppercase: true, VerticalAlignment: Center);
+    Text: "";
+  }
+
+  $C.@TextField #Cond {
+    @Anchor = (Right: 8);
+    FlexWeight: 1;
+    PlaceholderText: %server.lowtalk.editor.conditionHint;
+  }
+
+  $C.@SecondaryTextButton #Body {
+    @Anchor = (Width: 110, Right: 4);
+    @Text = %server.lowtalk.editor.body;
+  }
+
+  $C.@SecondaryTextButton #AddBranch {
+    @Anchor = (Width: 110, Right: 8);
+    @Text = %server.lowtalk.editor.addBranch;
+  }
+
+  $C.@SecondaryTextButton #Up {
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "^";
+  }
+
+  $C.@SecondaryTextButton #Down {
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "v";
+  }
+
+  $C.@SecondaryTextButton #Del {
+    @Anchor = (Width: 34);
+    @Text = "x";
+  }
+}

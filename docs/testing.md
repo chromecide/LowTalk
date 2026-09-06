@@ -93,5 +93,9 @@ Station 14 is a live NPC whose own role opens the dialogue, the way a shipped NP
 
 `/lowtalk tool`, then click any station with the tool in hand. The station's dialogue opens in edit
 mode. Change a line, add an option pointing at "+ new node", press Go to walk into it, write a
-line there, then Test here to play the draft from that node, and Save to write it to
+line there, add a command with the Add dropdown and pick its argument, open an option's "..." to
+give it a condition, then Test here to play the draft from that node, and Save to write it to
 `dialogues/tests/`. The next `/lowtalk testworld build` copies the bundled tests back over your edits.
+
+Click an NPC with no dialogue (spawn one with `/npc spawn Kweebec_Merchant` outside the corridor, or
+any vanilla NPC) to see the new-dialogue form.

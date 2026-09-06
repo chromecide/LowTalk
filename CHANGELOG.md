@@ -26,6 +26,9 @@ First working version.
   completion; `t()` translations, `weather()`, `objective_line()`.
 - In-game dialogue editor: `/lowtalk tool`, click an NPC, edit lines and options in place, walk
   into nodes, Save (rewrites the file, hot-reloads) or Test the draft from the current node.
+  Covers the whole format: option conditions and once, commands with game-list pickers, set,
+  if/else, once, random, input, wait, jump, end, dialogue settings, and creating a dialogue for
+  an NPC that has none.
 - Bound NPCs show the game's own "Press [key] to talk" prompt (`ShowHint`, `HintKey`).
 - `UseHook` config switch to disable the use-event binding; `npc: none` for
   dialogues opened only by roles, interactions, triggers or commands; a

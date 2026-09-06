@@ -111,14 +111,19 @@ they reach dialogues only by using an NPC, and `stop` is open to everyone.
 ## Editing in game
 
 **In place, with the LowTalk tool.** `/lowtalk tool` puts a tool in your hand (it is also in the
-creative Tools tab). Click an NPC that has a dialogue bound and its window opens in edit mode:
-every line and option is a field, options have a target dropdown (a node, the end, back to the
-options, or a new node) and a Go button that walks into the node the way a player would. Add
-lines, options and nodes, rename or delete nodes, then Save to write the file where it lives and
-reload it, or Test to play the unsaved draft from the node you are on. Saving rewrites a `.talk`
-file in the printer's layout, so comments in it are dropped (the editor tells you when that
-happens). If/else, once, random and command statements show as read-only rows in this version;
-edit those in the Asset Editor.
+creative Tools tab). Click an NPC and its dialogue opens in edit mode, one node at a time, the way a
+player sees it: lines and options are fields, options have a target dropdown (a node, the end, back
+to the options, or a new node) and a Go button that walks into that node. Everything the file
+format can say is reachable without knowing the syntax: the Add dropdown offers lines, options,
+commands (with a picker fed by the game's own lists for animations, weathers, roles, music,
+particles, camera effects, stats, recipes, warps, reputation groups, shops and styles), set, if/else,
+once, random, ask-the-player, wait, jump and end; an option's "..." button opens its only-if,
+grey-unless and once settings and lets you edit what happens when it is picked; "Dialogue..." edits
+the NPC bindings (with an NPC picker), speaker, title, start node, join trigger, portrait and shared
+memory. Clicking an NPC that has no dialogue offers to create one, bound to its role or to that one
+NPC, in the server folder or an asset pack. Save writes the file where it lives and reloads it,
+Test plays the unsaved draft from the node you are on, Discard reloads the saved version. Saving
+rewrites a `.talk` file in the printer's layout, so comments in it are dropped (the editor says so).
 
 
 LowTalk registers `.talk` with Hytale's Asset Editor, so dialogue authoring

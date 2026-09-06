@@ -1,0 +1,39 @@
+$C = "../../Common.ui";
+
+// <<wait seconds>>
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 38, Bottom: 6);
+
+  Label #Tag {
+    Anchor: (Width: 90);
+    Style: (FontSize: 12, TextColor: #8fd0ff, RenderUppercase: true, VerticalAlignment: Center);
+    Text: %server.lowtalk.editor.waitFor;
+  }
+
+  $C.@TextField #Seconds {
+    @Anchor = (Width: 120, Right: 6);
+    PlaceholderText: "2";
+  }
+
+  Label #Unit {
+    FlexWeight: 1;
+    Style: (FontSize: 13, TextColor: #8fa3b8, VerticalAlignment: Center);
+    Text: %server.lowtalk.editor.seconds;
+  }
+
+  $C.@SecondaryTextButton #Up {
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "^";
+  }
+
+  $C.@SecondaryTextButton #Down {
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "v";
+  }
+
+  $C.@SecondaryTextButton #Del {
+    @Anchor = (Width: 34);
+    @Text = "x";
+  }
+}

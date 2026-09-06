@@ -1,0 +1,45 @@
+$C = "../../Common.ui";
+
+// <<set $var = value>>
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 38, Bottom: 6);
+
+  Label #Tag {
+    Anchor: (Width: 60);
+    Style: (FontSize: 12, TextColor: #8fd0ff, RenderUppercase: true, VerticalAlignment: Center);
+    Text: %server.lowtalk.editor.set;
+  }
+
+  $C.@TextField #Var {
+    @Anchor = (Width: 240, Right: 6);
+    PlaceholderText: "$variable";
+  }
+
+  Label #Eq {
+    Anchor: (Width: 20);
+    Style: (FontSize: 14, TextColor: #b7cedd, VerticalAlignment: Center, HorizontalAlignment: Center);
+    Text: "=";
+  }
+
+  $C.@TextField #Value {
+    @Anchor = (Right: 8);
+    FlexWeight: 1;
+    PlaceholderText: %server.lowtalk.editor.valueHint;
+  }
+
+  $C.@SecondaryTextButton #Up {
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "^";
+  }
+
+  $C.@SecondaryTextButton #Down {
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "v";
+  }
+
+  $C.@SecondaryTextButton #Del {
+    @Anchor = (Width: 34);
+    @Text = "x";
+  }
+}

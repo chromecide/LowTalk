@@ -380,6 +380,24 @@ public class DialogueRegistry {
 
     // ---- lookups
 
+    /** Places a new dialogue file can go: the server's own folder ("") and every asset pack, whether or not it has the folder yet. */
+    public java.util.LinkedHashMap<String, Path> creationTargets() {
+        java.util.LinkedHashMap<String, Path> out = new java.util.LinkedHashMap<>();
+        out.put("", folder);
+        try {
+            for (AssetPack pack : AssetModule.get().getAssetPacks()) {
+                try {
+                    out.putIfAbsent(pack.getName(), pack.getRoot().resolve(PACK_DIR).toAbsolutePath().normalize());
+                } catch (RuntimeException ignored) {
+                    // packs inside archives cannot take new files
+                }
+            }
+        } catch (RuntimeException ignored) {
+            // no asset module
+        }
+        return out;
+    }
+
     /** Where a loaded dialogue came from: a file (.talk) or an asset (file null), or null if not loaded. */
     @Nullable
     public synchronized Loaded loadedFor(@Nonnull String id) {

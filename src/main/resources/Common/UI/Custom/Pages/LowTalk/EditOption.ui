@@ -1,6 +1,6 @@
 $C = "../../Common.ui";
 
-// One player option: its label, where it leads, and a Go button that walks into that node.
+// One player option: its label, where it leads, Go walks into that node, "..." opens its conditions.
 Group {
   LayoutMode: Left;
   Anchor: (Height: 38, Bottom: 6);
@@ -18,13 +18,18 @@ Group {
   }
 
   DropdownBox #Target {
-    Anchor: (Width: 260, Right: 8, Height: $C.@DropdownBoxHeight);
+    Anchor: (Width: 240, Right: 6, Height: $C.@DropdownBoxHeight);
     Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
   }
 
   $C.@SecondaryTextButton #Go {
-    @Anchor = (Width: 64, Right: 8);
+    @Anchor = (Width: 60, Right: 4);
     @Text = %server.lowtalk.editor.go;
+  }
+
+  $C.@SecondaryTextButton #More {
+    @Anchor = (Width: 44, Right: 8);
+    @Text = "...";
   }
 
   $C.@SecondaryTextButton #Up {

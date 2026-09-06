@@ -1,0 +1,117 @@
+$C = "../../Common.ui";
+
+// The dialogue's own settings: who it belongs to, its voice, its title.
+Group {
+  LayoutMode: Top;
+
+  Group {
+    LayoutMode: Left;
+    Anchor: (Height: 38, Bottom: 8);
+
+    Label {
+      Anchor: (Width: 130);
+      Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+      Text: %server.lowtalk.editor.npcs;
+    }
+
+    $C.@TextField #Bindings {
+      @Anchor = (Right: 8);
+      FlexWeight: 1;
+      PlaceholderText: %server.lowtalk.editor.npcsHint;
+    }
+
+    DropdownBox #NpcPick {
+      Anchor: (Width: 300, Height: $C.@DropdownBoxHeight);
+      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 360);
+    }
+  }
+
+  Group {
+    LayoutMode: Left;
+    Anchor: (Height: 38, Bottom: 8);
+
+    Label {
+      Anchor: (Width: 130);
+      Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+      Text: %server.lowtalk.editor.speaker;
+    }
+
+    $C.@TextField #Speaker {
+      @Anchor = (Width: 300, Right: 20);
+      PlaceholderText: %server.lowtalk.editor.speakerHint;
+    }
+
+    Label {
+      Anchor: (Width: 70);
+      Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+      Text: %server.lowtalk.editor.title;
+    }
+
+    $C.@TextField #DialogTitle {
+      @Anchor = ();
+      FlexWeight: 1;
+      PlaceholderText: %server.lowtalk.editor.titleHint;
+    }
+  }
+
+  Group {
+    LayoutMode: Left;
+    Anchor: (Height: 38, Bottom: 8);
+
+    Label {
+      Anchor: (Width: 130);
+      Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+      Text: %server.lowtalk.editor.startNode;
+    }
+
+    DropdownBox #StartNode {
+      Anchor: (Width: 300, Right: 20, Height: $C.@DropdownBoxHeight);
+      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
+    }
+
+    Label {
+      Anchor: (Width: 70);
+      Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+      Text: %server.lowtalk.editor.opens;
+    }
+
+    DropdownBox #On {
+      Anchor: (Width: 300, Height: $C.@DropdownBoxHeight);
+      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
+    }
+  }
+
+  Group {
+    LayoutMode: Left;
+    Anchor: (Height: 38, Bottom: 8);
+
+    Label {
+      Anchor: (Width: 130);
+      Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+      Text: %server.lowtalk.editor.portrait;
+    }
+
+    $C.@TextField #Portrait {
+      @Anchor = (Width: 300, Right: 20);
+      PlaceholderText: %server.lowtalk.editor.portraitHint;
+    }
+
+    Label {
+      Anchor: (Width: 70);
+      Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+      Text: %server.lowtalk.editor.memory;
+    }
+
+    $C.@TextField #Scope {
+      @Anchor = ();
+      FlexWeight: 1;
+      PlaceholderText: %server.lowtalk.editor.memoryHint;
+    }
+  }
+
+  Label #Help {
+    Anchor: (Top: 6);
+    Style: (FontSize: 12, TextColor: #8fa3b8, Wrap: true);
+    Text: %server.lowtalk.editor.headerHelp;
+  }
+}

@@ -1,0 +1,39 @@
+$C = "../../Common.ui";
+
+// <<input $var "prompt">>
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 38, Bottom: 6);
+
+  Label #Tag {
+    Anchor: (Width: 90);
+    Style: (FontSize: 12, TextColor: #8fd0ff, RenderUppercase: true, VerticalAlignment: Center);
+    Text: %server.lowtalk.editor.askInto;
+  }
+
+  $C.@TextField #Var {
+    @Anchor = (Width: 200, Right: 6);
+    PlaceholderText: "$variable";
+  }
+
+  $C.@TextField #Prompt {
+    @Anchor = (Right: 8);
+    FlexWeight: 1;
+    PlaceholderText: %server.lowtalk.editor.promptHint;
+  }
+
+  $C.@SecondaryTextButton #Up {
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "^";
+  }
+
+  $C.@SecondaryTextButton #Down {
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "v";
+  }
+
+  $C.@SecondaryTextButton #Del {
+    @Anchor = (Width: 34);
+    @Text = "x";
+  }
+}

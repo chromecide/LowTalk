@@ -1,0 +1,45 @@
+$C = "../../Common.ui";
+
+// A once-block or one alternative of a random-block: a label and a button into its body.
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 38, Bottom: 6);
+
+  Label #Tag {
+    Anchor: (Width: 140);
+    Style: (FontSize: 12, TextColor: #ffb86b, RenderUppercase: true, VerticalAlignment: Center);
+    Text: "";
+  }
+
+  Label #Summary {
+    FlexWeight: 1;
+    Anchor: (Right: 8);
+    Style: (FontSize: 13, TextColor: #8fa3b8, VerticalAlignment: Center);
+    Text: "";
+  }
+
+  $C.@SecondaryTextButton #Body {
+    @Anchor = (Width: 110, Right: 4);
+    @Text = %server.lowtalk.editor.body;
+  }
+
+  $C.@SecondaryTextButton #AddAlt {
+    @Anchor = (Width: 110, Right: 8);
+    @Text = %server.lowtalk.editor.addAlternative;
+  }
+
+  $C.@SecondaryTextButton #Up {
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "^";
+  }
+
+  $C.@SecondaryTextButton #Down {
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "v";
+  }
+
+  $C.@SecondaryTextButton #Del {
+    @Anchor = (Width: 34);
+    @Text = "x";
+  }
+}
