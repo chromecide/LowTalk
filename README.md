@@ -97,6 +97,7 @@ conversation. Each one remembers each player separately.
 | `/lowtalk test <id> [apply] [choices...]` | Play a dialogue headlessly with scripted choices |
 | `/lowtalk testworld build` / `go` | Build or visit the test corridor world |
 | `/lowtalk thaw` | Unfreeze the NPC you're looking at |
+| `/lowtalk testworld leave` | Leave the test corridor: main world, old game mode, world unloaded when empty |
 | `/lowtalk tool` | Get the LowTalk tool: click an NPC with it to edit its dialogue in place (creator) |
 | `/lowtalk stop` | Leave your current conversation |
 | `/lowtalk help [name]` | The format reference in chat: commands, functions, keywords, or one entry |

@@ -172,6 +172,9 @@ public final class TestWorld {
                 Player p = store.getComponent(ref, Player.getComponentType());
                 String note = null;
                 if (p != null && p.getGameMode() != com.hypixel.hytale.protocol.GameMode.Adventure) {
+                    VariableStore vs = plugin.getStore();
+                    vs.set(vs.player(player.getUuid()), WORLD_NAME, "mode", p.getGameMode().name()); // leave restores it
+                    vs.flush();
                     Player.setGameMode(ref, com.hypixel.hytale.protocol.GameMode.Adventure, store);
                     note = "Switched you to Adventure mode so the stations can see you (/gamemode creative to go back).";
                 } else if (!EntityDetectionUtil.isDetectableByNPCs(ref, store)) {
@@ -314,6 +317,71 @@ public final class TestWorld {
                 ? "game mode " + mode + ": NPCs can detect you"
                 : "game mode " + mode + ": NPCs CANNOT detect you. Live NPCs ignore Creative players unless 'Allow NPC detection' is on in "
                   + "the creative settings; run /gamemode adventure (or survival) to test station 14.";
+    }
+
+    /**
+     * Send the player back to the main world's spawn, give them their previous game mode back, and unload the test
+     * world once nobody is left in it so it stops ticking. The corridor stays on disk; {@code go} loads it again.
+     */
+    public static void leave(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef player, @Nonnull Consumer<String> out) {
+        Ref<EntityStore> ref = player.getReference();
+        if (ref == null || !ref.isValid()) return;
+        Store<EntityStore> store = ref.getStore();
+        World from = store.getExternalData().getWorld();
+        from.execute(() -> {
+            if (!ref.isValid()) return;
+            plugin.getSessions().end(player.getUuid());
+            Universe universe = Universe.get();
+            World target = universe.getDefaultWorld();
+            if (!WORLD_NAME.equals(from.getName())) {
+                out.accept("You are not in the test world.");
+                return;
+            }
+            if (target == null) {
+                out.accept("There is no main world to return to; use /tp world <name>.");
+                return;
+            }
+            com.hypixel.hytale.server.core.universe.world.spawn.ISpawnProvider spawns = target.getWorldConfig().getSpawnProvider();
+            com.hypixel.hytale.math.vector.Transform spawn = spawns == null ? null : spawns.getSpawnPoint(ref, store);
+            if (spawn == null) {
+                out.accept("The main world has no spawn point set; use /tp back instead.");
+                return;
+            }
+            // Give back the mode the player had before go switched them, the same way the game's /gamemode does.
+            VariableStore vs = plugin.getStore();
+            Object saved = vs.get(vs.player(player.getUuid()), WORLD_NAME, "mode");
+            com.hypixel.hytale.protocol.GameMode mode = com.hypixel.hytale.protocol.GameMode.Creative;
+            if (saved instanceof String name) {
+                try {
+                    mode = com.hypixel.hytale.protocol.GameMode.valueOf(name);
+                } catch (IllegalArgumentException ignored) {
+                    // unknown mode name from an older build: fall back to Creative
+                }
+            }
+            Player p = store.getComponent(ref, Player.getComponentType());
+            if (p != null && p.getGameMode() != mode) Player.setGameMode(ref, mode, store);
+            vs.set(vs.player(player.getUuid()), WORLD_NAME, "mode", null);
+            vs.flush();
+            store.addComponent(ref, Teleport.getComponentType(), Teleport.createForPlayer(target, spawn));
+            out.accept("Back to " + target.getName() + " in " + mode.name().toLowerCase(java.util.Locale.ROOT) + " mode.");
+            // Unload the corridor once the teleport has gone through and nobody else is still testing.
+            target.scheduleAfter(() -> unloadIfEmpty(plugin, out), 3, java.util.concurrent.TimeUnit.SECONDS);
+        });
+    }
+
+    private static void unloadIfEmpty(LowTalkPlugin plugin, Consumer<String> out) {
+        Universe universe = Universe.get();
+        World test = universe.getWorld(WORLD_NAME);
+        if (test == null) return;
+        if (test.getPlayerCount() > 0) {
+            out.accept("The test world stays loaded: " + test.getPlayerCount() + " player(s) are still in it.");
+            return;
+        }
+        try {
+            if (universe.removeWorld(WORLD_NAME)) out.accept("Test world unloaded; /lowtalk testworld go brings it back.");
+        } catch (RuntimeException e) {
+            plugin.getLogger().at(Level.WARNING).log("Could not unload the test world: %s", e.toString());
+        }
     }
 
     /** Remove every NPC in the corridor and spawn the stations again on their marks. */
