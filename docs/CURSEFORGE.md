@@ -58,11 +58,6 @@ their state. It leaves journals and trackers to the mods that do those well.
 
 **Open source, MIT.** Fork it, extend it, ship it with your adventure map.
 
-**Made with an AI coding agent.** LowTalk was designed, directed and play-tested by one person; most of the code
-and documentation was written by Claude Code under that direction. There is no AI inside the mod: every line a
-player reads is written by a dialogue author, and the plugin makes no network calls. The repository is public so
-you can see exactly what you are running.
-
 **Commands:** `/lowtalk reload`, `list`, `open <id>`, `tag <name>`,
 `untag <name>`, `tags`, `vars`, `reset`, `stop`. Authoring commands need
 `lowtalk.creator`, server operation needs `lowtalk.admin` (give admins
@@ -81,3 +76,10 @@ release. No dependencies.
 6. The Node Editor showing the demo graph.
 7. A `.talk` file open in a text editor next to the in-game result.
 8. `/lowtalk reload` output with a deliberate error, showing the line number.
+
+**AI Use Disclosure**
+
+LowTalk was designed, directed and play-tested by one person; most of the code
+and documentation was written by Claude Code under that direction. There is no AI inside the mod: every line a
+player reads is written by a dialogue author, and the plugin makes no network calls. The repository is public so
+you can see exactly what you are running.
