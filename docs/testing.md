@@ -42,6 +42,7 @@ should happen. Build it once, then visit it whenever you like:
 /lowtalk testworld respawn   # fresh run: forgets your dialogue memory, resets standing with LowTalk_Testers,
                              # cancels your active objectives, restores health, clears effects, removes the
                              # bread the stations gave you, respawns every station NPC and returns you to the entrance
+/lowtalk testworld leave     # back to the main world in your old game mode; unloads the test world when empty
 /lowtalk testworld probe     # stand near an NPC: reports every gate the game checks before it reacts to you
                              # (frozen flags, role state, view sector, attitude, interactable mark, UseNPC wiring)
 ```
@@ -99,3 +100,7 @@ give it a condition, then Test here to play the draft from that node, and Save t
 
 Click an NPC with no dialogue (spawn one with `/npc spawn Kweebec_Merchant` outside the corridor, or
 any vanilla NPC) to see the new-dialogue form.
+
+The test world is one shared world named `lowtalk_test`, not a per-player instance: everyone who runs `go` lands in
+the same corridor. Dialogue memory is per player, so several people can test at once, but the station NPCs are
+shared (a despawned station is gone for all until `respawn`).

@@ -490,6 +490,23 @@ public class LowTalkCommand extends AbstractCommandCollection {
             this.addSubCommand(new TestWorldGo(plugin));
             this.addSubCommand(new TestWorldRespawn(plugin));
             this.addSubCommand(new TestWorldProbe(plugin));
+            this.addSubCommand(new TestWorldLeave(plugin));
+        }
+    }
+
+    static class TestWorldLeave extends AbstractPlayerCommand {
+        private final LowTalkPlugin plugin;
+
+        TestWorldLeave(LowTalkPlugin plugin) {
+            super("leave", "Return to the main world with your old game mode and unload the test world");
+            this.plugin = plugin;
+            this.requirePermission(ADMIN);
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef player, @Nonnull World world) {
+            TestWorld.leave(plugin, player, reporter(plugin, player));
         }
     }
 
