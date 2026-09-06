@@ -208,7 +208,9 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         for (String n : draft.nodeNames()) entries.add(new DropdownEntryInfo(LocalizableString.fromString("-> " + n), n));
         entries.add(new DropdownEntryInfo(LocalizableString.fromString("+ new node"), DialogueDraft.TARGET_NEW));
         if (DialogueDraft.TARGET_CUSTOM.equals(DialogueDraft.optionTarget(opt))) {
-            entries.add(new DropdownEntryInfo(LocalizableString.fromString("(custom: " + Printer.block(opt.body()).strip().replace('\n', ' ') + ")"), DialogueDraft.TARGET_CUSTOM));
+            String body = Printer.block(opt.body()).strip().replace('\n', ' ');
+            if (body.length() > 40) body = body.substring(0, 37) + "...";
+            entries.add(new DropdownEntryInfo(LocalizableString.fromString("(custom)"), DialogueDraft.TARGET_CUSTOM, LocalizableString.fromString(body)));
         }
         return entries;
     }

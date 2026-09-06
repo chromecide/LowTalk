@@ -18,12 +18,12 @@ Group {
   }
 
   DropdownBox #Target {
-    Anchor: (Width: 200, Right: 6, Height: $C.@DropdownBoxHeight);
-    Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 200);
+    Anchor: (Width: 260, Right: 8, Height: $C.@DropdownBoxHeight);
+    Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
   }
 
-  $C.@TextButton #Go {
-    @Anchor = (Width: 54, Right: 4);
+  $C.@SecondaryTextButton #Go {
+    @Anchor = (Width: 64, Right: 8);
     @Text = %server.lowtalk.editor.go;
   }
 

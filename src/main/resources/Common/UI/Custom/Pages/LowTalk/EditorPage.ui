@@ -5,7 +5,7 @@ $C.@PageOverlay {
   LayoutMode: Middle;
 
   $C.@DecoratedContainer {
-    Anchor: (Width: 820, Height: 600);
+    Anchor: (Width: 1000, Height: 680);
 
     #Title {
       $C.@Title #PageTitle {
@@ -28,12 +28,12 @@ $C.@PageOverlay {
         }
 
         $C.@TextField #NodeName {
-          @Anchor = (Width: 180, Right: 6);
+          @Anchor = (Width: 200, Right: 6);
           PlaceholderText: %server.lowtalk.editor.nodeName;
         }
 
         $C.@SecondaryTextButton #RenameButton {
-          @Anchor = (Width: 90, Right: 14);
+          @Anchor = (Width: 120, Right: 14);
           @Text = %server.lowtalk.editor.rename;
         }
 
@@ -43,12 +43,12 @@ $C.@PageOverlay {
         }
 
         $C.@SecondaryTextButton #BackButton {
-          @Anchor = (Width: 80, Right: 6);
+          @Anchor = (Width: 100, Right: 6);
           @Text = %server.lowtalk.editor.back;
         }
 
         $C.@SecondaryTextButton #DeleteNodeButton {
-          @Anchor = (Width: 120);
+          @Anchor = (Width: 170);
           @Text = %server.lowtalk.editor.deleteNode;
         }
       }
@@ -70,17 +70,17 @@ $C.@PageOverlay {
         Anchor: (Top: 8, Height: 36);
 
         $C.@SecondaryTextButton #AddLineButton {
-          @Anchor = (Width: 110, Right: 6);
+          @Anchor = (Width: 130, Right: 6);
           @Text = %server.lowtalk.editor.addLine;
         }
 
         $C.@SecondaryTextButton #AddOptionButton {
-          @Anchor = (Width: 120, Right: 6);
+          @Anchor = (Width: 150, Right: 6);
           @Text = %server.lowtalk.editor.addOption;
         }
 
         $C.@SecondaryTextButton #AddNodeButton {
-          @Anchor = (Width: 110);
+          @Anchor = (Width: 130);
           @Text = %server.lowtalk.editor.addNode;
         }
       }
@@ -100,7 +100,7 @@ $C.@PageOverlay {
         }
 
         $C.@TextButton #TestButton {
-          @Anchor = (Width: 130, Right: 6);
+          @Anchor = (Width: 150, Right: 6);
           @Text = %server.lowtalk.editor.test;
         }
 
