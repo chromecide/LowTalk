@@ -21,6 +21,17 @@ public interface Context {
 
     boolean hasVisited(String node);
 
+    /**
+     * True if a command has a handler right now. Options whose body uses a command nobody provides are hidden, so a
+     * dialogue written against a plugin keeps working, minus that plugin's choices, when the plugin is removed.
+     */
+    default boolean hasCommand(String name) {
+        return true;
+    }
+
+    /** Report something the author should know about (logged by the server, ignored in tests). */
+    default void warn(String message) {}
+
     void markVisited(String node);
 
     boolean onceDone(String key);

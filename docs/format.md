@@ -314,6 +314,12 @@ dialogue without touching Java or `.talk` bindings:
   and an entry can be gated by what was said:
   `"Requirements": [ { "Type": "LowTalkCondition", "Dialogue": "haggle", "If": "$player.trusted" } ]`.
 
+**When a plugin goes away.** Commands and functions that another plugin added keep
+their place in your files. If that plugin is removed, an option whose body uses one of
+its commands is hidden (the server log says which, once), a condition that calls one of
+its functions reads as false, and `/lowtalk reload` warns about the unknown names instead
+of refusing the file. The rest of the dialogue plays as it did before the plugin existed.
+
 **NPC roles.** Two role components let an NPC's own behaviour tree start and
 gate conversations. This is the native path for an NPC you author; the
 `npc:` binding in a dialogue file is the no-configuration path for vanilla

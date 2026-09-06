@@ -32,7 +32,11 @@ public class FunctionRegistry {
 
     public Object call(HytaleContext ctx, String name, List<Object> args) {
         Function f = functions.get(name);
-        if (f == null) throw new RuntimeError("unknown function " + name + "()");
+        if (f == null) {
+            // A plugin that used to provide this is gone: read as false so conditions fall through instead of aborting.
+            ctx.warn("unknown function " + name + "() in dialogue " + ctx.getDialogueId() + " (no plugin provides it); it reads as false");
+            return Boolean.FALSE;
+        }
         return f.call(ctx, args);
     }
 }

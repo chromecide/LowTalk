@@ -24,6 +24,8 @@ First working version.
 - World and NPC control through the game's own systems: `weather`, `time`,
   `npc_name`, `state`, `despawn`, `spawn`; objective lines, cancel and task
   completion; `t()` translations, `weather()`, `objective_line()`.
+- Graceful degradation: options needing a command no plugin provides are hidden, unknown
+  functions read as false, and unknown names are warnings rather than load errors.
 - In-game dialogue editor: `/lowtalk tool`, click an NPC, edit lines and options in place, walk
   into nodes, Save (rewrites the file, hot-reloads) or Test the draft from the current node.
   Covers the whole format: option conditions and once, commands with game-list pickers, set,

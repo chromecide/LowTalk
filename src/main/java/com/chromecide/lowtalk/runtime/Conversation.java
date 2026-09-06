@@ -316,6 +316,9 @@ public final class Conversation {
             if (o.once() && ctx.onceDone(currentNode + "#" + o.onceKey())) {
                 continue;
             }
+            if (!available(o)) {
+                continue;
+            }
             if (o.guard() != null && !Values.truthy(Evaluator.eval(o.guard(), ctx))) {
                 continue;
             }
@@ -325,8 +328,51 @@ public final class Conversation {
         return out;
     }
 
+    /** False when the option's body needs a command nobody provides; warns once per option per conversation. */
+    private boolean available(Option o) {
+        String missing = missingCommand(o.body());
+        if (missing == null) return true;
+        String key = currentNode + "#" + o.onceKey();
+        if (warned.add(key)) {
+            ctx.warn(o.pos() + ": option \"" + o.text().debugString() + "\" is hidden because no plugin provides <<" + missing + ">>");
+        }
+        return false;
+    }
+
+    /** The first command in a body (searching nested blocks) that has no handler, or null. */
+    @javax.annotation.Nullable
+    private String missingCommand(List<Statement> body) {
+        for (Statement s : body) {
+            String m = switch (s) {
+                case Statement.Command c -> ctx.hasCommand(c.name()) ? null : c.name();
+                case Statement.Choice c -> {
+                    String found = null;
+                    for (Option o : c.options()) if ((found = missingCommand(o.body())) != null) break;
+                    yield found;
+                }
+                case Statement.Conditional c -> {
+                    String found = null;
+                    for (Statement.Branch b : c.branches()) if ((found = missingCommand(b.body())) != null) break;
+                    yield found;
+                }
+                case Statement.Once o -> missingCommand(o.body());
+                case Statement.Random r -> {
+                    String found = null;
+                    for (List<Statement> a : r.alternatives()) if ((found = missingCommand(a)) != null) break;
+                    yield found;
+                }
+                default -> null;
+            };
+            if (m != null) return m;
+        }
+        return null;
+    }
+
+    private final java.util.Set<String> warned = new java.util.HashSet<>();
+
     private boolean enabled(Option o) {
         if (o.once() && ctx.onceDone(currentNode + "#" + o.onceKey())) return false;
+        if (!available(o)) return false;
         if (o.guard() != null && !Values.truthy(Evaluator.eval(o.guard(), ctx))) return false;
         return o.showGuard() == null || Values.truthy(Evaluator.eval(o.showGuard(), ctx));
     }

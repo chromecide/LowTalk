@@ -359,7 +359,7 @@ public final class Validator {
                 known.addAll(extraCommands);
                 known.addAll(java.util.List.of("set", "jump", "end", "input", "if", "elseif", "else", "endif", "once", "endonce", "random", "or", "endrandom", "wait"));
                 String hint = Suggest.hint(cmd.name(), known);
-                out.add(new Problem(cmd.pos(), !hint.isEmpty(), "unknown command <<" + cmd.name() + ">>" + hint
+                out.add(new Problem(cmd.pos(), false, "unknown command <<" + cmd.name() + ">>" + hint
                         + (hint.isEmpty() ? "; it will only work if a plugin provides it" : "")));
             }
             return;
@@ -449,7 +449,7 @@ public final class Validator {
                     java.util.Set<String> known = new java.util.HashSet<>(BUILTIN_FUNCTIONS);
                     known.addAll(extraFunctions);
                     String hint = Suggest.hint(c.function(), known);
-                    out.add(new Problem(pos, !hint.isEmpty(), "unknown function " + c.function() + "()" + hint
+                    out.add(new Problem(pos, false, "unknown function " + c.function() + "()" + hint
                             + (hint.isEmpty() ? "; it will only work if a plugin provides it" : "")));
                 }
                 c.args().forEach(a -> checkExpr(a, pos, out));

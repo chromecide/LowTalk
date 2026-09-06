@@ -47,6 +47,18 @@ public class HytaleContext implements Context, DialogueContext {
     @Override public UUID getNpcId() { return npcId; }
 
     @Override
+    public boolean hasCommand(String name) {
+        com.chromecide.lowtalk.LowTalkPlugin p = com.chromecide.lowtalk.LowTalkPlugin.get();
+        return p == null || p.getEffects().has(name);
+    }
+
+    @Override
+    public void warn(String message) {
+        com.chromecide.lowtalk.LowTalkPlugin p = com.chromecide.lowtalk.LowTalkPlugin.get();
+        if (p != null) p.getLogger().at(java.util.logging.Level.WARNING).atMostEvery(30, java.util.concurrent.TimeUnit.SECONDS).log("%s", message);
+    }
+
+    @Override
     public com.hypixel.hytale.component.Store<com.hypixel.hytale.server.core.universe.world.storage.EntityStore> getEntityStore() {
         com.hypixel.hytale.component.Ref<com.hypixel.hytale.server.core.universe.world.storage.EntityStore> ref = player.getReference();
         return ref == null || !ref.isValid() ? null : ref.getStore();

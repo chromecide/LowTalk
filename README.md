@@ -116,7 +116,8 @@ volumes skip effect and condition types they no longer know, objectives whose as
 warning, and an NPC still carrying one of LowTalk's own roles (the test corridor's stations) is logged as a missing
 role and lost rather than crashing the chunk. Dialogue memory, tags and bindings live in `lowtalk.json` and the
 plugin's `data` folder and can be deleted with the plugin. Mods built on LowTalk may have their own step; Companions,
-for example, asks you to run `/companions dismissall` first.
+for example, asks you to run `/companions dismissall` first. Dialogues that used another mod's commands keep working
+without it: options that need a missing command are hidden and conditions on missing functions read as false.
 
 ## Editing in game
 
