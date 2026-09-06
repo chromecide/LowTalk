@@ -491,6 +491,25 @@ public class LowTalkCommand extends AbstractCommandCollection {
             this.addSubCommand(new TestWorldRespawn(plugin));
             this.addSubCommand(new TestWorldProbe(plugin));
             this.addSubCommand(new TestWorldLeave(plugin));
+            this.addSubCommand(new TestWorldPortraits(plugin));
+        }
+    }
+
+    /** Diagnostic: which texture path forms the client resolves for a server-set image. */
+    static class TestWorldPortraits extends AbstractPlayerCommand {
+        private final LowTalkPlugin plugin;
+
+        TestWorldPortraits(LowTalkPlugin plugin) {
+            super("portraits", "Show the portrait path test page");
+            this.plugin = plugin;
+            this.requirePermission(ADMIN);
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef player, @Nonnull World world) {
+            com.hypixel.hytale.server.core.entity.entities.Player p = store.getComponent(ref, com.hypixel.hytale.server.core.entity.entities.Player.getComponentType());
+            if (p != null) p.getPageManager().openCustomPage(ref, store, new PortraitTestPage(player));
         }
     }
 
