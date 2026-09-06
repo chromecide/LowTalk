@@ -166,10 +166,12 @@ public final class TestWorld {
             World from = store.getExternalData().getWorld();
             from.execute(() -> {
                 if (!ref.isValid()) return;
+                // Read this before the teleport: the reference is not usable once the player is leaving the world.
+                String note = EntityDetectionUtil.isDetectableByNPCs(ref, store) ? null : "Note: " + detectability(ref, store);
                 Teleport t = new Teleport(world, new Vector3d(CORRIDOR_START + 1.5, FLOOR_Y + 1.0, 0.5), new Rotation3f(0.0f, 0.0f, 0.0f));
                 store.addComponent(ref, Teleport.getComponentType(), t);
                 out.accept("Off you go. Walk along the corridor; each NPC is a test station.");
-                if (!EntityDetectionUtil.isDetectableByNPCs(ref, store)) out.accept("Note: " + detectability(ref, store));
+                if (note != null) out.accept(note);
             });
         });
     }

@@ -7,13 +7,16 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.tick.EntityTickingSystem;
+import com.hypixel.hytale.protocol.InteractableUpdate;
 import com.hypixel.hytale.server.core.entity.entities.Player;
+import com.hypixel.hytale.server.core.modules.entity.component.Interactable;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.entity.tracker.EntityTrackerSystems;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
+import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.core.util.TargetUtil;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
-import com.hypixel.hytale.server.npc.role.support.StateSupport;
 import org.joml.Vector3d;
 
 import javax.annotation.Nonnull;
@@ -27,11 +30,12 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Gives NPCs bound to a dialogue the same "Press [key] to talk" prompt the game's own talkative NPCs show. A vanilla
- * role only marks a player interactable from its own behaviour tree (SetInteractable), which a bound NPC has no
- * reason to do and a frozen one never runs, so this does the same thing through the game's own StateSupport for
- * every bound NPC near each player: Interactable component on the NPC, hint text sent to that player's client, and
- * the mark withdrawn again when the player walks away.
+ * Gives NPCs bound to a dialogue the same "Press [key] to talk" prompt the game's own talkative NPCs show. The game
+ * marks an NPC with the {@code Interactable} component and sends the hint text to each viewer with an
+ * {@code InteractableUpdate}; a vanilla role does that from its own behaviour tree (SetInteractable), which a bound
+ * NPC has no reason to do and a frozen one never runs. This system does the same two things for every bound NPC near
+ * each player, and withdraws the mark when the last nearby player walks away. NPCs whose role has its own
+ * interaction instruction (like the shipped LowTalk_Talker) are left alone: they already manage their prompt.
  */
 public final class NpcHintSystem extends EntityTickingSystem<EntityStore> {
     /** How close a player must be before the prompt appears; the client only shows it when they look at the NPC anyway. */
@@ -41,7 +45,10 @@ public final class NpcHintSystem extends EntityTickingSystem<EntityStore> {
     private final LowTalkPlugin plugin;
     private final Query<EntityStore> query = Query.and(Player.getComponentType(), TransformComponent.getComponentType());
     private final Map<UUID, Float> timers = new HashMap<>();
-    private final Map<UUID, Map<UUID, Ref<EntityStore>>> marked = new HashMap<>();
+    /** Player → NPC id → hint text already delivered to that player's client. */
+    private final Map<UUID, Map<UUID, Boolean>> marked = new HashMap<>();
+    /** NPC id → players currently near it, so the component goes when the last one leaves. */
+    private final Map<UUID, Set<UUID>> watchers = new HashMap<>();
 
     public NpcHintSystem(@Nonnull LowTalkPlugin plugin) {
         this.plugin = plugin;
@@ -75,40 +82,83 @@ public final class NpcHintSystem extends EntityTickingSystem<EntityStore> {
         Vector3d pos = transform.getPosition();
         Map<UUID, Ref<EntityStore>> near = new HashMap<>();
         for (Ref<EntityStore> ref : new ArrayList<>(TargetUtil.getAllEntitiesInSphere(pos, RANGE, store))) {
-            if (!ref.isValid() || store.getComponent(ref, NPCEntity.getComponentType()) == null) continue;
+            if (!ref.isValid()) continue;
+            NPCEntity entity = store.getComponent(ref, NPCEntity.getComponentType());
+            if (entity == null || (entity.getRole() != null && entity.getRole().getInteractionInstruction() != null)) continue;
             NpcInfo npc = NpcInfo.of(ref, store, playerRef, plugin.getStore());
             if (npc == null || plugin.getRegistry().candidates(npc.role(), npc.tags()).isEmpty()) continue;
             near.put(npc.id(), ref);
         }
-        Map<UUID, Ref<EntityStore>> before = marked.getOrDefault(playerId, Map.of());
-        List<Ref<EntityStore>> gone = new ArrayList<>();
-        for (Map.Entry<UUID, Ref<EntityStore>> e : before.entrySet()) if (!near.containsKey(e.getKey())) gone.add(e.getValue());
-        if (near.isEmpty()) marked.remove(playerId); else marked.put(playerId, near);
-        if (near.isEmpty() && gone.isEmpty()) return;
+        Map<UUID, Boolean> mine = marked.computeIfAbsent(playerId, k -> new HashMap<>());
+        List<Ref<EntityStore>> show = new ArrayList<>();
+        List<UUID> showIds = new ArrayList<>();
+        for (Map.Entry<UUID, Ref<EntityStore>> e : near.entrySet()) {
+            if (Boolean.TRUE.equals(mine.get(e.getKey()))) continue; // marked and hint delivered
+            show.add(e.getValue());
+            showIds.add(e.getKey());
+            watchers.computeIfAbsent(e.getKey(), k -> new HashSet<>()).add(playerId);
+        }
+        List<UUID> leftIds = new ArrayList<>();
+        for (UUID id : mine.keySet()) if (!near.containsKey(id)) leftIds.add(id);
+        for (UUID id : leftIds) {
+            mine.remove(id);
+            Set<UUID> w = watchers.get(id);
+            if (w != null) { w.remove(playerId); if (w.isEmpty()) watchers.remove(id); }
+        }
+        if (mine.isEmpty()) marked.remove(playerId);
+        if (show.isEmpty() && leftIds.isEmpty()) return;
 
         String hint = settings.getHintKey();
-        List<Ref<EntityStore>> show = new ArrayList<>(near.values());
         // Component changes wait for the command buffer, as the game's own systems do while a tick is iterating.
         commandBuffer.run(s -> {
             if (!playerEntity.isValid()) return;
-            for (Ref<EntityStore> ref : show) mark(ref, playerEntity, true, hint, s);
-            for (Ref<EntityStore> ref : gone) mark(ref, playerEntity, false, hint, s);
+            EntityTrackerSystems.EntityViewer viewer = s.getComponent(playerEntity, EntityTrackerSystems.EntityViewer.getComponentType());
+            for (int i = 0; i < show.size(); i++) {
+                Ref<EntityStore> npc = show.get(i);
+                if (!npc.isValid()) continue;
+                if (!s.getArchetype(npc).contains(Interactable.getComponentType())) s.ensureComponent(npc, Interactable.getComponentType());
+                if (viewer != null && viewer.visible.contains(npc)) {
+                    viewer.queueUpdate(npc, new InteractableUpdate(hint));
+                    Map<UUID, Boolean> m = marked.get(playerId);
+                    if (m != null) m.put(showIds.get(i), Boolean.TRUE);
+                } else {
+                    marked.computeIfAbsent(playerId, k -> new HashMap<>()).putIfAbsent(showIds.get(i), Boolean.FALSE); // retry next pass
+                }
+            }
+            for (UUID id : leftIds) {
+                if (watchers.containsKey(id)) continue; // someone else is still close
+                Ref<EntityStore> npc = findNpc(id, pos, s);
+                if (npc != null && npc.isValid() && s.getArchetype(npc).contains(Interactable.getComponentType())) {
+                    s.removeComponent(npc, Interactable.getComponentType());
+                }
+            }
         });
         prune();
     }
 
-    private static void mark(Ref<EntityStore> npc, Ref<EntityStore> player, boolean on, String hint, Store<EntityStore> store) {
-        if (!npc.isValid()) return;
-        StateSupport state = store.getComponent(npc, StateSupport.getComponentType());
-        if (state == null) return;
-        state.setInteractable(npc, player, on, hint, true, store);
+    /** The NPC with this id, if it is still around the player. */
+    private static Ref<EntityStore> findNpc(UUID id, Vector3d around, Store<EntityStore> store) {
+        for (Ref<EntityStore> ref : new ArrayList<>(TargetUtil.getAllEntitiesInSphere(around, RANGE * 4, store))) {
+            if (!ref.isValid()) continue;
+            var uuid = store.getComponent(ref, com.hypixel.hytale.server.core.entity.UUIDComponent.getComponentType());
+            if (uuid != null && id.equals(uuid.getUuid())) return ref;
+        }
+        return null;
     }
 
     /** Forget players who are gone. */
     private void prune() {
         Set<UUID> online = new HashSet<>();
-        for (PlayerRef p : com.hypixel.hytale.server.core.universe.Universe.get().getPlayers()) online.add(p.getUuid());
+        for (PlayerRef p : Universe.get().getPlayers()) online.add(p.getUuid());
         for (Iterator<UUID> it = timers.keySet().iterator(); it.hasNext(); ) if (!online.contains(it.next())) it.remove();
-        for (Iterator<UUID> it = marked.keySet().iterator(); it.hasNext(); ) if (!online.contains(it.next())) it.remove();
+        for (Iterator<Map.Entry<UUID, Map<UUID, Boolean>>> it = marked.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<UUID, Map<UUID, Boolean>> e = it.next();
+            if (online.contains(e.getKey())) continue;
+            for (UUID npc : e.getValue().keySet()) {
+                Set<UUID> w = watchers.get(npc);
+                if (w != null) { w.remove(e.getKey()); if (w.isEmpty()) watchers.remove(npc); }
+            }
+            it.remove();
+        }
     }
 }
