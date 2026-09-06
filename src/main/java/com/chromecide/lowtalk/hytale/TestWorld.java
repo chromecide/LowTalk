@@ -131,8 +131,9 @@ public final class TestWorld {
                     chunks.add(ChunkUtil.indexChunkFromBlock(x, z));
                 }
             }
-            List<CompletableFuture<WorldChunk>> loads = new ArrayList<>();
-            for (long index : chunks) loads.add(world.getChunkAsync(index));
+            // Load through the chunk store; World's own chunk getters are deprecated for removal in 0.7.
+            List<CompletableFuture<?>> loads = new ArrayList<>();
+            for (long index : chunks) loads.add(world.getChunkStore().getChunkReferenceAsync(index));
             out.accept("Loading " + chunks.size() + " chunks...");
             CompletableFuture.allOf(loads.toArray(new CompletableFuture[0])).thenRunAsync(() -> {
                 try {
