@@ -131,6 +131,27 @@ public class VariableStore {
         }
     }
 
+    /** Every tag on every NPC record on disk or in memory, for editor autocomplete. */
+    public java.util.Set<String> allTags() {
+        java.util.Set<String> out = new java.util.TreeSet<>();
+        Path dir = root.resolve("npcs");
+        if (Files.isDirectory(dir)) {
+            try (java.util.stream.Stream<Path> s = Files.list(dir)) {
+                s.filter(p -> p.toString().endsWith(".json")).forEach(p -> {
+                    String name = p.getFileName().toString();
+                    try {
+                        out.addAll(tags(npc(UUID.fromString(name.substring(0, name.length() - 5)))));
+                    } catch (IllegalArgumentException ignored) {
+                        // not an NPC record
+                    }
+                });
+            } catch (IOException ignored) {
+                // no tags to offer
+            }
+        }
+        return out;
+    }
+
     public boolean addTag(Record r, String tag) {
         synchronized (r) {
             if (r.tags.contains(tag)) return false;

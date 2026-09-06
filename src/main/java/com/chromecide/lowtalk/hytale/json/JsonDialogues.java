@@ -33,6 +33,12 @@ public final class JsonDialogues {
     /** The Asset Editor's type id for this store is the asset class's simple name. */
     public static final String EDITOR_TYPE_ID = DialogueAsset.class.getSimpleName();
 
+    /** Autocomplete data sets the form fields ask the server for. */
+    public static final String DATASET_NPCS = "LowTalkNpcs";
+    public static final String DATASET_WEATHERS = "LowTalkWeathers";
+    public static final String DATASET_COMMANDS = "LowTalkCommands";
+    private static final int MAX_SUGGESTIONS = 40;
+
     private static HytaleAssetStore<String, DialogueAsset, DefaultAssetMap<String, DialogueAsset>> store;
 
     private JsonDialogues() {}
@@ -56,6 +62,67 @@ public final class JsonDialogues {
         plugin.getEventRegistry().<Class<DialogueAsset>, RemovedAssetsEvent<String, DialogueAsset, DefaultAssetMap<String, DialogueAsset>>>register(
                 RemovedAssetsEvent.class, DialogueAsset.class, e -> onRemoved(plugin, e));
         plugin.getEventRegistry().register(AssetEditorSelectAssetEvent.class, e -> onSelect(plugin, e));
+        plugin.getEventRegistry().register(com.hypixel.hytale.builtin.asseteditor.event.AssetEditorFetchAutoCompleteDataEvent.class, DATASET_NPCS,
+                e -> e.setResults(npcSuggestions(plugin, e.getQuery())));
+        plugin.getEventRegistry().register(com.hypixel.hytale.builtin.asseteditor.event.AssetEditorFetchAutoCompleteDataEvent.class, DATASET_WEATHERS,
+                e -> e.setResults(weatherSuggestions(e.getQuery())));
+        plugin.getEventRegistry().register(com.hypixel.hytale.builtin.asseteditor.event.AssetEditorFetchAutoCompleteDataEvent.class, DATASET_COMMANDS,
+                e -> e.setResults(commandSuggestions(plugin, e.getQuery())));
+    }
+
+    /** NPC role ids from the NPC plugin plus every LowTalk tag in use, as @tag. */
+    static String[] npcSuggestions(LowTalkPlugin plugin, String query) {
+        String q = query == null ? "" : query.trim().toLowerCase(java.util.Locale.ROOT);
+        java.util.List<String> out = new java.util.ArrayList<>();
+        java.util.Set<String> tags = new java.util.TreeSet<>(plugin.getStore().allTags());
+        for (Dialogue d : plugin.getRegistry().all()) {
+            for (String b : d.bindings()) if (b.startsWith("@") && b.length() > 1) tags.add(b.substring(1));
+        }
+        for (String t : tags) {
+            String tagged = "@" + t;
+            if (q.isEmpty() || tagged.toLowerCase(java.util.Locale.ROOT).contains(q) || t.toLowerCase(java.util.Locale.ROOT).contains(q)) out.add(tagged);
+        }
+        if (!q.startsWith("@")) {
+            try {
+                java.util.List<String> roles = new java.util.ArrayList<>(com.hypixel.hytale.server.npc.NPCPlugin.get().getRoleTemplateNames(false));
+                java.util.Collections.sort(roles);
+                for (String r : roles) {
+                    if (q.isEmpty() || r.toLowerCase(java.util.Locale.ROOT).contains(q)) out.add(r);
+                    if (out.size() >= MAX_SUGGESTIONS) break;
+                }
+            } catch (RuntimeException ignored) {
+                // NPC plugin not ready; tags alone
+            }
+        }
+        return out.size() > MAX_SUGGESTIONS ? out.subList(0, MAX_SUGGESTIONS).toArray(new String[0]) : out.toArray(new String[0]);
+    }
+
+    static String[] weatherSuggestions(String query) {
+        String q = query == null ? "" : query.trim().toLowerCase(java.util.Locale.ROOT);
+        java.util.List<String> out = new java.util.ArrayList<>();
+        if (q.isEmpty() || "clear".contains(q)) out.add("clear");
+        try {
+            java.util.List<String> ids = new java.util.ArrayList<>(
+                    com.hypixel.hytale.server.core.asset.type.weather.config.Weather.getAssetMap().getAssetMap().keySet());
+            java.util.Collections.sort(ids);
+            for (String id : ids) {
+                if (id.equals("Unknown")) continue;
+                if (q.isEmpty() || id.toLowerCase(java.util.Locale.ROOT).contains(q)) out.add(id);
+                if (out.size() >= MAX_SUGGESTIONS) break;
+            }
+        } catch (RuntimeException ignored) {
+            // weather assets not available
+        }
+        return out.toArray(new String[0]);
+    }
+
+    static String[] commandSuggestions(LowTalkPlugin plugin, String query) {
+        String q = query == null ? "" : query.trim().toLowerCase(java.util.Locale.ROOT);
+        java.util.Set<String> names = new java.util.TreeSet<>(com.chromecide.lowtalk.parser.Validator.BUILTIN_COMMANDS.keySet());
+        names.addAll(plugin.getEffects().names());
+        java.util.List<String> out = new java.util.ArrayList<>();
+        for (String n : names) if (q.isEmpty() || n.contains(q)) out.add(n);
+        return out.toArray(new String[0]);
     }
 
     private static void onLoaded(LowTalkPlugin plugin, LoadedAssetsEvent<String, DialogueAsset, DefaultAssetMap<String, DialogueAsset>> event) {

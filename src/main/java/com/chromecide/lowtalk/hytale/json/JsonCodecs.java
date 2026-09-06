@@ -142,6 +142,7 @@ public final class JsonCodecs {
     public static final BuilderCodec<JsonStatement.Command> COMMAND = statement(JsonStatement.Command.class, JsonStatement.Command::new,
             "Any LowTalk command by name, e.g. notify, title, heal, stat, learn, teleport, time, npc_name, spawn, despawn, reputation, attitude, anim, run.", b -> {
                 b.append(new KeyedCodec<>("Name", Codec.STRING), (c, v) -> c.name = v, c -> c.name).addValidator(Validators.nonNull())
+                        .metadata(new UIEditor(new UIEditor.TextField(JsonDialogues.DATASET_COMMANDS)))
                         .documentation("Command name, as in <<name ...>>. See /lowtalk help commands.").add();
                 b.append(new KeyedCodec<>("Args", Codec.STRING_ARRAY), (c, v) -> c.args = v == null ? new String[0] : v, c -> c.args)
                         .documentation("Arguments, one per entry, as they would appear in the <<...>>." + TEXT_DOC).add();
@@ -184,7 +185,8 @@ public final class JsonCodecs {
     public static final BuilderCodec<JsonStatement.Weather> WEATHER = statement(JsonStatement.Weather.class, JsonStatement.Weather::new,
             "Change the weather for the world, or for this player only.", b -> {
                 b.append(new KeyedCodec<>("Weather", Codec.STRING), (w, v) -> w.weather = v, w -> w.weather)
-                        .addValidator(Validators.nonNull()).documentation("A weather id, or \"clear\" to return to the natural sky.").add();
+                        .addValidator(Validators.nonNull()).metadata(new UIEditor(new UIEditor.TextField(JsonDialogues.DATASET_WEATHERS)))
+                        .documentation("A weather id, or \"clear\" to return to the natural sky.").add();
                 b.append(new KeyedCodec<>("PlayerOnly", Codec.BOOLEAN), (w, v) -> w.playerOnly = v, w -> w.playerOnly)
                         .documentation("Only this player sees it.").add();
             });
@@ -210,7 +212,8 @@ public final class JsonCodecs {
                     DialogueAsset.class, DialogueAsset::new, Codec.STRING,
                     (a, k) -> a.id = k, a -> a.id, (a, d) -> a.data = d, a -> a.data)
             .documentation("A LowTalk dialogue: what an NPC says and the choices the player gets. Same model as a .talk file.")
-            .append(new KeyedCodec<>("Npc", Codec.STRING_ARRAY), (a, v) -> a.npc = v == null ? new String[0] : v, a -> a.npc)
+            .append(new KeyedCodec<>("Npc", new ArrayCodec<>(Codec.STRING, String[]::new).metadata(new UIEditor(new UIEditor.TextField(JsonDialogues.DATASET_NPCS)))),
+                    (a, v) -> a.npc = v == null ? new String[0] : v, a -> a.npc)
             .documentation("Which NPCs use this dialogue: role ids (Kweebec_Merchant) or @tags set with /lowtalk tag. Empty means command only.").add()
             .append(new KeyedCodec<>("Speaker", Codec.STRING), (a, v) -> a.speaker = v, a -> a.speaker)
             .documentation("Default speaker name for lines without one. Defaults to the NPC's name.").add()
