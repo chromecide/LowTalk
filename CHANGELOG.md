@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+### Hytale 0.7.0-pre.1 notes
+
+Dry run 2026-09-06 against the pre-release line. One compile break: the event-title packet's boolean became a
+style enum (fixed by using `EventTitleUtil`, present in both lines). Deprecated for removal: `World`'s chunk getters
+(now `ChunkStore.getChunkReferenceAsync(index, 4)`; the flag matters, without it chunks accept blocks but not
+entities) and the `Warp` class (still returned by the teleport plugin). All imported classes and all UI macros we
+use still exist. Both mods boot, load their assets and pass the test corridor.
+
+
 First working version.
 
 - `.talk` dialogue format: nodes, lines, options with guards, if/elseif/else,

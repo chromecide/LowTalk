@@ -49,3 +49,24 @@ conventions"; add to that list when you learn a new one the hard way.
 
 Include the `.talk` file (or a minimal cut-down version), the server log lines
 from `[LowTalk|P]`, and the Hytale version.
+
+
+## Branches, tags and Hytale patchlines
+
+Hytale has a release line and a pre-release line, and the pre-release becomes the next release. A mod jar carries
+a server-version range in its manifest, so we owe one jar per line.
+
+- **`main`** targets the current Hytale release. Code that works on both lines goes here; prefer the game's own
+  helpers over building packets or reaching into internals, because the helpers are what stay stable.
+- **`prerelease`** targets the pre-release line: only what cannot compile on the release line lives there, plus a
+  separate dev-server folder (`../lowtalk-pre`, a git worktree) so pre-release worlds never touch release worlds.
+  Merge `main` into it often. When Hytale promotes a pre-release, merge `prerelease` into `main`, bump the
+  properties, tag, and start the next `prerelease` from `main`.
+- **Versions** are the mod's own (`version` in gradle.properties, semantic). `./gradlew build` makes the release-line
+  jar, `./gradlew buildPreRelease` the pre-release jar from the same commit with the game version as build metadata,
+  `./gradlew buildAll` both into `build/dist/`. The pre-release line's version and asset path are the
+  `prerelease_*` properties.
+- **Tags** `vX.Y.Z` mark releases on `main`. A GitHub release carries both jars and states the Hytale versions.
+- **Dry runs** against a new pre-release go in the changelog under a "Hytale <version> notes" heading: what broke,
+  what was deprecated, what held. A replacement API that compiles can still behave differently, so walk the test
+  corridor after every port.
