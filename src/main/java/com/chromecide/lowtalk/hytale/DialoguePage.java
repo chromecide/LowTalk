@@ -79,12 +79,13 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
         return open;
     }
 
-    /** A portrait path as authors write it (under Common/UI/Custom/) in the form the client resolves from any page. */
+    /** A portrait path as the client resolves it: relative to Common/UI/Custom/, base file name without a size suffix. */
     static String texturePath(String portrait) {
         String p = portrait.trim().replace('\\', '/');
-        if (p.startsWith("UI/") || p.startsWith("../")) return p;
-        if (p.startsWith("Common/UI/Custom/")) return p.substring("Common/".length());
-        return "UI/Custom/" + (p.startsWith("/") ? p.substring(1) : p);
+        if (p.startsWith("Common/UI/Custom/")) p = p.substring("Common/UI/Custom/".length());
+        if (p.startsWith("UI/Custom/")) p = p.substring("UI/Custom/".length());
+        if (p.startsWith("/")) p = p.substring(1);
+        return p.replace("@2x.", ".").replace("@3x.", ".");
     }
 
     /** Called before the page is opened, and again for each new step. */
@@ -143,11 +144,9 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
         cmd.clear("#Transcript");
         transcriptCount = 0;
         if (portrait != null) {
-            // A background is a patch style, not a bare path, and texture paths resolve relative to the .ui document
-            // unless written from the Common root ("UI/Custom/..."), which is the form the game's own pages use for
-            // absolute references. Authors write paths under Common/UI/Custom/; this turns them into that form.
-            cmd.setObject("#Portrait.Background", new com.hypixel.hytale.server.core.ui.PatchStyle(
-                    com.hypixel.hytale.server.core.ui.Value.of(texturePath(portrait))));
+            // Verified against the client: a plain path string, relative to Common/UI/Custom/, naming the base file
+            // (the client picks its @2x variant itself). PatchStyle objects and "UI/Custom/..." forms do not resolve.
+            cmd.set("#Portrait.Background", texturePath(portrait));
             cmd.set("#PortraitBox.Visible", true);
         }
         // Bind everything once; later steps only change text and visibility.
