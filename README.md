@@ -134,6 +134,9 @@ pack ones; ids must be unique across both.
 - `UseHook` (default true): open bound dialogues when a player uses an NPC by
   intercepting the game's use event. Set false to route every conversation
   through NPC roles (`LowTalkOpenDialogue`) and interaction JSON instead.
+- `ShowHint` (default true): bound NPCs show the game's interaction prompt,
+  "Press [key] to talk"; `HintKey` names the translation key of that text
+  (default `server.lowtalk.hint.talk`).
 - `HoldNpcDuringDialogue` (default true): freeze and face the NPC while talking.
 - `ClearSkyWeather` (default `Default_Flat`): what `<<weather clear>>` shows in
   worlds that have no natural weather.

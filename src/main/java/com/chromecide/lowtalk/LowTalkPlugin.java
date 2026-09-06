@@ -8,6 +8,7 @@ import com.chromecide.lowtalk.hytale.FunctionRegistry;
 import com.chromecide.lowtalk.hytale.LowTalkCommand;
 import com.chromecide.lowtalk.hytale.LowTalkConfig;
 import com.chromecide.lowtalk.hytale.NpcGoneSystem;
+import com.chromecide.lowtalk.hytale.NpcHintSystem;
 import com.chromecide.lowtalk.hytale.NpcUseSystem;
 import com.chromecide.lowtalk.hytale.SessionManager;
 import com.chromecide.lowtalk.hytale.VariableStore;
@@ -75,6 +76,7 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
 
         this.getEntityStoreRegistry().registerSystem(new NpcUseSystem(this));
         this.getEntityStoreRegistry().registerSystem(new NpcGoneSystem(this));
+        this.getEntityStoreRegistry().registerSystem(new NpcHintSystem(this));
         this.getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, e -> sessions.end(e.getPlayerRef().getUuid()));
         this.getCommandRegistry().registerCommand(new LowTalkCommand(this));
         this.getEventRegistry().registerGlobal(com.hypixel.hytale.server.core.event.events.player.PlayerReadyEvent.class,

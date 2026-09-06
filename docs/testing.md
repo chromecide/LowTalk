@@ -88,4 +88,4 @@ a fresh server folder.
 
 ## Station 14 and game mode
 
-Station 14 is a live NPC whose own role opens the dialogue, the way a shipped NPC would. The game's NPC brains ignore Creative players unless "Allow NPC detection" is turned on in the creative settings, so in Creative the Talker shows no hint and does not react. Switch with `/gamemode adventure` (the other stations work in any mode because LowTalk's use hook, not the NPC brain, opens them). `/lowtalk testworld go` and `probe` tell you when you are undetectable.
+Station 14 is a live NPC whose own role opens the dialogue, the way a shipped NPC would. The game's NPC brains ignore Creative players unless "Allow NPC detection" is turned on in the creative settings, so in Creative the Talker shows no hint and does not react. Switch with `/gamemode adventure` (the other stations work in any mode because LowTalk's use hook, not the NPC brain, opens them and shows their prompt). `/lowtalk testworld go` and `probe` tell you when you are undetectable.

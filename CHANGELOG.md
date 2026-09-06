@@ -24,6 +24,7 @@ First working version.
 - World and NPC control through the game's own systems: `weather`, `time`,
   `npc_name`, `state`, `despawn`, `spawn`; objective lines, cancel and task
   completion; `t()` translations, `weather()`, `objective_line()`.
+- Bound NPCs show the game's own "Press [key] to talk" prompt (`ShowHint`, `HintKey`).
 - `UseHook` config switch to disable the use-event binding; `npc: none` for
   dialogues opened only by roles, interactions, triggers or commands; a
   `LowTalk_Talker` test role built on the role action.

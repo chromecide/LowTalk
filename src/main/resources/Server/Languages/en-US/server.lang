@@ -7,4 +7,4 @@ lowtalk.ui.ok = OK
 lowtalk.ui.continue = Continue
 lowtalk.ui.leave = Leave
 npcRoles.LowTalk_Talker.name = LowTalk Talker
-lowtalk.hint.talk = Talk
+lowtalk.hint.talk = Press [{key}] to talk

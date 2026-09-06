@@ -318,7 +318,8 @@ dialogue without touching Java or `.talk` bindings:
 gate conversations. This is the native path for an NPC you author; the
 `npc:` binding in a dialogue file is the no-configuration path for vanilla
 roles, and works by intercepting the game's use event (switch it off with
-`"UseHook": false` in lowtalk.json to route everything through roles). The
+`"UseHook": false` in lowtalk.json to route everything through roles; bound NPCs
+get the game's "Press [key] to talk" prompt, `ShowHint`/`HintKey`). The
 shipped `LowTalk_Talker` role is an example: a merchant whose click opens a
 dialogue instead of the shop. `LowTalkOpenDialogue` is an action that opens a dialogue
 for the player the NPC is interacting with (`Dialogue` names one; empty uses

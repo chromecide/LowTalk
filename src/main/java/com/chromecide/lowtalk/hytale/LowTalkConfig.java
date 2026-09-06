@@ -26,6 +26,10 @@ public class LowTalkConfig {
                     (c, v, e) -> c.clearSkyWeather = v, (c, e) -> c.clearSkyWeather).add()
             .append(new KeyedCodec<>("UseHook", Codec.BOOLEAN),
                     (c, v, e) -> c.useHook = v, (c, e) -> c.useHook).add()
+            .append(new KeyedCodec<>("ShowHint", Codec.BOOLEAN),
+                    (c, v, e) -> c.showHint = v, (c, e) -> c.showHint).add()
+            .append(new KeyedCodec<>("HintKey", Codec.STRING),
+                    (c, v, e) -> c.hintKey = v, (c, e) -> c.hintKey).add()
             .build();
 
     /** How a binding opens: "crouch" = crouch and use; "replace" = plain use, native interaction suppressed. */
@@ -46,6 +50,9 @@ public class LowTalkConfig {
      * conversation through NPC roles (the LowTalkOpenDialogue action) and interaction JSON instead.
      */
     private boolean useHook = true;
+    /** Show the game's interaction prompt on bound NPCs; HintKey is the translation key of its text. */
+    private boolean showHint = true;
+    private String hintKey = "server.lowtalk.hint.talk";
 
     private LowTalkConfig() {}
 
@@ -58,4 +65,6 @@ public class LowTalkConfig {
     public boolean isHoldNpcDuringDialogue() { return holdNpc; }
     public String getClearSkyWeather() { return clearSkyWeather; }
     public boolean isUseHook() { return useHook; }
+    public boolean isShowHint() { return showHint; }
+    public String getHintKey() { return hintKey == null || hintKey.isBlank() ? "server.lowtalk.hint.talk" : hintKey; }
 }
