@@ -362,6 +362,13 @@ public final class Validator {
             return;
         }
         int n = cmd.args().size();
+        for (int i = 0; i < n; i++) {
+            Text a = cmd.args().get(i);
+            if (a.isStatic() && a.debugString().isBlank()) {
+                out.add(new Problem(cmd.pos(), true, "argument " + (i + 1) + " of <<" + cmd.name() + ">> is empty; see /lowtalk help " + cmd.name()));
+                return;
+            }
+        }
         if (n < arity[0] || (arity[1] >= 0 && n > arity[1])) {
             out.add(new Problem(cmd.pos(), true, "<<" + cmd.name() + ">> expects " + describeArity(arity) + " argument(s), got " + n));
             return;

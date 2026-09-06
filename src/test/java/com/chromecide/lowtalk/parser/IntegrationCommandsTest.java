@@ -27,6 +27,7 @@ class IntegrationCommandsTest {
                 .stream().noneMatch(Validator.Problem::error));
 
         assertTrue(hasError(validate("<<weather>>\n"), "expects"));
+        assertTrue(hasError(validate("<<learn \"\">>\n"), "is empty"));
         assertTrue(hasError(validate("<<despawn now>>\n"), "expects"));
         assertTrue(hasError(validate("<<spawn A 1 2 3 4>>\n"), "expects"));
         assertTrue(hasError(validate("<<objective finish X>>\n"), "verb must be one of"));
