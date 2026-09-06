@@ -98,6 +98,13 @@ public final class Validator {
         if (d.bindings().isEmpty()) {
             out.add(new Problem(new Pos(d.file(), 1), false, "no npc: binding; this dialogue can only be opened by command"));
         }
+        for (String b : d.bindings()) {
+            if (b == null || b.isBlank() || b.equals("@")) {
+                out.add(new Problem(new Pos(d.file(), 1), true, "an npc: binding is empty; give it a role id like Kweebec_Merchant or a tag like @elder"));
+            } else if (b.contains(" ")) {
+                out.add(new Problem(new Pos(d.file(), 1), true, "npc: binding '" + b + "' has a space; role ids and tags are single words"));
+            }
+        }
 
         for (Node n : d.nodeList()) {
             checkBlock(n.body(), d, inputVars, out, false);

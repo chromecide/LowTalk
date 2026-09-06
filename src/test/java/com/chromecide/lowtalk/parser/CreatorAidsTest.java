@@ -33,6 +33,12 @@ class CreatorAidsTest {
     }
 
     @Test
+    void blankBindingsAreErrors() {
+        Dialogue d = DialogueParser.parse("t.talk", "npc: @\n== a\nHi.\n");
+        assertTrue(new Validator().validate(d).stream().anyMatch(p -> p.error() && p.message().contains("binding is empty")));
+    }
+
+    @Test
     void curlyQuotesAreExplained() {
         ParseException e = assertThrows(ParseException.class,
                 () -> DialogueParser.parse("t.talk", "== a\n<<if $name == “Bob”>>\nHi.\n<<endif>>\n"));
