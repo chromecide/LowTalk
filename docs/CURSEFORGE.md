@@ -73,13 +73,21 @@ and documentation was written by Claude Code under that direction. There is no A
 player reads is written by a dialogue author, and the plugin makes no network calls. The repository is public so
 you can see exactly what you are running.
 
-**Screenshots to capture before publishing:**
+**Screenshots** (in `docs/screenshots/`, ready to upload; captions are the suggested CurseForge captions)
 
-1. The window mid-conversation with four options visible.
-2. A merchant handing over bread, with the narration line showing.
-3. A text-input prompt (the fortune teller asking for a name).
-4. The in-game editor open on a station, with an option's target dropdown showing.
-5. The Asset Editor form with a Give statement's item picker open.
-6. The Node Editor showing the demo graph.
-7. A `.talk` file open in a text editor next to the in-game result.
-8. `/lowtalk reload` output with a deliberate error, showing the line number.
+![The dialogue window: the Rootling Merchant greets the player, four options below](screenshots/dialogue-window.png)
+*Talking to an NPC. The window is the game's own UI style; options appear as the conversation branches.*
+
+![The in-game editor on a node: a line, a set-variable row and a jump, each an editable field](screenshots/ingame-editor-node.png)
+*The in-game editor: click an NPC with the LowTalk tool and its conversation opens as fields. This node greets the player, remembers the meeting and jumps to the hub.*
+
+![The in-game editor on the hub node: four options, each with a target dropdown](screenshots/ingame-editor-options.png)
+*Options in the in-game editor. Each has a target: another node, the end, back to the options, or a new node; Go walks into it.*
+
+![The Node Editor showing a whole dialogue as a wired graph](screenshots/node-editor-graph.png)
+*The same kind of dialogue drawn in Hytale's Node Editor with the LowTalk workspace: nodes, options, branches and commands wired up.*
+
+![The Asset Editor's text mode with a .talk file open](screenshots/asset-editor-text.png)
+*Text mode in the Asset Editor: the Companions sample dialogue, validated and loaded on every save.*
+
+Still to capture: the Asset Editor's form view with a picker open; a merchant handing over bread with the narration line; the fortune teller's text-input prompt; `/lowtalk reload` output showing a line-numbered error.
