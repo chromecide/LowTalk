@@ -29,7 +29,9 @@ public final class JsonConvert {
      */
     public static Dialogue toModel(LowTalkJson a, String display) {
         String id = a.getId();
-        List<String> bindings = a.npc == null ? List.of() : List.of(a.npc);
+        // "Npc": ["none"] is the JSON spelling of npc: none, a dialogue opened only by roles, triggers or commands.
+        boolean none = a.npc != null && a.npc.length == 1 && "none".equalsIgnoreCase(a.npc[0]);
+        List<String> bindings = a.npc == null || none ? List.of() : List.of(a.npc);
         LinkedHashMap<String, Node> nodes = new LinkedHashMap<>();
         int index = 0;
         for (LowTalkJson.NodeEntry n : a.nodes) {
@@ -50,6 +52,7 @@ public final class JsonConvert {
         Map<String, String> other = new LinkedHashMap<>();
         if (!blank(a.portrait)) other.put("portrait", a.portrait);
         if (!blank(a.on)) other.put("on", a.on);
+        if (none) other.put("npc", "none"); // so the validator does not ask for a binding
         String scope = blank(a.scope) ? id : a.scope;
         return new Dialogue(display, id, bindings, List.copyOf(starts), blank(a.speaker) ? null : a.speaker,
                 blank(a.title) ? null : a.title, scope, other, List.of(), nodes);
@@ -209,7 +212,7 @@ public final class JsonConvert {
 
     public static LowTalkJson toAsset(Dialogue d) {
         LowTalkJson a = new LowTalkJson(d.id());
-        a.npc = d.bindings().toArray(new String[0]);
+        a.npc = d.bindings().isEmpty() && "none".equals(d.otherDirectives().get("npc")) ? new String[] {"none"} : d.bindings().toArray(new String[0]);
         a.speaker = d.speaker();
         a.title = d.title();
         a.scope = d.scope() == null || d.scope().equals(d.id()) ? null : d.scope();
