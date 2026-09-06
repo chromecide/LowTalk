@@ -45,6 +45,8 @@ public class LowTalkCommand extends AbstractCommandCollection {
         this.addSubCommand(new TestDialogue(plugin));
         this.addSubCommand(new TestWorldCommand(plugin));
         this.addSubCommand(new Stop(plugin));
+        this.addSubCommand(new Help(plugin));
+        this.addSubCommand(new Info(plugin));
     }
 
     private static Message info(LowTalkPlugin plugin, String text) {
@@ -96,6 +98,80 @@ public class LowTalkCommand extends AbstractCommandCollection {
         }
     }
 
+    /** /lowtalk help [name | commands | functions | keywords]: the format reference, in chat. */
+    static class Help extends CommandBase {
+        private final LowTalkPlugin plugin;
+        private final OptionalArg<String> topicArg = withOptionalArg("topic", "A command, function or keyword name, or commands / functions / keywords", ArgTypes.GREEDY_STRING);
+
+        Help(LowTalkPlugin plugin) {
+            super("help", "Reference for the dialogue format");
+            this.plugin = plugin;
+            this.requirePermission(CREATOR);
+        }
+
+        @Override
+        protected void executeSync(@Nonnull CommandContext context) {
+            String topic = topicArg.provided(context) ? topicArg.get(context).trim() : "";
+            if (topic.isEmpty()) {
+                context.sendMessage(info(plugin, "LowTalk format help. /lowtalk help commands | functions | keywords lists each group; /lowtalk help <name> explains one."));
+                context.sendMessage(info(plugin, "Commands: " + names(com.chromecide.lowtalk.parser.Reference.commands())));
+                context.sendMessage(info(plugin, "Functions: " + names(com.chromecide.lowtalk.parser.Reference.functions())));
+                context.sendMessage(info(plugin, "Keywords: " + names(com.chromecide.lowtalk.parser.Reference.keywords())));
+                context.sendMessage(info(plugin, "Full docs: docs/format.md in the LowTalk repository."));
+                return;
+            }
+            java.util.List<com.chromecide.lowtalk.parser.Reference.Entry> group = switch (topic.toLowerCase(java.util.Locale.ROOT)) {
+                case "commands", "command" -> com.chromecide.lowtalk.parser.Reference.commands();
+                case "functions", "function" -> com.chromecide.lowtalk.parser.Reference.functions();
+                case "keywords", "keyword", "syntax" -> com.chromecide.lowtalk.parser.Reference.keywords();
+                default -> null;
+            };
+            if (group != null) {
+                for (com.chromecide.lowtalk.parser.Reference.Entry e : group) context.sendMessage(info(plugin, e.line()));
+                return;
+            }
+            com.chromecide.lowtalk.parser.Reference.Entry e = com.chromecide.lowtalk.parser.Reference.lookup(topic);
+            if (e == null) {
+                String near = com.chromecide.lowtalk.parser.Suggest.closest(topic, com.chromecide.lowtalk.parser.Reference.allNames());
+                context.sendMessage(info(plugin, "Nothing called '" + topic + "'." + (near == null ? "" : " Did you mean " + near + "?")));
+                return;
+            }
+            context.sendMessage(info(plugin, e.line()));
+        }
+
+        private static String names(java.util.List<com.chromecide.lowtalk.parser.Reference.Entry> entries) {
+            StringBuilder sb = new StringBuilder();
+            for (com.chromecide.lowtalk.parser.Reference.Entry e : entries) {
+                if (!sb.isEmpty()) sb.append(", ");
+                sb.append(e.name());
+            }
+            return sb.toString();
+        }
+    }
+
+    /** /lowtalk info <id>: nodes, options, variables and unreachable nodes of a loaded dialogue. */
+    static class Info extends CommandBase {
+        private final LowTalkPlugin plugin;
+        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id (file name without .talk)", ArgTypes.STRING);
+
+        Info(LowTalkPlugin plugin) {
+            super("info", "Outline of a loaded dialogue");
+            this.plugin = plugin;
+            this.requirePermission(CREATOR);
+        }
+
+        @Override
+        protected void executeSync(@Nonnull CommandContext context) {
+            Dialogue d = plugin.getRegistry().byId(idArg.get(context));
+            if (d == null) {
+                String near = com.chromecide.lowtalk.parser.Suggest.closest(idArg.get(context), plugin.getRegistry().ids());
+                context.sendMessage(info(plugin, "No dialogue with id '" + idArg.get(context) + "'." + (near == null ? " Try /lowtalk list." : " Did you mean " + near + "?")));
+                return;
+            }
+            for (String line : com.chromecide.lowtalk.parser.Outline.of(d).lines()) context.sendMessage(info(plugin, line));
+        }
+    }
+
     /** Open a dialogue by id with the NPC you are looking at (or with no NPC). */
     static class Open extends AbstractPlayerCommand {
         private final LowTalkPlugin plugin;
@@ -113,7 +189,8 @@ public class LowTalkCommand extends AbstractCommandCollection {
             String id = idArg.get(context);
             Dialogue d = plugin.getRegistry().byId(id);
             if (d == null) {
-                context.sendMessage(info(plugin, "No dialogue with id '" + id + "'. Try /lowtalk list."));
+                String near = com.chromecide.lowtalk.parser.Suggest.closest(id, plugin.getRegistry().ids());
+                context.sendMessage(info(plugin, "No dialogue with id '" + id + "'." + (near == null ? " Try /lowtalk list." : " Did you mean " + near + "?")));
                 return;
             }
             plugin.getSessions().openFor(d, player, ref, store, world, lookedAtNpc(ref, store, player, plugin));

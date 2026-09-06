@@ -254,7 +254,7 @@ public final class Validator {
                 }
                 case Statement.Jump j -> {
                     if (!d.nodes().containsKey(j.node())) {
-                        out.add(new Problem(j.pos(), true, "jump to unknown node '" + j.node() + "'"));
+                        out.add(new Problem(j.pos(), true, "jump to unknown node '" + j.node() + "'" + Suggest.hint(j.node(), d.nodes().keySet())));
                     }
                     if (!last) {
                         out.add(new Problem(j.pos(), false, "statements after <<jump>> are never reached"));
@@ -345,7 +345,12 @@ public final class Validator {
         int[] arity = BUILTIN_COMMANDS.get(cmd.name());
         if (arity == null) {
             if (!extraCommands.contains(cmd.name())) {
-                out.add(new Problem(cmd.pos(), false, "unknown command <<" + cmd.name() + ">>; it will only work if a plugin provides it"));
+                java.util.Set<String> known = new java.util.HashSet<>(BUILTIN_COMMANDS.keySet());
+                known.addAll(extraCommands);
+                known.addAll(java.util.List.of("set", "jump", "end", "input", "if", "elseif", "else", "endif", "once", "endonce", "random", "or", "endrandom", "wait"));
+                String hint = Suggest.hint(cmd.name(), known);
+                out.add(new Problem(cmd.pos(), !hint.isEmpty(), "unknown command <<" + cmd.name() + ">>" + hint
+                        + (hint.isEmpty() ? "; it will only work if a plugin provides it" : "")));
             }
             return;
         }
@@ -424,7 +429,11 @@ public final class Validator {
         switch (e) {
             case Expr.Call c -> {
                 if (!BUILTIN_FUNCTIONS.contains(c.function()) && !extraFunctions.contains(c.function())) {
-                    out.add(new Problem(pos, false, "unknown function " + c.function() + "(); it will only work if a plugin provides it"));
+                    java.util.Set<String> known = new java.util.HashSet<>(BUILTIN_FUNCTIONS);
+                    known.addAll(extraFunctions);
+                    String hint = Suggest.hint(c.function(), known);
+                    out.add(new Problem(pos, !hint.isEmpty(), "unknown function " + c.function() + "()" + hint
+                            + (hint.isEmpty() ? "; it will only work if a plugin provides it" : "")));
                 }
                 c.args().forEach(a -> checkExpr(a, pos, out));
             }

@@ -161,6 +161,10 @@ public final class ExprParser {
                     expectOp(")");
                     return new Expr.Call(t.text(), args);
                 }
+                String fn = Suggest.closest(t.text(), Validator.BUILTIN_FUNCTIONS);
+                if (fn != null) {
+                    throw new ParseException(pos, "unknown word '" + t.text() + "' in expression (did you mean " + fn + "()?)");
+                }
                 throw new ParseException(pos, "unknown word '" + t.text() + "' in expression (did you mean $" + t.text() + " or " + t.text() + "()?)");
             }
             case OP -> {

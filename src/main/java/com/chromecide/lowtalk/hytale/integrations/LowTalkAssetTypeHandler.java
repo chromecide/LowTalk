@@ -111,10 +111,8 @@ public final class LowTalkAssetTypeHandler extends AssetTypeHandler {
         if (file == null) return;
         DialogueRegistry.Loaded loaded = plugin.getRegistry().forFile(file);
         if (loaded != null) {
-            var d = loaded.dialogue();
-            String bindings = d.bindings().isEmpty() ? "no npc: binding" : "bound to " + String.join(", ", d.bindings());
             event.getEditorClient().sendPopupNotification(AssetEditorPopupNotificationType.Info,
-                    Message.raw("LowTalk: '" + d.id() + "' is loaded, " + d.nodes().size() + " node(s), " + bindings + "."));
+                    Message.raw("LowTalk: loaded.\n" + String.join("\n", com.chromecide.lowtalk.parser.Outline.of(loaded.dialogue()).lines())));
             return;
         }
         if (file.getFileName().toString().startsWith("_")) {

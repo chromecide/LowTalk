@@ -94,9 +94,11 @@ conversation. Each one remembers each player separately.
 | `/lowtalk testworld build` / `go` | Build or visit the test corridor world |
 | `/lowtalk thaw` | Unfreeze the NPC you're looking at |
 | `/lowtalk stop` | Leave your current conversation |
+| `/lowtalk help [name]` | The format reference in chat: commands, functions, keywords, or one entry |
+| `/lowtalk info <id>` | Outline of a dialogue: nodes, options, variables, unreachable nodes |
 
 Permissions: `lowtalk.creator` covers authoring (`list`, `open`, `tags`, `vars`,
-`reset`, `test`); `lowtalk.admin` covers server operation (`reload`, `tag`,
+`reset`, `test`, `help`, `info`); `lowtalk.admin` covers server operation (`reload`, `tag`,
 `untag`, `thaw`, `testworld`). Give admins `lowtalk.*`. Players need nothing:
 they reach dialogues only by using an NPC, and `stop` is open to everyone.
 

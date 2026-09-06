@@ -75,6 +75,9 @@ final class Lexer {
                     out.add(new Token(Token.Kind.OP, String.valueOf(c)));
                     i++;
                 } else {
+                    if (c == '\u201c' || c == '\u201d' || c == '\u2018' || c == '\u2019') {
+                        throw new ParseException(pos, "curly quote '" + c + "' in expression; use straight quotes \" or ' (word processors and chat often convert them)");
+                    }
                     throw new ParseException(pos, "unexpected character '" + c + "' in expression");
                 }
             }

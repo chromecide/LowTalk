@@ -294,6 +294,9 @@ public final class DialogueParser {
 
     private Statement parseStatement(SrcLine l, int minIndent) {
         Pos p = pos(l);
+        if (l.text().startsWith("<<") && (l.text().indexOf('\u201c') >= 0 || l.text().indexOf('\u201d') >= 0)) {
+            throw new ParseException(p, "curly quotes in a command; use straight quotes \" (word processors and chat often convert them): " + l.text());
+        }
         Matcher cmd = COMMAND.matcher(l.text());
         if (cmd.matches()) {
             return parseCommand(l, cmd.group(1), minIndent);

@@ -24,6 +24,10 @@ First working version.
 - World and NPC control through the game's own systems: `weather`, `time`,
   `npc_name`, `state`, `despawn`, `spawn`; objective lines, cancel and task
   completion; `t()` translations, `weather()`, `objective_line()`.
+- Creator aids: "did you mean" suggestions for misspelt commands, functions,
+  node names and dialogue ids; curly quotes are called out; `/lowtalk help`
+  reference and `/lowtalk info` outlines, also shown when selecting a file in
+  the Asset Editor.
 - `.talk` is an Asset Editor asset type: creators edit dialogues in the game's
   own editor under `Server/LowTalk/Dialogues`, with live loading and
   line-numbered feedback as editor notifications.
