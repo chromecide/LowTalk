@@ -1,16 +1,24 @@
 # LowTalk
 
-Hand-written branching dialogue for Hytale NPCs.
+Branching dialogue for Hytale NPCs.
 
-LowTalk lets you give any NPC a conversation: lines, choices, conditions, and
-consequences, written in a small plain-text format that is pleasant to type,
-diff, and version. It runs entirely server-side, remembers what each player
-has said to each NPC, and plugs into Hytale's own systems (items, barter
-shops, objectives, attitudes, animations) rather than reinventing them.
+LowTalk gives any NPC a conversation: lines, choices, conditions, memory, and consequences that use Hytale's own
+systems (items, barter shops, objectives, attitudes, animations, weather, music) rather than reinventing them. It
+runs entirely server-side, remembers what each player has said to each NPC, and is MIT licensed. Fork it, extend
+it, ship it with your adventure map.
 
-It is MIT licensed. Fork it, extend it, ship it with your adventure map.
+## Four ways to make a dialogue
 
-## What a dialogue looks like
+They all make the same thing, and you can switch between them at any point.
+
+- **In game.** `/lowtalk tool`, click an NPC, and its conversation opens in edit mode: the window a player sees,
+  with every line and option editable, an Add menu for everything the format can say, and pickers fed by the
+  game's own lists. Click an NPC with no dialogue and it offers to create one. No files, no syntax.
+- **In the Asset Editor.** Dialogues are a registered asset type. Edit them as a form with tooltips and
+  autocomplete, or as text, in any asset pack; every save is validated and loaded live.
+- **In the Node Editor.** Hytale's standalone graph editor gets a LowTalk workspace, so a whole conversation can
+  be drawn and wired visually. It saves the same asset the form edits.
+- **As a text file.** A small script-like format that is pleasant to type, diff and keep in git:
 
 ```
 npc: Kweebec_Merchant
@@ -39,49 +47,39 @@ Ah, {player}. Back again.
     <<end>>
 ```
 
-Put that in `dialogues/rootling_merchant.talk` inside the LowTalk plugin
-folder, run `/lowtalk reload`, and every Kweebec merchant has the
-conversation. Each one remembers each player separately.
+[Creating and editing dialogues](docs/creating.md) walks through each of the four.
 
 ## Features
 
-- Branching dialogue: options with guards, if/elseif/else, hubs, jumps,
-  once-blocks, text input, `{interpolation}`.
-- Memory: per-NPC variables (`$met`), per-player variables that follow the
-  player between NPCs (`$player.stage`), per-NPC counters shared by everyone
-  (`$npc.visitors`), and world state (`$world.season`).
-- Native hooks: `give`, `take`, `shop`, `objective` (start, cancel, lines,
-  tasks), `reputation`, `attitude`, `anim`, `sound`, `notify`, `title`,
-  `effect`, `heal`, `stat`, `learn`, `teleport`, `weather`, `time`,
-  `npc_name`, `state`, `spawn`, `despawn`, `run`; checks like `has()`,
-  `count()`, `objective()`, `reputation()`, `rank()`, `stat()`, `hour()`,
-  `weather()`, `visited()`, `chance()`, and `t()` for the game's translations.
-- Writers' tools: `[a|b]` text variation, `<<random>>` blocks, self-hiding
-  `<<once>>` options, `cond ? a : b`, `<<wait>>` pauses, `include:` of
-  shared files.
-- Binding by NPC role, or by tagging one specific NPC in game; dialogues can
-  also start from the in-game Trigger Volume Tool, from any `OpenCustomUI`
-  interaction, from shop-style choice pages, or when a player joins.
-- A validator with file and line numbers, usable in game and from the shell.
-- Creators author in the game's own Asset Editor: `.talk` is a registered
-  asset type, edited in the editor's text mode under
-  `Server/LowTalk/Dialogues` in any asset pack, hot-loaded on save with
-  problems shown as editor notifications. The same dialogues can be written
-  as `.json` assets and edited in the editor's form mode, with pickers and
-  tooltips; `/lowtalk convert` moves between the two. A workspace for
-  Hytale's standalone Node Editor draws the same files as a graph
-  ([docs/node-editor.md](docs/node-editor.md)).
-- An API for other plugins: add functions and commands, listen to
-  conversations, open dialogues.
+- Branching dialogue: options with conditions, if/elseif/else, hubs, jumps, once-blocks, random variation,
+  text input, timed pauses, `{interpolation}` and `[a|b]` variation in text.
+- Memory: per-NPC variables (`$met`), per-player variables that follow the player between NPCs
+  (`$player.stage`), per-NPC counters shared by everyone (`$npc.visitors`), and world state (`$world.season`).
+- Native hooks: `give`, `take`, `shop`, `objective` (start, cancel, lines, tasks), `reputation`, `attitude`,
+  `anim`, `sound`, `notify`, `title`, `effect`, `heal`, `stat`, `learn`, `teleport`, `weather`, `time`, `music`,
+  `vfx`, `camera`, `npc_name`, `state`, `spawn`, `despawn`, `run`; checks like `has()`, `count()`, `objective()`,
+  `reputation()`, `rank()`, `stat()`, `hour()`, `weather()`, `visited()`, `chance()`, and `t()` for the game's
+  translations.
+- Binding by NPC role, or by tagging one specific NPC in game. Dialogues can also start from the Trigger Volume
+  Tool, from any `OpenCustomUI` interaction, from shop-style choice pages, from an NPC's own role, or when a player
+  joins; a quest can have "talk to this NPC" as a task with a marker over their head.
+- A validator with file and line numbers, usable in game, from the editors and from the shell; a headless test
+  runner; a test corridor world that exercises every feature.
+- An API for other plugins: add functions and commands (with help text and pickers so they look native in every
+  editor), listen to conversations, open dialogues, bind dialogues to NPCs at run time. [Companions](https://github.com/chromecide/LowTalkCompanions)
+  is built on it.
+- Graceful degradation: if a plugin that added commands is removed, options that needed them are hidden and the
+  rest of the dialogue keeps working.
 
 ## Documentation
 
-- [The dialogue format](docs/format.md), the full reference.
-- [Design](docs/DESIGN.md), how it works and why.
+- [Creating and editing dialogues](docs/creating.md): in game, Asset Editor, Node Editor, text files.
+- [The dialogue format](docs/format.md), the full reference for text and JSON.
+- [The Node Editor workspace](docs/node-editor.md).
 - [API for other plugins](docs/api.md).
-- [Testing](docs/testing.md): unit tests, the headless `/lowtalk test` runner, and the in-game test corridor.
-- [Examples](examples/): a merchant, a unique village elder, a fortune
-  teller that asks your name.
+- [Testing](docs/testing.md): unit tests, the headless runner, and the in-game test corridor.
+- [Design](docs/DESIGN.md), how it works and why.
+- [Examples](examples/): a merchant, a unique village elder, a fortune teller that asks your name.
 
 ## Commands
 
@@ -130,39 +128,6 @@ Each release ships one jar per Hytale line; the server refuses a jar built for t
 the same commit: `./gradlew buildAll` writes them to `build/dist/`. See [CONTRIBUTING.md](CONTRIBUTING.md) for how
 branches and tags follow Hytale's patchlines.
 
-## Editing in game
-
-**In place, with the LowTalk tool.** `/lowtalk tool` puts a tool in your hand (it is also in the
-creative Tools tab). Click an NPC and its dialogue opens in edit mode, one node at a time, the way a
-player sees it: lines and options are fields, options have a target dropdown (a node, the end, back
-to the options, or a new node) and a Go button that walks into that node. Everything the file
-format can say is reachable without knowing the syntax: the Add dropdown offers lines, options,
-commands (with a picker fed by the game's own lists for animations, weathers, roles, music,
-particles, camera effects, stats, recipes, warps, reputation groups, shops and styles), set, if/else,
-once, random, ask-the-player, wait, jump and end; an option's "..." button opens its only-if,
-grey-unless and once settings and lets you edit what happens when it is picked; "Dialogue..." edits
-the NPC bindings (with an NPC picker), speaker, title, start node, join trigger, portrait and shared
-memory. Clicking an NPC that has no dialogue offers to create one, bound to its role or to that one
-NPC, in the server folder or an asset pack. Save writes the file where it lives and reloads it,
-Test plays the unsaved draft from the node you are on, Discard reloads the saved version. Saving
-rewrites a `.talk` file in the printer's layout, so comments in it are dropped (the editor says so).
-
-
-LowTalk registers `.talk` with Hytale's Asset Editor, so dialogue authoring
-uses the game's own tooling rather than a separate editor:
-
-1. Open the Asset Editor and create or open a writable asset pack.
-2. Create the folder `Server/LowTalk/Dialogues` and add a `.talk` file there.
-   Files starting with `_` are shared includes and are not dialogues by
-   themselves.
-3. Edit it in the editor's text mode. Each save is parsed, validated and
-   loaded live; errors and warnings arrive as editor notifications with line
-   numbers, and selecting a file shows what is loaded from it.
-4. Talk to a bound NPC, or use `/lowtalk open <id>`, to try it.
-
-Dialogues in the plugin's own `dialogues` folder keep working alongside the
-pack ones; ids must be unique across both.
-
 ## Configuration
 
 `lowtalk.json` in the plugin folder:
@@ -191,6 +156,23 @@ Requires Java 25. The Gradle wrapper is included.
 ./gradlew validate --args="examples"     # check .talk files from the shell
 ./gradlew runServer                      # local dev server with the plugin loaded
 ```
+
+## How this was built
+
+LowTalk was made by one person, Chromecide, working with an AI coding agent, Claude Code. It is worth being
+plain about what that means.
+
+- The idea, the design decisions, what to build next and what to leave out came from a person. So did every
+  test in the game: each feature was played through by hand, and the ones that did not hold up were reworked.
+- Most of the Java, the tests and these documents were written by the agent under that direction, in a
+  terminal, with the person reading the results in the game rather than the code. Hytale's decompiled server
+  sources were read to learn the API, never copied; the rule is in [CONTRIBUTING.md](CONTRIBUTING.md).
+- There is no AI in the mod. Every line a player reads was written by a dialogue author. The plugin makes no
+  network calls and sends nothing anywhere.
+
+If that is not something you want to run on your server, that is a fair choice, and the whole repository is here
+to read. Bugs are ours whichever of us typed them; please report them. Contributions are welcome from people
+working with or without such tools, on the same terms.
 
 ## Contributing
 

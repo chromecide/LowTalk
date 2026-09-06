@@ -45,6 +45,14 @@ conventions"; add to that list when you learn a new one the hard way.
   the tables in `docs/format.md`.
 - `./gradlew test` must pass before you open the pull request.
 
+## Working with AI tools
+
+Most of this project was written by an AI coding agent under a person's direction, and contributions made the
+same way are welcome. The terms are the same as for any other contribution: you have read and understood what
+you are submitting, the tests pass, the CLA line is in the pull request, and nothing is copied from the game's
+decompiled sources. Say in the pull request if a tool did most of the typing; it helps the reviewer know where to
+look.
+
 ## Reporting bugs
 
 Include the `.talk` file (or a minimal cut-down version), the server log lines
@@ -62,10 +70,12 @@ a server-version range in its manifest, so we owe one jar per line.
   separate dev-server folder (`../lowtalk-pre`, a git worktree) so pre-release worlds never touch release worlds.
   Merge `main` into it often. When Hytale promotes a pre-release, merge `prerelease` into `main`, bump the
   properties, tag, and start the next `prerelease` from `main`.
-- **Versions** are the mod's own (`version` in gradle.properties, semantic). `./gradlew build` makes the release-line
-  jar, `./gradlew buildPreRelease` the pre-release jar from the same commit with the game version as build metadata,
-  `./gradlew buildAll` both into `build/dist/`. The pre-release line's version and asset path are the
-  `prerelease_*` properties.
+- **Versions** are the mod's own (`version` in gradle.properties, semantic). On `main`, `./gradlew build` makes the
+  release-line jar and `./gradlew buildAll` also makes a pre-release jar from the same commit (`buildPreRelease`,
+  driven by the `prerelease_*` properties) into `build/dist/`. The jars published for the pre-release line are built
+  on the `prerelease` branch, whose `version` carries the game version as build metadata
+  (`0.1.0+hytale.0.7.0-pre.1`), so a plain `./gradlew build` there produces the correctly named jar; `buildAll` on
+  `main` is the shortcut while the branches do not differ in code.
 - **Tags** `vX.Y.Z` mark releases on `main`. A GitHub release carries both jars and states the Hytale versions.
 - **Dry runs** against a new pre-release go in the changelog under a "Hytale <version> notes" heading: what broke,
   what was deprecated, what held. A replacement API that compiles can still behave differently, so walk the test

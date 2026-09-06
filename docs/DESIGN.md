@@ -5,9 +5,11 @@
 1. **Dialogue is the product.** Not a quest engine with a dialogue tab.
    Writers should be able to make an NPC feel like a person: conditional
    greetings, memory of earlier choices, moods, hubs, secrets.
-2. **Hand-written first.** A text format you can author in any editor, keep in
-   git, and diff in a pull request. Tooling comes after the format, not instead
-   of it.
+2. **One model, many doors.** A dialogue is a small tree of nodes, lines,
+   options and commands. The text format, the Asset Editor's form, the Node
+   Editor graph and the in-game editor are four ways to make the same tree,
+   and none of them is the "real" one. Creators pick the door that suits
+   them and can walk through another later.
 3. **Native where possible.** Give items, change attitudes, start objectives,
    open barter shops, and trigger role actions using Hytale's own systems, so
    LowTalk content coexists with everything else on the server.
@@ -26,8 +28,9 @@
 
 - A general quest journal or objective tracker. Hytale has objectives; other
   mods have journals. LowTalk hands out objectives and reads their state.
-- An in-game visual editor in the first release. A validator and a live
-  reload are enough to iterate quickly.
+- A separate editing application. Every editing surface is one the game
+  already has (its window system, its Asset Editor, its Node Editor), with a
+  text file as the fallback that needs nothing at all.
 - Client-side anything. Hytale streams server mods to players; LowTalk is a
   server plugin only.
 
@@ -139,6 +142,22 @@ right feel for a conversation.
 swaps the dialogue set atomically. Conversations already in progress keep the
 old tree until they end.
 
+## Authoring surfaces
+
+Four ways in, one model out. The runtime never knows which was used.
+
+- **In game.** The dialogue window itself in an editable mode, opened by a
+  tool item on the NPC. It edits a draft of the model one scope at a time
+  (a node, an option's body, a branch), and saves by printing the model back
+  to the file it came from. Everything is built from the game's custom-UI
+  page mechanism; pickers reuse the same data sets the Asset Editor uses.
+- **Asset Editor.** `.talk` is registered as a text asset type and the JSON
+  form as a schema-backed asset store; both hot-load on save with problems
+  reported as editor notifications.
+- **Node Editor.** A data-driven workspace whose saved JSON is the asset.
+- **Text.** The `.talk` format, below. The printer that writes it is the
+  same one the in-game editor saves with, so the layout is canonical.
+
 ## The format
 
 See [format.md](format.md). Design notes on the choices:
@@ -205,6 +224,11 @@ Observed in the shipped plugins and followed here:
 - Dialogue files live in the server folder, not in player-reachable places.
 
 ## Roadmap
+
+M1 to M5 below are done, as are the editing surfaces above (in-game editor,
+Asset Editor text and form, Node Editor workspace), the NPC role components,
+trigger volume effects, objective tasks and the Companions mod that
+validates the API. What remains is listed in the changelog.
 
 **M1, parser.** Lexer, parser, AST, validator with line-numbered errors. Unit
 tests covering the whole format. `validate` Gradle task. No server code yet.
