@@ -6,6 +6,7 @@ import com.chromecide.lowtalk.hytale.functions.BuiltinFunctions;
 import com.chromecide.lowtalk.runtime.RuntimeError;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.server.core.entity.Frozen;
 import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -64,6 +65,9 @@ public final class NpcEffects {
             NPCEntity npc = store.getComponent(npcRef, NPCEntity.getComponentType());
             session.end();
             if (npc != null) {
+                // The NPC plugin retires despawning NPCs from its per-NPC tick, which a frozen NPC never gets; thaw it
+                // first, the way /npc thaw does, so the game's own despawn (animation included) can run.
+                store.tryRemoveComponent(npcRef, Frozen.getComponentType());
                 npc.setToDespawn();
                 npc.setDespawnTime(0.0f);
             }
