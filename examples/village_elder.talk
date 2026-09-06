@@ -5,7 +5,7 @@
 npc: @elder
 title: Elder Rootbark
 speaker: Elder
-portrait: Pages/RespawnPageSkull@2x.png
+portrait: Pages/RespawnPageSkull.png
 
 start: after_quest when objective("Objective_Gather") == "complete" and not $rewarded
 start: during_quest when objective("Objective_Gather") == "active"

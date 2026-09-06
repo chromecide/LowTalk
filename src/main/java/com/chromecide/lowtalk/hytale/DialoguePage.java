@@ -79,6 +79,14 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
         return open;
     }
 
+    /** A portrait path as authors write it (under Common/UI/Custom/) in the form the client resolves from any page. */
+    static String texturePath(String portrait) {
+        String p = portrait.trim().replace('\\', '/');
+        if (p.startsWith("UI/") || p.startsWith("../")) return p;
+        if (p.startsWith("Common/UI/Custom/")) return p.substring("Common/".length());
+        return "UI/Custom/" + (p.startsWith("/") ? p.substring(1) : p);
+    }
+
     /** Called before the page is opened, and again for each new step. */
     public void show(@Nonnull Step step) {
         this.current = step;
@@ -135,8 +143,11 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
         cmd.clear("#Transcript");
         transcriptCount = 0;
         if (portrait != null) {
-            // A background is a patch style, not a bare path: the client shows a red X for a string here.
-            cmd.setObject("#Portrait.Background", new com.hypixel.hytale.server.core.ui.PatchStyle(com.hypixel.hytale.server.core.ui.Value.of(portrait)));
+            // A background is a patch style, not a bare path, and texture paths resolve relative to the .ui document
+            // unless written from the Common root ("UI/Custom/..."), which is the form the game's own pages use for
+            // absolute references. Authors write paths under Common/UI/Custom/; this turns them into that form.
+            cmd.setObject("#Portrait.Background", new com.hypixel.hytale.server.core.ui.PatchStyle(
+                    com.hypixel.hytale.server.core.ui.Value.of(texturePath(portrait))));
             cmd.set("#PortraitBox.Visible", true);
         }
         // Bind everything once; later steps only change text and visibility.
