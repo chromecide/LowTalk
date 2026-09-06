@@ -37,6 +37,17 @@ public final class JsonDialogues {
     public static final String DATASET_NPCS = "LowTalkNpcs";
     public static final String DATASET_WEATHERS = "LowTalkWeathers";
     public static final String DATASET_COMMANDS = "LowTalkCommands";
+    public static final String DATASET_ROLES = "LowTalkRoles";
+    public static final String DATASET_ATTITUDES = "LowTalkAttitudes";
+    public static final String DATASET_ANIMATIONS = "LowTalkAnimations";
+    public static final String DATASET_ANIMATION_SLOTS = "LowTalkAnimationSlots";
+    public static final String DATASET_NOTIFY_STYLES = "LowTalkNotifyStyles";
+    public static final String DATASET_STATS = "LowTalkStats";
+    public static final String DATASET_RECIPES = "LowTalkRecipes";
+    public static final String DATASET_WARPS = "LowTalkWarps";
+    public static final String DATASET_TIMES = "LowTalkTimes";
+    public static final String DATASET_REPUTATION_GROUPS = "LowTalkReputationGroups";
+    public static final String DATASET_SHOPS = "LowTalkShops";
     private static final int MAX_SUGGESTIONS = 40;
 
     private static HytaleAssetStore<String, DialogueAsset, DefaultAssetMap<String, DialogueAsset>> store;
@@ -68,6 +79,51 @@ public final class JsonDialogues {
                 e -> e.setResults(weatherSuggestions(e.getQuery())));
         plugin.getEventRegistry().register(com.hypixel.hytale.builtin.asseteditor.event.AssetEditorFetchAutoCompleteDataEvent.class, DATASET_COMMANDS,
                 e -> e.setResults(commandSuggestions(plugin, e.getQuery())));
+        dataset(plugin, DATASET_ROLES, () -> new java.util.ArrayList<>(com.hypixel.hytale.server.npc.NPCPlugin.get().getRoleTemplateNames(false)));
+        dataset(plugin, DATASET_ATTITUDES, () -> java.util.List.of("ignore", "hostile", "neutral", "friendly", "revered"));
+        dataset(plugin, DATASET_ANIMATION_SLOTS, () -> java.util.List.of("Emote", "Status", "Action", "Movement", "Face", "ServerAction"));
+        dataset(plugin, DATASET_NOTIFY_STYLES, () -> java.util.List.of("success", "warning", "danger"));
+        dataset(plugin, DATASET_TIMES, () -> java.util.List.of("dawn", "noon", "dusk", "midnight", "pause", "resume", "6", "12", "18", "0"));
+        dataset(plugin, DATASET_ANIMATIONS, () -> {
+            java.util.Set<String> names = new java.util.TreeSet<>();
+            for (com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset m
+                    : com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset.getAssetMap().getAssetMap().values()) {
+                if (m.getAnimationSetMap() != null) names.addAll(m.getAnimationSetMap().keySet());
+            }
+            return new java.util.ArrayList<>(names);
+        });
+        dataset(plugin, DATASET_STATS, () -> new java.util.ArrayList<>(
+                com.hypixel.hytale.server.core.modules.entitystats.asset.EntityStatType.getAssetMap().getAssetMap().keySet()));
+        dataset(plugin, DATASET_RECIPES, () -> new java.util.ArrayList<>(
+                com.hypixel.hytale.server.core.asset.type.item.config.CraftingRecipe.getAssetMap().getAssetMap().keySet()));
+        dataset(plugin, DATASET_WARPS, () -> {
+            com.hypixel.hytale.builtin.teleport.TeleportPlugin tp = com.hypixel.hytale.builtin.teleport.TeleportPlugin.get();
+            return tp == null || !tp.isWarpsLoaded() ? java.util.List.<String>of() : new java.util.ArrayList<>(tp.getWarps().keySet());
+        });
+        dataset(plugin, DATASET_REPUTATION_GROUPS, () -> new java.util.ArrayList<>(
+                com.hypixel.hytale.builtin.adventure.reputation.assets.ReputationGroup.getAssetMap().getAssetMap().keySet()));
+        dataset(plugin, DATASET_SHOPS, () -> new java.util.ArrayList<>(
+                com.hypixel.hytale.builtin.adventure.shop.barter.BarterShopAsset.getAssetMap().getAssetMap().keySet()));
+    }
+
+    /** Register an autocomplete data set: the supplier's names, filtered by the typed prefix or fragment, sorted. */
+    private static void dataset(LowTalkPlugin plugin, String id, java.util.function.Supplier<java.util.List<String>> names) {
+        plugin.getEventRegistry().register(com.hypixel.hytale.builtin.asseteditor.event.AssetEditorFetchAutoCompleteDataEvent.class, id, e -> {
+            String q = e.getQuery() == null ? "" : e.getQuery().trim().toLowerCase(java.util.Locale.ROOT);
+            java.util.List<String> out = new java.util.ArrayList<>();
+            try {
+                java.util.List<String> all = new java.util.ArrayList<>(names.get());
+                java.util.Collections.sort(all);
+                for (String n : all) {
+                    if (n == null) continue;
+                    if (q.isEmpty() || n.toLowerCase(java.util.Locale.ROOT).contains(q)) out.add(n);
+                    if (out.size() >= MAX_SUGGESTIONS) break;
+                }
+            } catch (RuntimeException ex) {
+                plugin.getLogger().at(Level.FINE).log("data set %s unavailable: %s", id, ex.toString());
+            }
+            e.setResults(out.toArray(new String[0]));
+        });
     }
 
     /** NPC role ids from the NPC plugin plus every LowTalk tag in use, as @tag. */

@@ -116,4 +116,94 @@ public abstract class JsonStatement {
         public String weather = "clear";
         public boolean playerOnly;
     }
+
+    public static final class Attitude extends JsonStatement {
+        public String attitude = "friendly";
+    }
+
+    public static final class Anim extends JsonStatement {
+        public String animation;
+        public String slot;
+    }
+
+    public static final class Notify extends JsonStatement {
+        public String text = "";
+        public String detail;
+        public String style;
+    }
+
+    public static final class Title extends JsonStatement {
+        public String primary = "";
+        public String secondary;
+        public boolean major;
+        public double seconds;
+    }
+
+    public static final class Stat extends JsonStatement {
+        public String stat = "Health";
+        /** "+20", "50" or "max". */
+        public String value = "max";
+    }
+
+    public static final class Heal extends JsonStatement {
+        public String amount;
+    }
+
+    public static final class Learn extends JsonStatement {
+        public String recipe;
+    }
+
+    public static final class Teleport extends JsonStatement {
+        /** A warp name, or "x y z". */
+        public String target = "";
+    }
+
+    public static final class Time extends JsonStatement {
+        public String time = "noon";
+        public String fadeSeconds;
+    }
+
+    public static final class Reputation extends JsonStatement {
+        public String change = "+10";
+        public String group;
+    }
+
+    public static final class NpcName extends JsonStatement {
+        public String name = "";
+    }
+
+    public static final class State extends JsonStatement {
+        public String state = "";
+        public String subState;
+    }
+
+    public static final class Spawn extends JsonStatement {
+        public String role;
+        public double right;
+        public double up;
+        public double forward = 2.0;
+    }
+
+    public static final class Despawn extends JsonStatement {
+    }
+
+    public static final class Run extends JsonStatement {
+        public String command = "";
+    }
+
+    public static final class Shop extends JsonStatement {
+        public String shop;
+    }
+
+    public static final class ObjectiveLine extends JsonStatement {
+        public String line;
+    }
+
+    public static final class ObjectiveCancel extends JsonStatement {
+        public String objective;
+    }
+
+    public static final class ObjectiveTask extends JsonStatement {
+        public String task = "";
+    }
 }

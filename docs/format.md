@@ -259,9 +259,15 @@ and undo. Expressions and text are the same strings as in `.talk`.
 ```
 
 Statement types: `Say`, `Choice`, `If`, `Once`, `Random`, `Set`, `Jump`,
-`End`, `Input`, `Wait`, `Command` (any command by `Name` and `Args`), and the
-typed conveniences `Give`, `Take`, `Sound`, `Effect`, `Cure`, `Objective`,
-`Weather`. `/lowtalk convert <id> json <pack>` writes a loaded `.talk`
+`End`, `Input`, `Wait`, one typed entry per command (`Give`, `Take`, `Shop`,
+`Attitude`, `Anim`, `Sound`, `NpcName`, `State`, `Despawn`, `Spawn`,
+`Objective`, `ObjectiveLine`, `ObjectiveCancel`, `ObjectiveTask`,
+`Reputation`, `Learn`, `Notify`, `Title`, `Effect`, `Cure`, `Heal`, `Stat`,
+`Teleport`, `Weather`, `Time`, `Run`), and `Command` for anything a plugin
+adds (`Name` and `Args`). In the Asset Editor's form, id fields offer pickers
+or autocomplete backed by the live server: NPC roles and tags, items, sounds,
+effects, objectives and lines, animations, stats, recipes, warps, reputation
+groups, shops, weathers, attitudes and notify styles. `/lowtalk convert <id> json <pack>` writes a loaded `.talk`
 dialogue as JSON into a pack, and `/lowtalk convert <id> talk [pack]` goes
 the other way. Ids must be unique across both formats; a `.talk` file wins a
 clash. JSON files do not support `include:`. Name JSON dialogues the way the

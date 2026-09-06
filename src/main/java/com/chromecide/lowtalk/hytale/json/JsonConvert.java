@@ -122,12 +122,66 @@ public final class JsonConvert {
             case JsonStatement.Cure cu -> command(p, "cure", cu.effect, null);
             case JsonStatement.Objective ob -> command(p, "objective", ob.objective, null);
             case JsonStatement.Weather w -> command(p, "weather", blank(w.weather) ? "clear" : w.weather, w.playerOnly ? "player" : null);
+            case JsonStatement.Attitude at -> command(p, "attitude", at.attitude, null);
+            case JsonStatement.Anim an -> command(p, "anim", an.animation, blank(an.slot) ? null : an.slot);
+            case JsonStatement.Notify n -> {
+                List<String> args = new ArrayList<>();
+                args.add(n.text == null ? "" : n.text);
+                if (!blank(n.detail) || !blank(n.style)) args.add(n.detail == null ? "" : n.detail);
+                if (!blank(n.style)) args.add(n.style);
+                yield commandText(p, "notify", args);
+            }
+            case JsonStatement.Title t -> {
+                List<String> args = new ArrayList<>();
+                args.add(t.primary == null ? "" : t.primary);
+                boolean more = t.major || t.seconds > 0;
+                if (!blank(t.secondary) || more) args.add(t.secondary == null ? "" : t.secondary);
+                if (more) args.add(t.major ? "major" : "minor");
+                if (t.seconds > 0) args.add(Printer.expr(new Expr.Literal(t.seconds)));
+                yield commandText(p, "title", args);
+            }
+            case JsonStatement.Stat st -> command(p, "stat", st.stat, blank(st.value) ? "max" : st.value);
+            case JsonStatement.Heal h -> blank(h.amount) ? new Statement.Command(p, "heal", List.of()) : command(p, "heal", h.amount, null);
+            case JsonStatement.Learn l -> command(p, "learn", l.recipe, null);
+            case JsonStatement.Teleport tp -> {
+                if (blank(tp.target)) throw new ParseException(p, "a Teleport needs a Target");
+                List<String> args = new ArrayList<>(List.of(tp.target.trim().split("\\s+")));
+                yield commandText(p, "teleport", args);
+            }
+            case JsonStatement.Time tm -> command(p, "time", tm.time, blank(tm.fadeSeconds) ? null : tm.fadeSeconds);
+            case JsonStatement.Reputation rp -> command(p, "reputation", rp.change, blank(rp.group) ? null : rp.group);
+            case JsonStatement.NpcName nn -> commandText(p, "npc_name", List.of(nn.name == null ? "" : nn.name));
+            case JsonStatement.State stt -> command(p, "state", stt.state, blank(stt.subState) ? null : stt.subState);
+            case JsonStatement.Spawn sp -> {
+                if (blank(sp.role)) throw new ParseException(p, "a Spawn needs a Role");
+                List<String> args = new ArrayList<>();
+                args.add(sp.role);
+                if (sp.right != 0 || sp.up != 0 || sp.forward != 2.0) {
+                    args.add(Printer.expr(new Expr.Literal(sp.right)));
+                    args.add(Printer.expr(new Expr.Literal(sp.up)));
+                    args.add(Printer.expr(new Expr.Literal(sp.forward)));
+                }
+                yield commandText(p, "spawn", args);
+            }
+            case JsonStatement.Despawn dn -> new Statement.Command(p, "despawn", List.of());
+            case JsonStatement.Run run -> commandText(p, "run", List.of(run.command == null ? "" : run.command));
+            case JsonStatement.Shop sh -> blank(sh.shop) ? new Statement.Command(p, "shop", List.of()) : command(p, "shop", sh.shop, null);
+            case JsonStatement.ObjectiveLine ol -> command(p, "objective", "line", ol.line);
+            case JsonStatement.ObjectiveCancel oc -> command(p, "objective", "cancel", oc.objective);
+            case JsonStatement.ObjectiveTask ot -> command(p, "objective", "task", ot.task);
             default -> throw new ParseException(p, "unknown statement type " + s.getClass().getSimpleName());
         };
     }
 
+    /** A command whose arguments may contain interpolation, parsed as text. */
+    private static Statement commandText(Pos p, String name, List<String> args) {
+        List<Text> out = new ArrayList<>();
+        for (String a : args) out.add(text(a, p));
+        return new Statement.Command(p, name, List.copyOf(out));
+    }
+
     private static Statement command(Pos p, String name, String first, String second) {
-        if (blank(first)) throw new ParseException(p, "<<" + name + ">> needs its first value");
+        if (blank(first) || (second != null && second.isBlank())) throw new ParseException(p, "<<" + name + ">> is missing a value");
         List<Text> args = new ArrayList<>();
         args.add(Text.plain(first));
         if (second != null) args.add(Text.plain(second));
@@ -297,8 +351,165 @@ public final class JsonConvert {
                         return w;
                     }
                 }
+                case "attitude" -> {
+                    if (a0 != null && a1 == null) {
+                        JsonStatement.Attitude at = new JsonStatement.Attitude();
+                        at.attitude = a0;
+                        return at;
+                    }
+                }
+                case "anim" -> {
+                    if (a0 != null) {
+                        JsonStatement.Anim an = new JsonStatement.Anim();
+                        an.animation = a0;
+                        an.slot = a1;
+                        return an;
+                    }
+                }
+                case "stat" -> {
+                    if (a0 != null) {
+                        JsonStatement.Stat st = new JsonStatement.Stat();
+                        st.stat = a0;
+                        st.value = a1 == null ? "max" : a1;
+                        return st;
+                    }
+                }
+                case "heal" -> {
+                    JsonStatement.Heal h = new JsonStatement.Heal();
+                    h.amount = a0;
+                    return h;
+                }
+                case "learn" -> {
+                    if (a0 != null && a1 == null) {
+                        JsonStatement.Learn l = new JsonStatement.Learn();
+                        l.recipe = a0;
+                        return l;
+                    }
+                }
+                case "teleport" -> {
+                    JsonStatement.Teleport tp = new JsonStatement.Teleport();
+                    tp.target = String.join(" ", args.stream().map(Text::debugString).toList());
+                    return tp;
+                }
+                case "time" -> {
+                    if (a0 != null) {
+                        JsonStatement.Time tm = new JsonStatement.Time();
+                        tm.time = a0;
+                        tm.fadeSeconds = a1;
+                        return tm;
+                    }
+                }
+                case "reputation" -> {
+                    if (a0 != null) {
+                        JsonStatement.Reputation rp = new JsonStatement.Reputation();
+                        rp.change = a0;
+                        rp.group = a1;
+                        return rp;
+                    }
+                }
+                case "state" -> {
+                    if (a0 != null) {
+                        JsonStatement.State stt = new JsonStatement.State();
+                        stt.state = a0;
+                        stt.subState = a1;
+                        return stt;
+                    }
+                }
+                case "spawn" -> {
+                    if (a0 != null && (args.size() == 1 || args.size() == 4)) {
+                        try {
+                            JsonStatement.Spawn sp = new JsonStatement.Spawn();
+                            sp.role = a0;
+                            if (args.size() == 4) {
+                                sp.right = Double.parseDouble(a1);
+                                sp.up = Double.parseDouble(args.get(2).debugString());
+                                sp.forward = Double.parseDouble(args.get(3).debugString());
+                            }
+                            return sp;
+                        } catch (NumberFormatException ignored) {
+                            // fall through to a generic command
+                        }
+                    }
+                }
+                case "despawn" -> {
+                    if (args.isEmpty()) return new JsonStatement.Despawn();
+                }
+                case "shop" -> {
+                    if (args.size() <= 1) {
+                        JsonStatement.Shop sh = new JsonStatement.Shop();
+                        sh.shop = a0;
+                        return sh;
+                    }
+                }
                 default -> {}
             }
+            if (cmd.name().equals("objective") && a1 != null) {
+                switch (a0.toLowerCase(java.util.Locale.ROOT)) {
+                    case "line" -> {
+                        JsonStatement.ObjectiveLine ol = new JsonStatement.ObjectiveLine();
+                        ol.line = a1;
+                        return ol;
+                    }
+                    case "cancel" -> {
+                        JsonStatement.ObjectiveCancel oc = new JsonStatement.ObjectiveCancel();
+                        oc.objective = a1;
+                        return oc;
+                    }
+                    case "task" -> {
+                        JsonStatement.ObjectiveTask ot = new JsonStatement.ObjectiveTask();
+                        ot.task = a1;
+                        return ot;
+                    }
+                    case "start" -> {
+                        JsonStatement.Objective ob = new JsonStatement.Objective();
+                        ob.objective = a1;
+                        return ob;
+                    }
+                    default -> {}
+                }
+            }
+        }
+        // Text-bearing commands keep their interpolation, so they are typed whether or not the arguments are static.
+        List<String> printed = args.stream().map(Printer::text).toList();
+        switch (cmd.name()) {
+            case "notify" -> {
+                if (!printed.isEmpty() && printed.size() <= 3) {
+                    JsonStatement.Notify n = new JsonStatement.Notify();
+                    n.text = printed.get(0);
+                    n.detail = printed.size() > 1 && !printed.get(1).isEmpty() ? printed.get(1) : null;
+                    n.style = printed.size() > 2 ? printed.get(2) : null;
+                    return n;
+                }
+            }
+            case "title" -> {
+                if (!printed.isEmpty() && printed.size() <= 4) {
+                    try {
+                        JsonStatement.Title t = new JsonStatement.Title();
+                        t.primary = printed.get(0);
+                        t.secondary = printed.size() > 1 && !printed.get(1).isEmpty() ? printed.get(1) : null;
+                        t.major = printed.size() > 2 && printed.get(2).equalsIgnoreCase("major");
+                        t.seconds = printed.size() > 3 ? Double.parseDouble(printed.get(3)) : 0;
+                        return t;
+                    } catch (NumberFormatException ignored) {
+                        // generic
+                    }
+                }
+            }
+            case "npc_name" -> {
+                if (printed.size() == 1) {
+                    JsonStatement.NpcName nn = new JsonStatement.NpcName();
+                    nn.name = printed.get(0);
+                    return nn;
+                }
+            }
+            case "run" -> {
+                if (printed.size() == 1) {
+                    JsonStatement.Run run = new JsonStatement.Run();
+                    run.command = printed.get(0);
+                    return run;
+                }
+            }
+            default -> {}
         }
         JsonStatement.Command out = new JsonStatement.Command();
         out.name = cmd.name();

@@ -191,6 +191,129 @@ public final class JsonCodecs {
                         .documentation("Only this player sees it.").add();
             });
 
+    private static UIEditor pick(String dataSet) {
+        return new UIEditor(new UIEditor.TextField(dataSet));
+    }
+
+    public static final BuilderCodec<JsonStatement.Attitude> ATTITUDE = statement(JsonStatement.Attitude.class, JsonStatement.Attitude::new,
+            "Set this NPC's attitude toward the player for a while.", b ->
+                    b.append(new KeyedCodec<>("Attitude", Codec.STRING), (a, v) -> a.attitude = v, a -> a.attitude).addValidator(Validators.nonNull())
+                            .metadata(pick(JsonDialogues.DATASET_ATTITUDES)).documentation("ignore, hostile, neutral, friendly or revered.").add());
+
+    public static final BuilderCodec<JsonStatement.Anim> ANIM = statement(JsonStatement.Anim.class, JsonStatement.Anim::new,
+            "Play an animation on the NPC.", b -> {
+                b.append(new KeyedCodec<>("Animation", Codec.STRING), (a, v) -> a.animation = v, a -> a.animation).addValidator(Validators.nonNull())
+                        .metadata(pick(JsonDialogues.DATASET_ANIMATIONS)).documentation("Animation name; must exist on the NPC's model.").add();
+                b.append(new KeyedCodec<>("Slot", Codec.STRING), (a, v) -> a.slot = v, a -> a.slot)
+                        .metadata(pick(JsonDialogues.DATASET_ANIMATION_SLOTS)).documentation("Emote by default; Status is what the game uses for greetings.").add();
+            });
+
+    public static final BuilderCodec<JsonStatement.Notify> NOTIFY = statement(JsonStatement.Notify.class, JsonStatement.Notify::new,
+            "A toast notification in the corner of the screen.", b -> {
+                b.append(new KeyedCodec<>("Text", Codec.STRING), (n, v) -> n.text = v, n -> n.text).addValidator(Validators.nonNull())
+                        .documentation("Main text." + TEXT_DOC).add();
+                b.append(new KeyedCodec<>("Detail", Codec.STRING), (n, v) -> n.detail = v, n -> n.detail).documentation("Smaller second line.").add();
+                b.append(new KeyedCodec<>("Style", Codec.STRING), (n, v) -> n.style = v, n -> n.style)
+                        .metadata(pick(JsonDialogues.DATASET_NOTIFY_STYLES)).documentation("success, warning or danger; empty for the default look.").add();
+            });
+
+    public static final BuilderCodec<JsonStatement.Title> TITLE = statement(JsonStatement.Title.class, JsonStatement.Title::new,
+            "A cinematic title across the screen.", b -> {
+                b.append(new KeyedCodec<>("Primary", Codec.STRING), (t, v) -> t.primary = v, t -> t.primary).addValidator(Validators.nonNull())
+                        .documentation("Big text." + TEXT_DOC).add();
+                b.append(new KeyedCodec<>("Secondary", Codec.STRING), (t, v) -> t.secondary = v, t -> t.secondary).documentation("Smaller text underneath.").add();
+                b.append(new KeyedCodec<>("Major", Codec.BOOLEAN), (t, v) -> t.major = v, t -> t.major).documentation("The larger title style.").add();
+                b.append(new KeyedCodec<>("Seconds", Codec.DOUBLE), (t, v) -> t.seconds = v, t -> t.seconds).documentation("How long it stays; 0 for the default (3).").add();
+            });
+
+    public static final BuilderCodec<JsonStatement.Stat> STAT = statement(JsonStatement.Stat.class, JsonStatement.Stat::new,
+            "Add to, set, or max out an entity stat.", b -> {
+                b.append(new KeyedCodec<>("Stat", Codec.STRING), (s, v) -> s.stat = v, s -> s.stat).addValidator(Validators.nonNull())
+                        .metadata(pick(JsonDialogues.DATASET_STATS)).documentation("The stat, e.g. Health, Stamina.").add();
+                b.append(new KeyedCodec<>("Value", Codec.STRING), (s, v) -> s.value = v, s -> s.value).addValidator(Validators.nonNull())
+                        .documentation("+20 to add, -5 to take, 50 to set, or max.").add();
+            });
+
+    public static final BuilderCodec<JsonStatement.Heal> HEAL = statement(JsonStatement.Heal.class, JsonStatement.Heal::new,
+            "Restore health.", b ->
+                    b.append(new KeyedCodec<>("Amount", Codec.STRING), (h, v) -> h.amount = v, h -> h.amount).documentation("Empty for a full heal.").add());
+
+    public static final BuilderCodec<JsonStatement.Learn> LEARN = statement(JsonStatement.Learn.class, JsonStatement.Learn::new,
+            "Teach the player a crafting recipe.", b ->
+                    b.append(new KeyedCodec<>("Recipe", Codec.STRING), (l, v) -> l.recipe = v, l -> l.recipe).addValidator(Validators.nonNull())
+                            .metadata(pick(JsonDialogues.DATASET_RECIPES)).documentation("The recipe id.").add());
+
+    public static final BuilderCodec<JsonStatement.Teleport> TELEPORT = statement(JsonStatement.Teleport.class, JsonStatement.Teleport::new,
+            "Move the player; ends the conversation.", b ->
+                    b.append(new KeyedCodec<>("Target", Codec.STRING), (t, v) -> t.target = v, t -> t.target).addValidator(Validators.nonNull())
+                            .metadata(pick(JsonDialogues.DATASET_WARPS)).documentation("A warp name, or coordinates as \"x y z\".").add());
+
+    public static final BuilderCodec<JsonStatement.Time> TIME = statement(JsonStatement.Time.class, JsonStatement.Time::new,
+            "Set the time of day, or pause and resume the clock.", b -> {
+                b.append(new KeyedCodec<>("Time", Codec.STRING), (t, v) -> t.time = v, t -> t.time).addValidator(Validators.nonNull())
+                        .metadata(pick(JsonDialogues.DATASET_TIMES)).documentation("dawn, noon, dusk, midnight, an hour 0-24, pause or resume.").add();
+                b.append(new KeyedCodec<>("FadeSeconds", Codec.STRING), (t, v) -> t.fadeSeconds = v, t -> t.fadeSeconds)
+                        .documentation("Fade to the new time over this many seconds; empty for instant.").add();
+            });
+
+    public static final BuilderCodec<JsonStatement.Reputation> REPUTATION = statement(JsonStatement.Reputation.class, JsonStatement.Reputation::new,
+            "Change the player's standing with a reputation group.", b -> {
+                b.append(new KeyedCodec<>("Change", Codec.STRING), (r, v) -> r.change = v, r -> r.change).addValidator(Validators.nonNull())
+                        .documentation("+10 or -5.").add();
+                b.append(new KeyedCodec<>("Group", Codec.STRING), (r, v) -> r.group = v, r -> r.group)
+                        .metadata(pick(JsonDialogues.DATASET_REPUTATION_GROUPS)).documentation("Empty for this NPC's own group.").add();
+            });
+
+    public static final BuilderCodec<JsonStatement.NpcName> NPC_NAME = statement(JsonStatement.NpcName.class, JsonStatement.NpcName::new,
+            "Rename this NPC (kept with the NPC).", b ->
+                    b.append(new KeyedCodec<>("Name", Codec.STRING), (n, v) -> n.name = v, n -> n.name).addValidator(Validators.nonNull())
+                            .documentation("The new name, or clear to remove it.").add());
+
+    public static final BuilderCodec<JsonStatement.State> STATE = statement(JsonStatement.State.class, JsonStatement.State::new,
+            "Put this NPC's role into one of its states.", b -> {
+                b.append(new KeyedCodec<>("State", Codec.STRING), (s, v) -> s.state = v, s -> s.state).addValidator(Validators.nonNull())
+                        .documentation("State name from the role JSON.").add();
+                b.append(new KeyedCodec<>("SubState", Codec.STRING), (s, v) -> s.subState = v, s -> s.subState).documentation("Optional sub-state.").add();
+            });
+
+    public static final BuilderCodec<JsonStatement.Spawn> SPAWN = statement(JsonStatement.Spawn.class, JsonStatement.Spawn::new,
+            "Spawn an NPC near the player, facing them.", b -> {
+                b.append(new KeyedCodec<>("Role", Codec.STRING), (s, v) -> s.role = v, s -> s.role).addValidator(Validators.nonNull())
+                        .metadata(pick(JsonDialogues.DATASET_ROLES)).documentation("The NPC role to spawn.").add();
+                b.append(new KeyedCodec<>("Right", Codec.DOUBLE), (s, v) -> s.right = v, s -> s.right).documentation("Blocks to the player's right.").add();
+                b.append(new KeyedCodec<>("Up", Codec.DOUBLE), (s, v) -> s.up = v, s -> s.up).documentation("Blocks up.").add();
+                b.append(new KeyedCodec<>("Forward", Codec.DOUBLE), (s, v) -> s.forward = v, s -> s.forward).documentation("Blocks in front of the player (default 2).").add();
+            });
+
+    public static final BuilderCodec<JsonStatement.Despawn> DESPAWN = statement(JsonStatement.Despawn.class, JsonStatement.Despawn::new,
+            "End the conversation and retire this NPC.", b -> {});
+
+    public static final BuilderCodec<JsonStatement.Run> RUN = statement(JsonStatement.Run.class, JsonStatement.Run::new,
+            "Run a server command as the console. Never include text the player typed.", b ->
+                    b.append(new KeyedCodec<>("Command", Codec.STRING), (r, v) -> r.command = v, r -> r.command).addValidator(Validators.nonNull())
+                            .documentation("The command, e.g. /give {player} Food_Bread 1.").add());
+
+    public static final BuilderCodec<JsonStatement.Shop> SHOP = statement(JsonStatement.Shop.class, JsonStatement.Shop::new,
+            "Open a barter shop; ends the conversation.", b ->
+                    b.append(new KeyedCodec<>("Shop", Codec.STRING), (s, v) -> s.shop = v, s -> s.shop)
+                            .metadata(pick(JsonDialogues.DATASET_SHOPS)).documentation("Empty for this NPC's own shop.").add());
+
+    public static final BuilderCodec<JsonStatement.ObjectiveLine> OBJECTIVE_LINE = statement(JsonStatement.ObjectiveLine.class, JsonStatement.ObjectiveLine::new,
+            "Start an objective line (a chain of objectives).", b ->
+                    b.append(new KeyedCodec<>("Line", Codec.STRING), (o, v) -> o.line = v, o -> o.line).addValidator(Validators.nonNull())
+                            .addValidator(com.hypixel.hytale.builtin.adventure.objectives.config.ObjectiveLineAsset.VALIDATOR_CACHE.getValidator())
+                            .documentation("The objective line.").add());
+
+    public static final BuilderCodec<JsonStatement.ObjectiveCancel> OBJECTIVE_CANCEL = statement(JsonStatement.ObjectiveCancel.class, JsonStatement.ObjectiveCancel::new,
+            "Abandon one of the player's active objectives.", b ->
+                    b.append(new KeyedCodec<>("Objective", Codec.STRING), (o, v) -> o.objective = v, o -> o.objective).addValidator(Validators.nonNull())
+                            .addValidator(ObjectiveAsset.VALIDATOR_CACHE.getValidator()).documentation("The objective.").add());
+
+    public static final BuilderCodec<JsonStatement.ObjectiveTask> OBJECTIVE_TASK = statement(JsonStatement.ObjectiveTask.class, JsonStatement.ObjectiveTask::new,
+            "Advance a talk-to-this-NPC task of an active objective.", b ->
+                    b.append(new KeyedCodec<>("Task", Codec.STRING), (o, v) -> o.task = v, o -> o.task).addValidator(Validators.nonNull())
+                            .documentation("The task id from the objective's task set.").add());
+
     // ---- the asset
 
     public static final BuilderCodec<DialogueAsset.StartEntry> START = statement(DialogueAsset.StartEntry.class, DialogueAsset.StartEntry::new,
@@ -257,5 +380,24 @@ public final class JsonCodecs {
         STATEMENT.register("Cure", JsonStatement.Cure.class, CURE);
         STATEMENT.register("Objective", JsonStatement.Objective.class, OBJECTIVE);
         STATEMENT.register("Weather", JsonStatement.Weather.class, WEATHER);
+        STATEMENT.register("Attitude", JsonStatement.Attitude.class, ATTITUDE);
+        STATEMENT.register("Anim", JsonStatement.Anim.class, ANIM);
+        STATEMENT.register("Notify", JsonStatement.Notify.class, NOTIFY);
+        STATEMENT.register("Title", JsonStatement.Title.class, TITLE);
+        STATEMENT.register("Stat", JsonStatement.Stat.class, STAT);
+        STATEMENT.register("Heal", JsonStatement.Heal.class, HEAL);
+        STATEMENT.register("Learn", JsonStatement.Learn.class, LEARN);
+        STATEMENT.register("Teleport", JsonStatement.Teleport.class, TELEPORT);
+        STATEMENT.register("Time", JsonStatement.Time.class, TIME);
+        STATEMENT.register("Reputation", JsonStatement.Reputation.class, REPUTATION);
+        STATEMENT.register("NpcName", JsonStatement.NpcName.class, NPC_NAME);
+        STATEMENT.register("State", JsonStatement.State.class, STATE);
+        STATEMENT.register("Spawn", JsonStatement.Spawn.class, SPAWN);
+        STATEMENT.register("Despawn", JsonStatement.Despawn.class, DESPAWN);
+        STATEMENT.register("Run", JsonStatement.Run.class, RUN);
+        STATEMENT.register("Shop", JsonStatement.Shop.class, SHOP);
+        STATEMENT.register("ObjectiveLine", JsonStatement.ObjectiveLine.class, OBJECTIVE_LINE);
+        STATEMENT.register("ObjectiveCancel", JsonStatement.ObjectiveCancel.class, OBJECTIVE_CANCEL);
+        STATEMENT.register("ObjectiveTask", JsonStatement.ObjectiveTask.class, OBJECTIVE_TASK);
     }
 }
