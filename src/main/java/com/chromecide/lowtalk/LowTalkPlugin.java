@@ -70,9 +70,8 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
         if (cfg.isCopyExamples()) {
             registry.copyExamplesIfEmpty();
         }
-        // Assets are not loaded yet during setup; id checks run in start().
-        DialogueRegistry.LoadReport report = registry.reload(false);
-        logReport(report);
+        // Dialogues load in start(): by then every plugin that depends on LowTalk has registered its commands and
+        // functions (so they validate as known), and the game's assets are loaded (so id checks can run).
 
         this.getEntityStoreRegistry().registerSystem(new NpcUseSystem(this));
         this.getEntityStoreRegistry().registerSystem(new NpcGoneSystem(this));
@@ -83,7 +82,6 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
                 e -> com.chromecide.lowtalk.hytale.integrations.JoinTriggers.onPlayerReady(this, e));
         registerGameHooks();
 
-        getLogger().at(Level.INFO).log("LowTalk ready: %d dialogue(s) from %s", report.loaded(), registry.getFolder());
     }
 
     /**
@@ -165,6 +163,9 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
 
     @Override
     protected void start() {
+        DialogueRegistry.LoadReport report = registry.reload(false);
+        logReport(report);
+        getLogger().at(Level.INFO).log("LowTalk ready: %d dialogue(s) from %s", report.loaded(), registry.getFolder());
         List<String> warnings = registry.checkAssets();
         for (String w : warnings) getLogger().at(Level.WARNING).log("%s", w);
         if (!warnings.isEmpty()) {
