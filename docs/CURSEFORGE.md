@@ -84,6 +84,12 @@ you can see exactly what you are running.
 ![The merchant's barter shop opened from the conversation](screenshots/merchant-shop.png)
 *"What do you sell?" opens the NPC's own barter shop. LowTalk hands off to the game's systems rather than replacing them.*
 
+![Madame Klops with her skull portrait asks the player's name; a text box holds "Blueberry Muffins"](screenshots/dialogue-text-input.png)
+*Text input: an NPC can ask a question and keep the answer. Portraits are any image from an asset pack.*
+
+![The fortune teller repeats the typed name back and offers four options](screenshots/dialogue-remembers-name.png)
+*The answer becomes a variable that follows the player between NPCs: "So. Blueberry Muffins. Every merchant in these lands will know it by nightfall."*
+
 ![The in-game editor on a node: a line, a set-variable row and a jump, each an editable field](screenshots/ingame-editor-node.png)
 *The in-game editor: click an NPC with the LowTalk tool and its conversation opens as fields. This node greets the player, remembers the meeting and jumps to the hub.*
 
@@ -99,4 +105,4 @@ you can see exactly what you are running.
 ![The Asset Editor's text mode with a .talk file open and LowTalk's load report in the corner](screenshots/asset-editor-text.png)
 *Text mode in the Asset Editor. Every save is validated and loaded; the notification says what was loaded and which NPCs it binds to.*
 
-Still to capture: the fortune teller's text-input prompt (retake after the portrait fix); `/lowtalk reload` output showing a line-numbered error.
+Still to capture: `/lowtalk reload` output showing a line-numbered error.
