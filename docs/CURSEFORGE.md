@@ -78,6 +78,12 @@ you can see exactly what you are running.
 ![The dialogue window: the Rootling Merchant greets the player, four options below](screenshots/dialogue-window.png)
 *Talking to an NPC. The window is the game's own UI style; options appear as the conversation branches.*
 
+![A returning visit: the merchant remembers the player, hands over bread with a "You receive 1 Bread" line, and the options remain](screenshots/dialogue-give-bread.png)
+*Memory and consequences: the merchant greets a returning player by name, and a choice hands over real bread with the game's own narration line.*
+
+![The merchant's barter shop opened from the conversation](screenshots/merchant-shop.png)
+*"What do you sell?" opens the NPC's own barter shop. LowTalk hands off to the game's systems rather than replacing them.*
+
 ![The in-game editor on a node: a line, a set-variable row and a jump, each an editable field](screenshots/ingame-editor-node.png)
 *The in-game editor: click an NPC with the LowTalk tool and its conversation opens as fields. This node greets the player, remembers the meeting and jumps to the hub.*
 
@@ -93,4 +99,4 @@ you can see exactly what you are running.
 ![The Asset Editor's text mode with a .talk file open and LowTalk's load report in the corner](screenshots/asset-editor-text.png)
 *Text mode in the Asset Editor. Every save is validated and loaded; the notification says what was loaded and which NPCs it binds to.*
 
-Still to capture: a merchant handing over bread with the narration line; the fortune teller's text-input prompt; `/lowtalk reload` output showing a line-numbered error.
+Still to capture: the fortune teller's text-input prompt (retake after the portrait fix); `/lowtalk reload` output showing a line-numbered error.
