@@ -45,6 +45,14 @@ conventions"; add to that list when you learn a new one the hard way.
   the tables in `docs/format.md`.
 - `./gradlew test` must pass before you open the pull request.
 
+## Working with AI tools
+
+Most of this project was written by an AI coding agent under a person's direction, and contributions made the
+same way are welcome. The terms are the same as for any other contribution: you have read and understood what
+you are submitting, the tests pass, the CLA line is in the pull request, and nothing is copied from the game's
+decompiled sources. Say in the pull request if a tool did most of the typing; it helps the reviewer know where to
+look.
+
 ## Reporting bugs
 
 Include the `.talk` file (or a minimal cut-down version), the server log lines

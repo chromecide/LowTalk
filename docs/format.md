@@ -1,5 +1,9 @@
 # The LowTalk dialogue format
 
+This is the reference for the text form of a dialogue. The same dialogues can be made in game, in the Asset
+Editor's form or in the Node Editor without knowing any of this syntax; see [creating.md](creating.md). Every
+concept here has a field or a row in those editors, and the expressions and text are typed the same way.
+
 A dialogue is a plain text file with the extension `.talk`, encoded as UTF-8.
 It is made of a short header and one or more nodes. Indentation is two spaces
 and is significant only inside options and conditionals.
