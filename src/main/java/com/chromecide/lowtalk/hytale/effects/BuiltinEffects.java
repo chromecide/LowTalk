@@ -155,7 +155,8 @@ public final class BuiltinEffects {
             switch (verb) {
                 case "start" -> {
                     if (!objectives.canPlayerDoObjective(player, objectiveId)) return null; // already on it, or done
-                    if (objectives.startObjective(objectiveId, Set.of(session.getPlayer().getUuid()), worldId, null, store) == null) {
+                    java.util.UUID marker = session.getNpcId().getMostSignificantBits() == 0L ? null : session.getNpcId();
+                    if (objectives.startObjective(objectiveId, Set.of(session.getPlayer().getUuid()), worldId, marker, store) == null) {
                         throw new RuntimeError(effect.pos(), "could not start objective " + objectiveId + " (does it exist?)");
                     }
                     return "New objective.";

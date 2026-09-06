@@ -274,6 +274,25 @@ clash. JSON files do not support `include:`. Name JSON dialogues the way the
 game names assets, `Capitalised_Words.json`, or the asset store logs a
 format warning (harmless, but noisy).
 
+## Quests that are completed by talking
+
+LowTalk adds a task type to the game's objectives. A quest can require the
+player to reach a node of a dialogue, with no scripting inside the dialogue:
+
+```json
+{ "TaskSets": [ { "Tasks": [
+    { "Type": "LowTalkNode", "Dialogue": "miller", "Node": "thanks", "Count": 1 } ] } ],
+  "Completions": [ { "Type": "GiveItems", "DropList": "Some_Drop_List" } ] }
+```
+
+Put it in `Server/Objective/Objectives/Objective_Name.json` of a pack, name
+the tracker text in a language file as `objectives.Objective_Name.title`,
+`.desc` and `.taskSet.0.task.0`, and start it with `<<objective
+Objective_Name>>` or any other way the game starts objectives. When a
+conversation reaches the node, the task advances and the tracker updates.
+Objectives started from a dialogue use the NPC as their marker, so tasks that
+need a place to point at use the NPC's position.
+
 ## Opening dialogues from the game's own systems
 
 LowTalk plugs into three official extension points, so map makers can start a

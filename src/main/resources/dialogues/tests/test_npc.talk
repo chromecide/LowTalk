@@ -24,6 +24,10 @@ TEST 12: NPC control and objective extras. Objective_Gather is "{objective("Obje
     <<set $line_runs = $line_runs + 1>>
     <<objective line ObjectiveLine_Test>>
     <<jump start>>
+-> Start Objective_LowTalk_Talk (expect a tracker entry "Talk to the station 1 tester"; it completes when you talk to station 1)
+    <<set $talk_runs = $talk_runs + 1>>
+    <<objective Objective_LowTalk_Talk>>
+    <<jump start>>
 -> Despawn me (expect this window to close and the NPC to disappear; /lowtalk testworld respawn brings it back)
     <<despawn>>
 -> Leave

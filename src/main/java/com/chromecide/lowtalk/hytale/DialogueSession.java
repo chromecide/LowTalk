@@ -1,5 +1,6 @@
 package com.chromecide.lowtalk.hytale;
 
+import com.chromecide.lowtalk.LowTalkPlugin;
 import com.chromecide.lowtalk.api.DialogueListener;
 import com.chromecide.lowtalk.model.Dialogue;
 import com.chromecide.lowtalk.runtime.Conversation;
@@ -127,7 +128,7 @@ public class DialogueSession implements EffectHost {
         }
         notify(l -> l.onStart(context));
         lastNode = conversation.getCurrentNode();
-        if (lastNode != null) notify(l -> l.onNode(context, lastNode));
+        if (lastNode != null) nodeReached(lastNode);
         if (firstStep instanceof Step.Wait wait) {
             int serial = ++stepSerial;
             long millis = Math.round(Math.min(30.0, wait.seconds()) * 1000.0);
@@ -187,7 +188,18 @@ public class DialogueSession implements EffectHost {
         String now = conversation.getCurrentNode();
         if (now != null && !now.equals(lastNode)) {
             lastNode = now;
-            notify(l -> l.onNode(context, now));
+            nodeReached(now);
+        }
+    }
+
+    /** Listeners hear about the node, and any LowTalkNode objective tasks waiting on it advance. */
+    private void nodeReached(String node) {
+        notify(l -> l.onNode(context, node));
+        try {
+            int advanced = com.chromecide.lowtalk.hytale.objectives.ObjectiveNodes.nodeReached(LowTalkPlugin.get(), player, dialogue.id(), node);
+            if (advanced > 0) log("advanced " + advanced + " objective task(s) at node " + node);
+        } catch (RuntimeException e) {
+            host.logger().at(Level.WARNING).log("Objective task check failed at %s/%s: %s", dialogue.id(), node, e.toString());
         }
     }
 

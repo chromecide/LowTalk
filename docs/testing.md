@@ -60,7 +60,7 @@ Walk east. Stations, in order:
 | 9 | Random and time | `chance()`, `random()`, `ordinal()`, `hour()`, `$npc.` counters |
 | 10 | Format extras | `[a|b]` text variation, `<<random>>` blocks, `<<once>>` options, `? :` in text, `<<wait>>`, `include:` of `_shared.talk` |
 | 11 | Weather, time, translation | `<<weather>>` for the world and for one player, `<<time>>` by name, with a fade, pause and resume, `weather()`, `hour()`, `t()` from the pack's language file |
-| 12 | NPC control and objectives | `<<npc_name>>`, `<<spawn>>`, `<<despawn>>`, `<<objective cancel>>`, `<<objective line>>`, `objective_line()` |
+| 12 | NPC control and objectives | `<<npc_name>>`, `<<spawn>>`, `<<despawn>>`, `<<objective cancel>>`, `<<objective line>>`, `objective_line()`, and the `LowTalkNode` task type: start `Objective_LowTalk_Talk` here, then talk to station 1 to complete it |
 
 The station dialogues live in `examples/tests/` and are copied to
 `dialogues/tests/` by the build command, overwriting, so they always match the

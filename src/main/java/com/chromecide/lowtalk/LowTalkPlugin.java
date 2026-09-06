@@ -89,6 +89,11 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
      */
     private void registerGameHooks() {
         try {
+            com.chromecide.lowtalk.hytale.objectives.ObjectiveNodes.register(this);
+        } catch (RuntimeException e) {
+            getLogger().at(Level.WARNING).log("Could not register the LowTalkNode objective task: %s", e.toString());
+        }
+        try {
             com.chromecide.lowtalk.hytale.json.JsonDialogues.register(this);
         } catch (RuntimeException e) {
             getLogger().at(Level.WARNING).log("Could not register the JSON dialogue asset type: %s", e.toString());

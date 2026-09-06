@@ -1,0 +1,20 @@
+{
+  "TaskSets": [
+    {
+      "Tasks": [
+        {
+          "Type": "LowTalkNode",
+          "Dialogue": "test_basics",
+          "Node": "start",
+          "Count": 1
+        }
+      ]
+    }
+  ],
+  "Completions": [
+    {
+      "Type": "GiveItems",
+      "DropList": "Trork_Camp_Inventory"
+    }
+  ]
+}
