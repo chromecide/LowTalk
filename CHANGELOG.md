@@ -24,6 +24,9 @@ First working version.
 - World and NPC control through the game's own systems: `weather`, `time`,
   `npc_name`, `state`, `despawn`, `spawn`; objective lines, cancel and task
   completion; `t()` translations, `weather()`, `objective_line()`.
+- Dialogue variables in the game's own tools: a `LowTalkCondition` trigger
+  condition and choice requirement, and a `LowTalkSetVariable` trigger effect.
+- Tab completion and did-you-mean for dialogue ids in `/lowtalk` commands.
 - A Node Editor workspace (`tools/nodeeditor/`) so dialogues can be drawn as
   graphs in Hytale's standalone node editor and saved straight into a pack.
 - JSON dialogue assets: the same model as `.talk`, registered as a game asset

@@ -103,6 +103,16 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
             tv.registerAssetSource(com.chromecide.lowtalk.hytale.json.JsonDialogues.DATASET_DIALOGUES, () -> registry.ids());
             tv.registerAssetField(com.chromecide.lowtalk.hytale.integrations.LowTalkTriggerEffect.TYPE_ID, "Dialogue",
                     com.chromecide.lowtalk.hytale.json.JsonDialogues.DATASET_DIALOGUES);
+            tv.registerConditionType(com.chromecide.lowtalk.hytale.integrations.LowTalkTriggerCondition.TYPE_ID,
+                    com.chromecide.lowtalk.hytale.integrations.LowTalkTriggerCondition.class,
+                    com.chromecide.lowtalk.hytale.integrations.LowTalkTriggerCondition.CODEC);
+            tv.registerAssetField(com.chromecide.lowtalk.hytale.integrations.LowTalkTriggerCondition.TYPE_ID, "Dialogue",
+                    com.chromecide.lowtalk.hytale.json.JsonDialogues.DATASET_DIALOGUES);
+            tv.registerEffectType(com.chromecide.lowtalk.hytale.integrations.LowTalkSetVariableEffect.TYPE_ID,
+                    com.chromecide.lowtalk.hytale.integrations.LowTalkSetVariableEffect.class,
+                    com.chromecide.lowtalk.hytale.integrations.LowTalkSetVariableEffect.CODEC);
+            tv.registerAssetField(com.chromecide.lowtalk.hytale.integrations.LowTalkSetVariableEffect.TYPE_ID, "Dialogue",
+                    com.chromecide.lowtalk.hytale.json.JsonDialogues.DATASET_DIALOGUES);
         } catch (RuntimeException e) {
             getLogger().at(Level.WARNING).log("Could not register the LowTalkDialogue trigger effect: %s", e.toString());
         }
@@ -127,6 +137,10 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
                     com.chromecide.lowtalk.hytale.integrations.LowTalkChoiceInteraction.TYPE_ID,
                     com.chromecide.lowtalk.hytale.integrations.LowTalkChoiceInteraction.class,
                     com.chromecide.lowtalk.hytale.integrations.LowTalkChoiceInteraction.CODEC);
+            com.hypixel.hytale.server.core.entity.entities.player.pages.choices.ChoiceRequirement.CODEC.register(
+                    com.chromecide.lowtalk.hytale.integrations.LowTalkChoiceRequirement.TYPE_ID,
+                    com.chromecide.lowtalk.hytale.integrations.LowTalkChoiceRequirement.class,
+                    com.chromecide.lowtalk.hytale.integrations.LowTalkChoiceRequirement.CODEC);
         } catch (RuntimeException e) {
             getLogger().at(Level.WARNING).log("Could not register the LowTalkDialogue choice interaction: %s", e.toString());
         }

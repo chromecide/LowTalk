@@ -50,6 +50,12 @@ public class LowTalkCommand extends AbstractCommandCollection {
         this.addSubCommand(new Convert(plugin));
     }
 
+    /** Tab completion and did-you-mean for dialogue ids; the id argument of open, info, test and convert. */
+    static DialogueIdArgument dialogueIds() {
+        // Field initialisers run before the constructor stores the plugin, so look it up when suggestions are asked for.
+        return new DialogueIdArgument(() -> LowTalkPlugin.get() == null ? java.util.List.of() : LowTalkPlugin.get().getRegistry().ids());
+    }
+
     private static Message info(LowTalkPlugin plugin, String text) {
         return Message.raw(text).color(plugin.getSettings().getInfoColor());
     }
@@ -167,7 +173,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
     static class ConvertTo extends CommandBase {
         private final LowTalkPlugin plugin;
         private final String format;
-        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", ArgTypes.STRING);
+        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", dialogueIds());
         private final RequiredArg<String> packArg;
 
         ConvertTo(LowTalkPlugin plugin, String format) {
@@ -262,7 +268,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
     /** /lowtalk info <id>: nodes, options, variables and unreachable nodes of a loaded dialogue. */
     static class Info extends CommandBase {
         private final LowTalkPlugin plugin;
-        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id (file name without .talk)", ArgTypes.STRING);
+        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", dialogueIds());
 
         Info(LowTalkPlugin plugin) {
             super("info", "Outline of a loaded dialogue");
@@ -285,7 +291,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
     /** Open a dialogue by id with the NPC you are looking at (or with no NPC). */
     static class Open extends AbstractPlayerCommand {
         private final LowTalkPlugin plugin;
-        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id (file name without .talk)", ArgTypes.STRING);
+        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", dialogueIds());
 
         Open(LowTalkPlugin plugin) {
             super("open", "Open a dialogue by id");
@@ -440,7 +446,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
      */
     static class TestDialogue extends AbstractPlayerCommand {
         private final LowTalkPlugin plugin;
-        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", ArgTypes.STRING);
+        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", dialogueIds());
         private final OptionalArg<String> scriptArg = withOptionalArg("script", "'apply' to run effects for real, then choices: numbers or text prefixes", ArgTypes.GREEDY_STRING);
 
         TestDialogue(LowTalkPlugin plugin) {

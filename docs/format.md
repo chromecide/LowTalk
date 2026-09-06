@@ -288,7 +288,17 @@ dialogue without touching Java or `.talk` bindings:
   `{ "Type": "OpenCustomUI", "Page": { "Type": "LowTalk", "Dialogue": "elder_intro" } }`.
   If the player is looking at an NPC it becomes the speaker.
 - **Choice pages.** A shop or other choice page can lead into a dialogue with
-  `"Interactions": [ { "Type": "LowTalkDialogue", "Dialogue": "haggle" } ]`.
+  `"Interactions": [ { "Type": "LowTalkDialogue", "Dialogue": "haggle" } ]`,
+  and an entry can be gated by what was said:
+  `"Requirements": [ { "Type": "LowTalkCondition", "Dialogue": "haggle", "If": "$player.trusted" } ]`.
+
+Dialogue variables also reach the trigger-volume tool the other way round.
+The `LowTalkCondition` condition (`Dialogue`, `If`) makes a volume's effects
+fire only when an expression holds for the player, and the
+`LowTalkSetVariable` effect (`Dialogue`, `Var`, `Value`) sets a variable when
+a player enters or leaves a volume, so walking somewhere can change what NPCs
+say. Outside a conversation there is no NPC, so use `$player.` and `$world.`
+variables in these.
 
 ## A complete example
 
