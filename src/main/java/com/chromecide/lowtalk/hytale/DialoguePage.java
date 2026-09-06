@@ -135,7 +135,8 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
         cmd.clear("#Transcript");
         transcriptCount = 0;
         if (portrait != null) {
-            cmd.set("#Portrait.Background", portrait);
+            // A background is a patch style, not a bare path: the client shows a red X for a string here.
+            cmd.setObject("#Portrait.Background", new com.hypixel.hytale.server.core.ui.PatchStyle(com.hypixel.hytale.server.core.ui.Value.of(portrait)));
             cmd.set("#PortraitBox.Visible", true);
         }
         // Bind everything once; later steps only change text and visibility.
