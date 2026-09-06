@@ -120,6 +120,16 @@ plugin's `data` folder and can be deleted with the plugin. Mods built on LowTalk
 for example, asks you to run `/companions dismissall` first. Dialogues that used another mod's commands keep working
 without it: options that need a missing command are hidden and conditions on missing functions read as false.
 
+## Hytale versions
+
+| LowTalk | Hytale release line | Hytale pre-release line |
+|---------|---------------------|-------------------------|
+| 0.1.0   | 0.6.3 (`LowTalk-0.1.0.jar`) | 0.7.0-pre.1 (`LowTalk-0.1.0+hytale.0.7.0-pre.1.jar`) |
+
+Each release ships one jar per Hytale line; the server refuses a jar built for the other line. Both come from
+the same commit: `./gradlew buildAll` writes them to `build/dist/`. See [CONTRIBUTING.md](CONTRIBUTING.md) for how
+branches and tags follow Hytale's patchlines.
+
 ## Editing in game
 
 **In place, with the LowTalk tool.** `/lowtalk tool` puts a tool in your hand (it is also in the

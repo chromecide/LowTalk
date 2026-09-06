@@ -84,3 +84,51 @@ tasks.register<JavaExec>("validate") {
     classpath = sourceSets["main"].runtimeClasspath
     mainClass.set("com.chromecide.lowtalk.parser.ValidateMain")
 }
+
+// ---- one commit, one jar per Hytale patchline ------------------------------------------------------------------
+// `build` targets the release line from gradle.properties. `buildPreRelease` re-runs the build with the pre-release
+// line's properties (patchline, server version, manifest range, assets) and a version carrying the game version as
+// build metadata, so both jars can sit in one GitHub release. `buildAll` does both and collects them in dist/.
+val distDir = layout.buildDirectory.dir("dist")
+
+tasks.register<Copy>("collectRelease") {
+    group = "distribution"
+    description = "Copies the release-line jar into build/dist."
+    dependsOn("build")
+    from(tasks.named<Jar>("jar").map { it.archiveFile })
+    into(distDir)
+}
+
+tasks.register<Exec>("buildPreRelease") {
+    group = "distribution"
+    description = "Builds the jar for the Hytale pre-release line into build/dist."
+    val preVersion = project.property("prerelease_hytale_version").toString()
+    val modVersion = project.property("version").toString()
+    workingDir = projectDir
+    commandLine(
+        if (System.getProperty("os.name").lowercase().contains("win")) "gradlew.bat" else "./gradlew",
+        "jar", "--console=plain",
+        "-Ppatchline=pre-release",
+        "-Phytale_version=$preVersion",
+        "-Pserver_version=$preVersion",
+        "-PmanifestServerVersion=${project.property("prerelease_manifestServerVersion")}",
+        "-PhytaleHomeOverride=${project.property("prerelease_hytaleHomeOverride")}",
+        "-Pversion=$modVersion+hytale.$preVersion",
+        "-PjarDir=${distDir.get().asFile.absolutePath}"
+    )
+    doFirst { distDir.get().asFile.mkdirs() }
+}
+
+tasks.register("buildAll") {
+    group = "distribution"
+    description = "Builds the release-line and pre-release jars into build/dist."
+    dependsOn("collectRelease")
+    finalizedBy("buildPreRelease")
+}
+
+// A variant build writes its jar somewhere the normal build will not overwrite.
+if (project.hasProperty("jarDir")) {
+    tasks.named<Jar>("jar") {
+        destinationDirectory.set(file(project.property("jarDir").toString()))
+    }
+}
