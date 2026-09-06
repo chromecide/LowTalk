@@ -127,16 +127,15 @@ public final class JsonConvert {
             case JsonStatement.Notify n -> {
                 List<String> args = new ArrayList<>();
                 args.add(n.text == null ? "" : n.text);
-                if (!blank(n.detail) || !blank(n.style)) args.add(n.detail == null ? "" : n.detail);
-                if (!blank(n.style)) args.add(n.style);
+                if (!blank(n.detail)) args.add(n.detail);
+                if (!blank(n.style) && !n.style.equalsIgnoreCase("default")) args.add(n.style);
                 yield commandText(p, "notify", args);
             }
             case JsonStatement.Title t -> {
                 List<String> args = new ArrayList<>();
                 args.add(t.primary == null ? "" : t.primary);
-                boolean more = t.major || t.seconds > 0;
-                if (!blank(t.secondary) || more) args.add(t.secondary == null ? "" : t.secondary);
-                if (more) args.add(t.major ? "major" : "minor");
+                if (!blank(t.secondary)) args.add(t.secondary);
+                if (t.major) args.add("major");
                 if (t.seconds > 0) args.add(Printer.expr(new Expr.Literal(t.seconds)));
                 yield commandText(p, "title", args);
             }
@@ -171,6 +170,10 @@ public final class JsonConvert {
             case JsonStatement.ObjectiveTask ot -> command(p, "objective", "task", ot.task);
             default -> throw new ParseException(p, "unknown statement type " + s.getClass().getSimpleName());
         };
+    }
+
+    static boolean isNotifyStyle(String a) {
+        return a.equalsIgnoreCase("default") || a.equalsIgnoreCase("success") || a.equalsIgnoreCase("warning") || a.equalsIgnoreCase("danger");
     }
 
     /** A command whose arguments may contain interpolation, parsed as text. */
@@ -476,23 +479,24 @@ public final class JsonConvert {
                 if (!printed.isEmpty() && printed.size() <= 3) {
                     JsonStatement.Notify n = new JsonStatement.Notify();
                     n.text = printed.get(0);
-                    n.detail = printed.size() > 1 && !printed.get(1).isEmpty() ? printed.get(1) : null;
-                    n.style = printed.size() > 2 ? printed.get(2) : null;
+                    for (String a : printed.subList(1, printed.size())) {
+                        if (isNotifyStyle(a)) n.style = a.toLowerCase(java.util.Locale.ROOT);
+                        else if (n.detail == null && !a.isEmpty()) n.detail = a;
+                    }
                     return n;
                 }
             }
             case "title" -> {
                 if (!printed.isEmpty() && printed.size() <= 4) {
-                    try {
-                        JsonStatement.Title t = new JsonStatement.Title();
-                        t.primary = printed.get(0);
-                        t.secondary = printed.size() > 1 && !printed.get(1).isEmpty() ? printed.get(1) : null;
-                        t.major = printed.size() > 2 && printed.get(2).equalsIgnoreCase("major");
-                        t.seconds = printed.size() > 3 ? Double.parseDouble(printed.get(3)) : 0;
-                        return t;
-                    } catch (NumberFormatException ignored) {
-                        // generic
+                    JsonStatement.Title t = new JsonStatement.Title();
+                    t.primary = printed.get(0);
+                    for (String a : printed.subList(1, printed.size())) {
+                        if (a.equalsIgnoreCase("major")) t.major = true;
+                        else if (a.equalsIgnoreCase("minor")) t.major = false;
+                        else if (a.matches("\\d+(\\.\\d+)?")) t.seconds = Double.parseDouble(a);
+                        else if (t.secondary == null && !a.isEmpty()) t.secondary = a;
                     }
+                    return t;
                 }
             }
             case "npc_name" -> {

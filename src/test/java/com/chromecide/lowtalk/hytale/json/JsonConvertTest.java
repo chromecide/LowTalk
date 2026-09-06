@@ -48,6 +48,8 @@ class JsonConvertTest {
             <<weather Zone1_Cloudy_Medium player>>
             <<weather clear>>
             <<notify "Hi {player}" "d" success>>
+            <<notify "Plain" success>>
+            <<title "Big" major 5>>
             <<input $tmp.name "Name?">>
             <<wait 1.5>>
             -> Trade <<if has("Food_Bread")>> <<once>>
@@ -91,7 +93,14 @@ class JsonConvertTest {
         assertEquals("d", notify.detail);
         assertEquals("success", notify.style);
         assertInstanceOf(JsonStatement.ObjectiveCancel.class, body.get(11), "objective cancel is typed");
-        JsonStatement.Choice choice = assertInstanceOf(JsonStatement.Choice.class, body.get(17));
+        JsonStatement.Notify plain = assertInstanceOf(JsonStatement.Notify.class, body.get(15));
+        assertNull(plain.detail);
+        assertEquals("success", plain.style);
+        JsonStatement.Title big = assertInstanceOf(JsonStatement.Title.class, body.get(16));
+        assertTrue(big.major);
+        assertEquals(5.0, big.seconds);
+        assertNull(big.secondary);
+        JsonStatement.Choice choice = assertInstanceOf(JsonStatement.Choice.class, body.get(19));
         assertEquals("has(\"Food_Bread\")", choice.options.get(0).ifExpr);
         assertTrue(choice.options.get(0).once);
         assertEquals("$rich", choice.options.get(1).showIf);

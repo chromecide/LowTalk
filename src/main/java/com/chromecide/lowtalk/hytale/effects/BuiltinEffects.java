@@ -241,14 +241,24 @@ public final class BuiltinEffects {
         // ---- feedback
 
         effects.register("notify", (session, effect) -> {
+            // <<notify "Text" ["Detail"] [style]>>: after the text, a style word is a style wherever it sits and the
+            // remaining token is the detail, so <<notify "Text" success>> works without an empty placeholder.
             String text = effect.args().get(0);
-            String secondary = effect.args().size() > 1 ? effect.args().get(1) : null;
+            String secondary = null;
             NotificationStyle style = NotificationStyle.Default;
-            if (effect.args().size() > 2) {
+            for (String a : effect.args().subList(1, effect.args().size())) {
+                NotificationStyle asStyle = null;
                 try {
-                    style = NotificationStyle.valueOf(capitalise(effect.args().get(2)));
-                } catch (IllegalArgumentException e) {
-                    throw new RuntimeError(effect.pos(), "notify style must be default, success, warning, or danger");
+                    asStyle = NotificationStyle.valueOf(capitalise(a.trim()));
+                } catch (IllegalArgumentException ignored) {
+                    // not a style word
+                }
+                if (asStyle != null) {
+                    style = asStyle;
+                } else if (secondary == null) {
+                    secondary = a;
+                } else {
+                    throw new RuntimeError(effect.pos(), "notify style must be default, success, warning, or danger, got '" + a + "'");
                 }
             }
             session.getPlayer().getPacketHandler().write(new Notification(
@@ -259,15 +269,24 @@ public final class BuiltinEffects {
         });
 
         effects.register("title", (session, effect) -> {
+            // <<title "Primary" ["Secondary"] [major] [seconds]>>: "major"/"minor" and a number are recognised
+            // wherever they sit; the remaining token is the secondary text.
             String primary = effect.args().get(0);
-            String secondary = effect.args().size() > 1 ? effect.args().get(1) : null;
-            boolean major = effect.args().size() > 2 && effect.args().get(2).equalsIgnoreCase("major");
+            String secondary = null;
+            boolean major = false;
             float seconds = 3.0f;
-            if (effect.args().size() > 3) {
-                try {
-                    seconds = Float.parseFloat(effect.args().get(3));
-                } catch (NumberFormatException e) {
-                    throw new RuntimeError(effect.pos(), "title duration must be a number of seconds");
+            for (String a : effect.args().subList(1, effect.args().size())) {
+                String t = a.trim();
+                if (t.equalsIgnoreCase("major")) {
+                    major = true;
+                } else if (t.equalsIgnoreCase("minor")) {
+                    major = false;
+                } else if (t.matches("\\d+(\\.\\d+)?")) {
+                    seconds = Float.parseFloat(t);
+                } else if (secondary == null) {
+                    secondary = a;
+                } else {
+                    throw new RuntimeError(effect.pos(), "title takes a secondary text, 'major' and a number of seconds; got an extra '" + a + "'");
                 }
             }
             session.getPlayer().getPacketHandler().write(new ShowEventTitle(

@@ -139,8 +139,8 @@ time. Any statements are allowed inside, not just lines.
 | `<<random>>` ... `<<or>>` ... `<<endrandom>>` | One alternative runs, chosen at random. |
 | `<<wait 2>>` | Pause that many seconds before what follows. The line before it shows without a Continue button and the next line appears by itself. Keep it short (0 to 30); the player can still Leave. |
 | `<<reputation +10>>`, `<<reputation -5 Group_Id>>` | Change the player's standing with this NPC's reputation group, or a named group. An NPC belongs to a group when a `Server/NPC/Reputation/Groups/*.json` asset lists one of its NPC groups; the base game ships none, so without such an asset (or a named group) this raises an error. |
-| `<<notify "Text" ["Detail"] [success\|warning\|danger]>>` | A toast notification in the corner of the screen. |
-| `<<title "Primary" ["Secondary"] [major] [seconds]>>` | A cinematic title across the screen. |
+| `<<notify "Text" ["Detail"] [success\|warning\|danger]>>` | A toast notification in the corner of the screen. The style word may come without a detail: `<<notify "Saved" success>>`. |
+| `<<title "Primary" ["Secondary"] [major] [seconds]>>` | A cinematic title across the screen. `major` and the seconds are recognised in any position: `<<title "Chapter One" major 5>>`. |
 | `<<effect Effect_Id>>`, `<<cure Effect_Id>>` | Apply or remove an entity effect (regeneration, poison, speed, ...). |
 | `<<heal [amount]>>` | Restore health, fully or by an amount. |
 | `<<stat Health +20>>`, `<<stat Stamina 50>>`, `<<stat Health max>>` | Add to, set, or max out any stat. |

@@ -34,7 +34,7 @@ def with_body(kind, body, **fields):
     return node(kind, fields, [("Body", body)])
 
 
-# ---- the demo dialogue: a guide who remembers you and hands out one job
+# ---- the demo dialogue: a guide (any NPC tagged with /lowtalk tag guide) who remembers you and hands out one job
 start_body = [
     stmt("Say", Speaker="", Text="[Well met|Good day], {player}. Welcome to the valley."),
     stmt("Set", Var="$met", Value="true"),
@@ -67,7 +67,7 @@ returning_body = [
 ]
 
 dialogue = node("Dialogue", {
-    "Npc": [],
+    "Npc": ["@guide"],
     "Speaker": "Guide",
     "Title": "The Valley Guide",
     "Scope": "",
