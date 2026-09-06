@@ -264,7 +264,9 @@ typed conveniences `Give`, `Take`, `Sound`, `Effect`, `Cure`, `Objective`,
 `Weather`. `/lowtalk convert <id> json <pack>` writes a loaded `.talk`
 dialogue as JSON into a pack, and `/lowtalk convert <id> talk [pack]` goes
 the other way. Ids must be unique across both formats; a `.talk` file wins a
-clash. JSON files do not support `include:`.
+clash. JSON files do not support `include:`. Name JSON dialogues the way the
+game names assets, `Capitalised_Words.json`, or the asset store logs a
+format warning (harmless, but noisy).
 
 ## Opening dialogues from the game's own systems
 
