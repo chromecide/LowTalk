@@ -32,6 +32,18 @@ import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.NPCPlugin;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
+import com.hypixel.hytale.protocol.InteractionType;
+import com.hypixel.hytale.server.core.asset.type.attitude.Attitude;
+import com.hypixel.hytale.server.core.modules.entity.component.HeadRotation;
+import com.hypixel.hytale.server.core.modules.entity.component.Interactable;
+import com.hypixel.hytale.server.core.modules.entity.component.NewSpawnComponent;
+import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.modules.entity.tracker.EntityTrackerSystems;
+import com.hypixel.hytale.server.core.modules.interaction.Interactions;
+import com.hypixel.hytale.server.npc.role.Role;
+import com.hypixel.hytale.server.npc.role.support.StateSupport;
+import com.hypixel.hytale.server.npc.role.support.WorldSupport;
+import com.hypixel.hytale.server.npc.util.NPCPhysicsMath;
 import org.joml.Vector3d;
 
 import javax.annotation.Nonnull;
@@ -227,6 +239,53 @@ public final class TestWorld {
         }
 
         out.accept("Reset: " + String.join(", ", done) + ".");
+    }
+
+
+    /**
+     * Report why the nearest NPC does or does not react to the player: every gate the game's own interaction path
+     * checks (role ticking, CanInteract's view sector and attitude, SetInteractable's mark, the UseNPC wiring).
+     */
+    public static void probe(@Nonnull Ref<EntityStore> playerEntity, @Nonnull Store<EntityStore> store, @Nonnull PlayerRef player,
+                             @Nonnull World world, @Nonnull Consumer<String> out) {
+        TransformComponent pt = store.getComponent(playerEntity, TransformComponent.getComponentType());
+        if (pt == null) { out.accept("No position for you."); return; }
+        Vector3d ppos = pt.getPosition();
+        Ref<EntityStore> nearest = null;
+        double best = Double.MAX_VALUE;
+        for (Ref<EntityStore> ref : new ArrayList<>(TargetUtil.getAllEntitiesInSphere(ppos, 16.0, store))) {
+            if (!ref.isValid() || store.getComponent(ref, NPCEntity.getComponentType()) == null) continue;
+            TransformComponent t = store.getComponent(ref, TransformComponent.getComponentType());
+            if (t == null) continue;
+            double d = t.getPosition().distanceSquared(ppos);
+            if (d < best) { best = d; nearest = ref; }
+        }
+        if (nearest == null) { out.accept("No NPC within 16 blocks."); return; }
+        NPCEntity npc = store.getComponent(nearest, NPCEntity.getComponentType());
+        TransformComponent nt = store.getComponent(nearest, TransformComponent.getComponentType());
+        var arch = store.getArchetype(nearest);
+        out.accept(String.format("NPC %s at %.1f blocks; world AllNPCFrozen=%s", npc.getRoleName(), Math.sqrt(best),
+                world.getWorldConfig().isAllNPCFrozen()));
+        out.accept("components: Frozen=" + arch.contains(Frozen.getComponentType()) + " NewSpawn=" + arch.contains(NewSpawnComponent.getComponentType())
+                + " Interactable=" + arch.contains(Interactable.getComponentType()));
+        Interactions inter = store.getComponent(nearest, Interactions.getComponentType());
+        out.accept("Use interaction id: " + (inter == null ? "(no Interactions component)" : inter.getInteractionId(InteractionType.Use)));
+        Role role = npc.getRole();
+        out.accept("role built=" + (role != null) + " interactionInstruction=" + (role != null && role.getInteractionInstruction() != null));
+        StateSupport st = StateSupport.get(nearest, store);
+        out.accept("state=" + st.getStateName() + " busy=" + st.isInBusyState() + " willInteractWith(you)=" + st.willInteractWith(playerEntity));
+        HeadRotation head = store.getComponent(nearest, HeadRotation.getComponentType());
+        if (nt != null) {
+            Vector3d np = nt.getPosition();
+            float bodyYaw = nt.getRotation().yaw();
+            String headYaw = head == null ? "none" : String.format("%.2f", head.getRotation().yaw());
+            boolean inView = head != null && NPCPhysicsMath.inViewSector(np.x, np.z, head.getRotation().yaw(), (float) Math.PI, ppos.x, ppos.z);
+            out.accept(String.format("bodyYaw=%.2f headYaw=%s you in 180-degree view sector=%s", bodyYaw, headYaw, inView));
+        }
+        Attitude attitude = WorldSupport.get(nearest, store).getAttitude(nearest, playerEntity, store);
+        out.accept("attitude to you: " + attitude + " (CanInteract accepts NEUTRAL, FRIENDLY, REVERED)");
+        EntityTrackerSystems.EntityViewer viewer = store.getComponent(playerEntity, EntityTrackerSystems.EntityViewer.getComponentType());
+        out.accept("visible to your client: " + (viewer != null && viewer.visible.contains(nearest)));
     }
 
     /** Remove every NPC in the corridor and spawn the stations again on their marks. */

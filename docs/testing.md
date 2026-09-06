@@ -42,6 +42,8 @@ should happen. Build it once, then visit it whenever you like:
 /lowtalk testworld respawn   # fresh run: forgets your dialogue memory, resets standing with LowTalk_Testers,
                              # cancels your active objectives, restores health, clears effects, removes the
                              # bread the stations gave you, respawns every station NPC and returns you to the entrance
+/lowtalk testworld probe     # stand near an NPC: reports every gate the game checks before it reacts to you
+                             # (frozen, role state, view sector, attitude, interactable mark, UseNPC wiring)
 /lowtalk testworld freeze    # freezes any station NPC that is still wandering
 ```
 

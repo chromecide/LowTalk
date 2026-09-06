@@ -489,6 +489,23 @@ public class LowTalkCommand extends AbstractCommandCollection {
             this.addSubCommand(new TestWorldGo(plugin));
             this.addSubCommand(new TestWorldFreeze(plugin));
             this.addSubCommand(new TestWorldRespawn(plugin));
+            this.addSubCommand(new TestWorldProbe(plugin));
+        }
+    }
+
+    static class TestWorldProbe extends AbstractPlayerCommand {
+        private final LowTalkPlugin plugin;
+
+        TestWorldProbe(LowTalkPlugin plugin) {
+            super("probe", "Report why the nearest NPC does or does not react to you");
+            this.plugin = plugin;
+            this.requirePermission(ADMIN);
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef player, @Nonnull World world) {
+            TestWorld.probe(ref, store, player, world, reporter(plugin, player));
         }
     }
 
