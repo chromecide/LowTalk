@@ -1,0 +1,31 @@
+{
+  "Id": "Heal",
+  "Title": "Heal",
+  "Description": "Restore health.",
+  "Color": "Red",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Amount",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Amount",
+        "Description": "Empty for a full heal.",
+        "Default": "",
+        "Width": 100
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Heal",
+    "Amount": "Amount"
+  }
+}

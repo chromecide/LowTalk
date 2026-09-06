@@ -1,0 +1,31 @@
+{
+  "Id": "Effect",
+  "Title": "Apply effect",
+  "Description": "Apply an entity effect to the player.",
+  "Color": "Red",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Effect",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Effect",
+        "Description": "Entity effect id.",
+        "Default": "",
+        "Width": 200
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Effect",
+    "Effect": "Effect"
+  }
+}

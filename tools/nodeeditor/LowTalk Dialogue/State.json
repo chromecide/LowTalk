@@ -1,0 +1,42 @@
+{
+  "Id": "State",
+  "Title": "Set NPC state",
+  "Description": "Put this NPC's role into one of its states.",
+  "Color": "Orange",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "State",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "State",
+        "Description": "State name from the role JSON.",
+        "Default": "",
+        "Width": 200
+      }
+    },
+    {
+      "Id": "SubState",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Sub-state",
+        "Description": "Optional.",
+        "Default": "",
+        "Width": 200
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "State",
+    "State": "State",
+    "SubState": "SubState"
+  }
+}

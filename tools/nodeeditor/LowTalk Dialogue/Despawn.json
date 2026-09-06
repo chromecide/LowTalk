@@ -1,0 +1,19 @@
+{
+  "Id": "Despawn",
+  "Title": "Despawn NPC",
+  "Description": "End the conversation and retire this NPC.",
+  "Color": "Orange",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Despawn"
+  }
+}

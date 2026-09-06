@@ -1,0 +1,37 @@
+{
+  "Id": "Attitude",
+  "Title": "Set attitude",
+  "Description": "Set this NPC's attitude toward the player for a while.",
+  "Color": "Orange",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Attitude",
+      "Type": "Enum",
+      "Options": {
+        "Label": "Attitude",
+        "Default": "friendly",
+        "Width": 160,
+        "Values": [
+          "friendly",
+          "neutral",
+          "ignore",
+          "hostile",
+          "revered"
+        ]
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Attitude",
+    "Attitude": "Attitude"
+  }
+}

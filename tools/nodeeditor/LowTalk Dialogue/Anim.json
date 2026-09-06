@@ -1,0 +1,50 @@
+{
+  "Id": "Anim",
+  "Title": "Play animation",
+  "Description": "Play an animation on the NPC.",
+  "Color": "Orange",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Animation",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Animation",
+        "Description": "Animation name on the NPC's model, e.g. Wave.",
+        "Default": "",
+        "Width": 200
+      }
+    },
+    {
+      "Id": "Slot",
+      "Type": "Enum",
+      "Options": {
+        "Label": "Slot",
+        "Description": "Emote by default; Status is what the game uses for greetings.",
+        "Default": "Emote",
+        "Width": 160,
+        "Values": [
+          "Emote",
+          "Status",
+          "Action",
+          "Movement",
+          "Face",
+          "ServerAction"
+        ]
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Anim",
+    "Animation": "Animation",
+    "Slot": "Slot"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "Id": "If",
+  "Title": "If",
+  "Description": "if / elseif / else. Branches are tried in order; a last branch with an empty When is the else.",
+  "Color": "Purple",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [],
+  "Outputs": [
+    {
+      "Id": "Branches",
+      "Type": "Branch",
+      "Color": "Purple",
+      "Multiple": true,
+      "Label": "Branches"
+    }
+  ],
+  "Schema": {
+    "Type": "If",
+    "Branches": {
+      "Node": "Branch",
+      "Pin": "Branches"
+    }
+  }
+}

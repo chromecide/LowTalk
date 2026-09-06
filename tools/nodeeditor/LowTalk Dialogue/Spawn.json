@@ -1,0 +1,64 @@
+{
+  "Id": "Spawn",
+  "Title": "Spawn NPC",
+  "Description": "Spawn an NPC near the player, facing them.",
+  "Color": "Orange",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Role",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Role",
+        "Description": "NPC role id, e.g. Kweebec_Merchant.",
+        "Default": "",
+        "Width": 200
+      }
+    },
+    {
+      "Id": "Right",
+      "Type": "Float",
+      "Options": {
+        "Label": "Right",
+        "Description": "Blocks to the player's right.",
+        "Default": 0.0,
+        "Width": 100
+      }
+    },
+    {
+      "Id": "Up",
+      "Type": "Float",
+      "Options": {
+        "Label": "Up",
+        "Description": "Blocks up.",
+        "Default": 0.0,
+        "Width": 100
+      }
+    },
+    {
+      "Id": "Forward",
+      "Type": "Float",
+      "Options": {
+        "Label": "Forward",
+        "Description": "Blocks in front of the player.",
+        "Default": 2.0,
+        "Width": 100
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Spawn",
+    "Role": "Role",
+    "Right": "Right",
+    "Up": "Up",
+    "Forward": "Forward"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "Id": "Weather",
+  "Title": "Weather",
+  "Description": "Change the weather for the world, or this player only.",
+  "Color": "Green",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Weather",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Weather",
+        "Description": "A weather id, or clear.",
+        "Default": "clear",
+        "Width": 200
+      }
+    },
+    {
+      "Id": "PlayerOnly",
+      "Type": "Checkbox",
+      "Options": {
+        "Label": "Player only",
+        "Description": "Only this player sees it.",
+        "Default": false
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Weather",
+    "Weather": "Weather",
+    "PlayerOnly": "PlayerOnly"
+  }
+}

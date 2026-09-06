@@ -1,0 +1,42 @@
+{
+  "Id": "Command",
+  "Title": "Plugin command",
+  "Description": "A command added by another plugin, by name. Built-in commands have their own nodes.",
+  "Color": "Grey",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Name",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Name",
+        "Description": "Command name as in <<name ...>>.",
+        "Default": "",
+        "Width": 200
+      }
+    },
+    {
+      "Id": "Args",
+      "Type": "List",
+      "Options": {
+        "Label": "Arguments",
+        "Description": "One per entry, as they would appear inside <<...>>.",
+        "Width": 350,
+        "Type": "String"
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Command",
+    "Name": "Name",
+    "Args": "Args"
+  }
+}

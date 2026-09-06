@@ -1,0 +1,42 @@
+{
+  "Id": "Give",
+  "Title": "Give items",
+  "Description": "Put items in the player's inventory.",
+  "Color": "Green",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Item",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Item",
+        "Description": "Item id, e.g. Food_Bread.",
+        "Default": "",
+        "Width": 200
+      }
+    },
+    {
+      "Id": "Count",
+      "Type": "Int",
+      "Options": {
+        "Label": "Count",
+        "Description": "How many.",
+        "Default": 1,
+        "Width": 100
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Give",
+    "Item": "Item",
+    "Count": "Count"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "Id": "Learn",
+  "Title": "Teach recipe",
+  "Description": "Teach the player a crafting recipe.",
+  "Color": "Yellow",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Recipe",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Recipe",
+        "Description": "Recipe id.",
+        "Default": "",
+        "Width": 200
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Learn",
+    "Recipe": "Recipe"
+  }
+}

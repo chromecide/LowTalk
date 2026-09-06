@@ -1,0 +1,75 @@
+{
+  "Id": "Option",
+  "Title": "Option",
+  "Description": "One button. Its Body runs when chosen; if the body does not Jump or End, the options are shown again.",
+  "Color": "Aqua",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Option",
+      "Color": "Aqua",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Text",
+      "Type": "String",
+      "Options": {
+        "Label": "Text",
+        "Description": "Button text. Text may use {player}, {npc}, {$var}, {expr ? a : b} and [one|of|these].",
+        "Default": "",
+        "Width": 350,
+        "Height": 50
+      }
+    },
+    {
+      "Id": "If",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "If",
+        "Description": "Hide unless true. A LowTalk expression, e.g. $met, not $player.done, has(\"Food_Bread\", 2), chance(0.5).",
+        "Default": "",
+        "Width": 300
+      }
+    },
+    {
+      "Id": "ShowIf",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Show if",
+        "Description": "Show greyed out unless true. A LowTalk expression, e.g. $met, not $player.done, has(\"Food_Bread\", 2), chance(0.5).",
+        "Default": "",
+        "Width": 300
+      }
+    },
+    {
+      "Id": "Once",
+      "Type": "Checkbox",
+      "Options": {
+        "Label": "Once",
+        "Description": "Hide for good once the player has picked it.",
+        "Default": false
+      }
+    }
+  ],
+  "Outputs": [
+    {
+      "Id": "Body",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": true,
+      "Label": "Body"
+    }
+  ],
+  "Schema": {
+    "Text": "Text",
+    "If": "If",
+    "ShowIf": "ShowIf",
+    "Once": "Once",
+    "Body": {
+      "Node": "StatementVariants",
+      "Pin": "Body"
+    }
+  }
+}

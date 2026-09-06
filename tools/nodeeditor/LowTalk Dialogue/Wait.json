@@ -1,0 +1,31 @@
+{
+  "Id": "Wait",
+  "Title": "Wait",
+  "Description": "Pause before the next line; the previous line shows with no Continue button.",
+  "Color": "Purple",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Seconds",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Seconds",
+        "Description": "0 to 30; may be an expression.",
+        "Default": "2",
+        "Width": 100
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Wait",
+    "Seconds": "Seconds"
+  }
+}

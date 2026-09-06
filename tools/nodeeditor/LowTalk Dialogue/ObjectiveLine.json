@@ -1,0 +1,31 @@
+{
+  "Id": "ObjectiveLine",
+  "Title": "Start objective line",
+  "Description": "Start a chain of objectives.",
+  "Color": "Yellow",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Line",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Objective line",
+        "Description": "Objective line id.",
+        "Default": "",
+        "Width": 200
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "ObjectiveLine",
+    "Line": "Line"
+  }
+}

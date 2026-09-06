@@ -1,0 +1,31 @@
+{
+  "Id": "Sound",
+  "Title": "Play sound",
+  "Description": "Play a sound event at the NPC.",
+  "Color": "Orange",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Sound",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Sound",
+        "Description": "Sound event id.",
+        "Default": "",
+        "Width": 200
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Sound",
+    "Sound": "Sound"
+  }
+}

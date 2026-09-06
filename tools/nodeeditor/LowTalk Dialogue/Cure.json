@@ -1,0 +1,31 @@
+{
+  "Id": "Cure",
+  "Title": "Remove effect",
+  "Description": "Remove an entity effect from the player.",
+  "Color": "Red",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Effect",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Effect",
+        "Description": "Entity effect id.",
+        "Default": "",
+        "Width": 200
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Cure",
+    "Effect": "Effect"
+  }
+}

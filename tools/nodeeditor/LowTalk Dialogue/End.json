@@ -1,0 +1,19 @@
+{
+  "Id": "End",
+  "Title": "End",
+  "Description": "Close the window.",
+  "Color": "Purple",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [],
+  "Outputs": [],
+  "Schema": {
+    "Type": "End"
+  }
+}

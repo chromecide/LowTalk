@@ -1,0 +1,43 @@
+{
+  "Id": "Input",
+  "Title": "Text input",
+  "Description": "Ask the player to type something and store it.",
+  "Color": "Blue",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Var",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Variable",
+        "Description": "Where to store the text.",
+        "Default": "$tmp.answer",
+        "Width": 200
+      }
+    },
+    {
+      "Id": "Prompt",
+      "Type": "String",
+      "Options": {
+        "Label": "Prompt",
+        "Description": "Shown above the text box. Text may use {player}, {npc}, {$var}, {expr ? a : b} and [one|of|these].",
+        "Default": "",
+        "Width": 350,
+        "Height": 50
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Input",
+    "Var": "Var",
+    "Prompt": "Prompt"
+  }
+}

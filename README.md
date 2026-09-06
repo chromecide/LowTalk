@@ -68,7 +68,9 @@ conversation. Each one remembers each player separately.
   `Server/LowTalk/Dialogues` in any asset pack, hot-loaded on save with
   problems shown as editor notifications. The same dialogues can be written
   as `.json` assets and edited in the editor's form mode, with pickers and
-  tooltips; `/lowtalk convert` moves between the two.
+  tooltips; `/lowtalk convert` moves between the two. A workspace for
+  Hytale's standalone Node Editor draws the same files as a graph
+  ([docs/node-editor.md](docs/node-editor.md)).
 - An API for other plugins: add functions and commands, listen to
   conversations, open dialogues.
 

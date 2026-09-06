@@ -1,0 +1,59 @@
+{
+  "Id": "Notify",
+  "Title": "Notification",
+  "Description": "A toast notification in the corner of the screen.",
+  "Color": "Pink",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Text",
+      "Type": "String",
+      "Options": {
+        "Label": "Text",
+        "Description": "Main text. Text may use {player}, {npc}, {$var}, {expr ? a : b} and [one|of|these].",
+        "Default": "",
+        "Width": 350,
+        "Height": 50
+      }
+    },
+    {
+      "Id": "Detail",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Detail",
+        "Description": "Smaller second line.",
+        "Default": "",
+        "Width": 300
+      }
+    },
+    {
+      "Id": "Style",
+      "Type": "Enum",
+      "Options": {
+        "Label": "Style",
+        "Default": "default",
+        "Width": 160,
+        "Values": [
+          "default",
+          "success",
+          "warning",
+          "danger"
+        ]
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Notify",
+    "Text": "Text",
+    "Detail": "Detail",
+    "Style": "Style"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "Id": "Start",
+  "Title": "Start rule",
+  "Description": "Begin at Node when When holds (or always, if When is empty). Guarded rules are tried before the unguarded one. With no rules the first node is the start.",
+  "Color": "Grey",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Start",
+      "Color": "Grey",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Node",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Node",
+        "Description": "Node to begin at.",
+        "Default": "",
+        "Width": 200
+      }
+    },
+    {
+      "Id": "When",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "When",
+        "Description": "Only when this is true. A LowTalk expression, e.g. $met, not $player.done, has(\"Food_Bread\", 2), chance(0.5).",
+        "Default": "",
+        "Width": 300
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Node": "Node",
+    "When": "When"
+  }
+}

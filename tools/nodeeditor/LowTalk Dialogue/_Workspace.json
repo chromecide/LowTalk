@@ -1,0 +1,108 @@
+{
+  "WorkspaceName": "LowTalk Dialogue",
+  "FileFormat": "json",
+  "ExportDefaults": true,
+  "Roots": {
+    "Dialogue": {
+      "RootNodeType": "Dialogue",
+      "MenuName": "LowTalk - Dialogue"
+    }
+  },
+  "NodeCategories": {
+    "Structure": [
+      "Dialogue",
+      "Start",
+      "Node"
+    ],
+    "Talk": [
+      "Say",
+      "Choice",
+      "Option",
+      "Input"
+    ],
+    "Flow": [
+      "If",
+      "Branch",
+      "Once",
+      "Random",
+      "Alternative",
+      "Set",
+      "Jump",
+      "End",
+      "Wait"
+    ],
+    "Commands": [
+      "Give",
+      "Take",
+      "Shop",
+      "Attitude",
+      "Anim",
+      "Sound",
+      "NpcName",
+      "State",
+      "Despawn",
+      "Spawn",
+      "Objective",
+      "ObjectiveLine",
+      "ObjectiveCancel",
+      "ObjectiveTask",
+      "Reputation",
+      "Learn",
+      "Notify",
+      "Title",
+      "Effect",
+      "Cure",
+      "Heal",
+      "Stat",
+      "Teleport",
+      "Weather",
+      "Time",
+      "Run",
+      "Command"
+    ]
+  },
+  "Variants": {
+    "StatementVariants": {
+      "VariantFieldName": "Type",
+      "Variants": {
+        "Say": "Say",
+        "Choice": "Choice",
+        "If": "If",
+        "Once": "Once",
+        "Random": "Random",
+        "Set": "Set",
+        "Jump": "Jump",
+        "End": "End",
+        "Input": "Input",
+        "Wait": "Wait",
+        "Give": "Give",
+        "Take": "Take",
+        "Shop": "Shop",
+        "Attitude": "Attitude",
+        "Anim": "Anim",
+        "Sound": "Sound",
+        "NpcName": "NpcName",
+        "State": "State",
+        "Despawn": "Despawn",
+        "Spawn": "Spawn",
+        "Objective": "Objective",
+        "ObjectiveLine": "ObjectiveLine",
+        "ObjectiveCancel": "ObjectiveCancel",
+        "ObjectiveTask": "ObjectiveTask",
+        "Reputation": "Reputation",
+        "Learn": "Learn",
+        "Notify": "Notify",
+        "Title": "Title",
+        "Effect": "Effect",
+        "Cure": "Cure",
+        "Heal": "Heal",
+        "Stat": "Stat",
+        "Teleport": "Teleport",
+        "Weather": "Weather",
+        "Time": "Time",
+        "Run": "Run",
+        "Command": "Command"
+      }
+    }
+  }
+}

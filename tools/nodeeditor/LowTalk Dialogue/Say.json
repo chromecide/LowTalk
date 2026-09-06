@@ -1,0 +1,43 @@
+{
+  "Id": "Say",
+  "Title": "Say",
+  "Description": "A spoken line. Consecutive lines get a Continue button; the last line before options is shown with them.",
+  "Color": "Blue",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Speaker",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Speaker",
+        "Description": "Who says it. Empty for the dialogue's default speaker.",
+        "Default": "",
+        "Width": 200
+      }
+    },
+    {
+      "Id": "Text",
+      "Type": "String",
+      "Options": {
+        "Label": "Text",
+        "Description": "What is said. Text may use {player}, {npc}, {$var}, {expr ? a : b} and [one|of|these].",
+        "Default": "",
+        "Width": 350,
+        "Height": 80
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Say",
+    "Speaker": "Speaker",
+    "Text": "Text"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "Id": "Time",
+  "Title": "Time of day",
+  "Description": "Set the time, or pause and resume the clock.",
+  "Color": "Green",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Time",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Time",
+        "Description": "dawn, noon, dusk, midnight, an hour 0-24, pause or resume.",
+        "Default": "noon",
+        "Width": 140
+      }
+    },
+    {
+      "Id": "FadeSeconds",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Fade seconds",
+        "Description": "Fade over this many seconds; empty for instant.",
+        "Default": "",
+        "Width": 100
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Time",
+    "Time": "Time",
+    "FadeSeconds": "FadeSeconds"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "Id": "Run",
+  "Title": "Run command",
+  "Description": "Run a server command as the console. Never include text the player typed.",
+  "Color": "Red",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Command",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Command",
+        "Description": "e.g. /give {player} Food_Bread 1",
+        "Default": "",
+        "Width": 350
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Run",
+    "Command": "Command"
+  }
+}

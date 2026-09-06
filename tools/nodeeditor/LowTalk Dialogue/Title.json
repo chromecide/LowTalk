@@ -1,0 +1,64 @@
+{
+  "Id": "Title",
+  "Title": "Screen title",
+  "Description": "A cinematic title across the screen.",
+  "Color": "Pink",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Primary",
+      "Type": "String",
+      "Options": {
+        "Label": "Primary",
+        "Description": "Big text. Text may use {player}, {npc}, {$var}, {expr ? a : b} and [one|of|these].",
+        "Default": "",
+        "Width": 350,
+        "Height": 50
+      }
+    },
+    {
+      "Id": "Secondary",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Secondary",
+        "Description": "Smaller text underneath.",
+        "Default": "",
+        "Width": 300
+      }
+    },
+    {
+      "Id": "Major",
+      "Type": "Checkbox",
+      "Options": {
+        "Label": "Major",
+        "Description": "The larger title style.",
+        "Default": false
+      }
+    },
+    {
+      "Id": "Seconds",
+      "Type": "Float",
+      "Options": {
+        "Label": "Seconds",
+        "Description": "How long it stays; 0 for the default.",
+        "Default": 0.0,
+        "Width": 100
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Title",
+    "Primary": "Primary",
+    "Secondary": "Secondary",
+    "Major": "Major",
+    "Seconds": "Seconds"
+  }
+}

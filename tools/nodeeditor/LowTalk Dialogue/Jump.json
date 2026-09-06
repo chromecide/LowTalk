@@ -1,0 +1,31 @@
+{
+  "Id": "Jump",
+  "Title": "Jump",
+  "Description": "Continue at another node.",
+  "Color": "Purple",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Node",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Node",
+        "Description": "Name of the node.",
+        "Default": "",
+        "Width": 200
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Jump",
+    "Node": "Node"
+  }
+}

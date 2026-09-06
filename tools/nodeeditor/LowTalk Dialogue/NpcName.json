@@ -1,0 +1,31 @@
+{
+  "Id": "NpcName",
+  "Title": "Rename NPC",
+  "Description": "Rename this NPC (kept with the NPC).",
+  "Color": "Orange",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Name",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Name",
+        "Description": "New name, or clear to remove it.",
+        "Default": "",
+        "Width": 200
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "NpcName",
+    "Name": "Name"
+  }
+}

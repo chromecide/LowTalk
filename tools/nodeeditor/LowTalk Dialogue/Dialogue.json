@@ -1,0 +1,101 @@
+{
+  "Id": "Dialogue",
+  "Title": "Dialogue",
+  "Description": "A LowTalk dialogue. Save into Server/LowTalk/Dialogues of an asset pack; the file name is the dialogue id.",
+  "Color": "Grey",
+  "Inputs": [],
+  "Content": [
+    {
+      "Id": "Npc",
+      "Type": "List",
+      "Options": {
+        "Label": "NPCs",
+        "Description": "Which NPCs use this dialogue: role ids (Kweebec_Merchant) or @tags set with /lowtalk tag. Empty means command only.",
+        "Width": 350,
+        "Type": "String"
+      }
+    },
+    {
+      "Id": "Speaker",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Speaker",
+        "Description": "Default speaker for lines without one. Defaults to the NPC's name.",
+        "Default": "",
+        "Width": 200
+      }
+    },
+    {
+      "Id": "Title",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Title",
+        "Description": "Window title. Defaults to the speaker.",
+        "Default": "",
+        "Width": 200
+      }
+    },
+    {
+      "Id": "Scope",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Scope",
+        "Description": "Variable namespace shared with other dialogues that declare the same scope. Defaults to the dialogue id.",
+        "Default": "",
+        "Width": 200
+      }
+    },
+    {
+      "Id": "Portrait",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Portrait",
+        "Description": "Image beside the text, a path inside Common/UI/Custom of any pack.",
+        "Default": "",
+        "Width": 300
+      }
+    },
+    {
+      "Id": "On",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "On",
+        "Description": "join opens this dialogue by itself when a player joins.",
+        "Default": "",
+        "Width": 120
+      }
+    }
+  ],
+  "Outputs": [
+    {
+      "Id": "StartPin",
+      "Type": "Start",
+      "Color": "Grey",
+      "Multiple": true,
+      "Label": "Start rules"
+    },
+    {
+      "Id": "NodesPin",
+      "Type": "DialogueNode",
+      "Color": "Olive",
+      "Multiple": true,
+      "Label": "Nodes"
+    }
+  ],
+  "Schema": {
+    "Npc": "Npc",
+    "Speaker": "Speaker",
+    "Title": "Title",
+    "Scope": "Scope",
+    "Portrait": "Portrait",
+    "On": "On",
+    "Start": {
+      "Node": "Start",
+      "Pin": "StartPin"
+    },
+    "Nodes": {
+      "Node": "Node",
+      "Pin": "NodesPin"
+    }
+  }
+}

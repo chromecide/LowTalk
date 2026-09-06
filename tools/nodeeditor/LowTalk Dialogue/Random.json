@@ -1,0 +1,31 @@
+{
+  "Id": "Random",
+  "Title": "Random",
+  "Description": "Runs exactly one alternative, chosen at random each time.",
+  "Color": "Purple",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [],
+  "Outputs": [
+    {
+      "Id": "Alternatives",
+      "Type": "Alternative",
+      "Color": "Purple",
+      "Multiple": true,
+      "Label": "Alternatives"
+    }
+  ],
+  "Schema": {
+    "Type": "Random",
+    "Alternatives": {
+      "Node": "Alternative",
+      "Pin": "Alternatives"
+    }
+  }
+}

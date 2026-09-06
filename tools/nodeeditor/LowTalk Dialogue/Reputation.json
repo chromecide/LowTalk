@@ -1,0 +1,42 @@
+{
+  "Id": "Reputation",
+  "Title": "Change reputation",
+  "Description": "Change the player's standing with a reputation group.",
+  "Color": "Yellow",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Change",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Change",
+        "Description": "+10 or -5.",
+        "Default": "+10",
+        "Width": 100
+      }
+    },
+    {
+      "Id": "Group",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Group",
+        "Description": "Empty for this NPC's own group.",
+        "Default": "",
+        "Width": 200
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Reputation",
+    "Change": "Change",
+    "Group": "Group"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "Id": "Once",
+  "Title": "Once",
+  "Description": "Runs the first time this player reaches it with this NPC, and never again.",
+  "Color": "Purple",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [],
+  "Outputs": [
+    {
+      "Id": "Body",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": true,
+      "Label": "Body"
+    }
+  ],
+  "Schema": {
+    "Type": "Once",
+    "Body": {
+      "Node": "StatementVariants",
+      "Pin": "Body"
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "Id": "Node",
+  "Title": "Node",
+  "Description": "A named stretch of conversation. Jump and Start refer to it by name.",
+  "Color": "Olive",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "DialogueNode",
+      "Color": "Olive",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Name",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Name",
+        "Description": "Letters, digits and underscores.",
+        "Default": "start",
+        "Width": 200
+      }
+    }
+  ],
+  "Outputs": [
+    {
+      "Id": "Body",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": true,
+      "Label": "Body"
+    }
+  ],
+  "Schema": {
+    "Name": "Name",
+    "Body": {
+      "Node": "StatementVariants",
+      "Pin": "Body"
+    }
+  }
+}

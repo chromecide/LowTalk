@@ -1,0 +1,42 @@
+{
+  "Id": "Take",
+  "Title": "Take items",
+  "Description": "Remove items; fails the option if the player lacks them, so guard with has().",
+  "Color": "Green",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Item",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Item",
+        "Description": "Item id.",
+        "Default": "",
+        "Width": 200
+      }
+    },
+    {
+      "Id": "Count",
+      "Type": "Int",
+      "Options": {
+        "Label": "Count",
+        "Description": "How many.",
+        "Default": 1,
+        "Width": 100
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Take",
+    "Item": "Item",
+    "Count": "Count"
+  }
+}

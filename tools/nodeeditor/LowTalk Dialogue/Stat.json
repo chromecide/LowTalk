@@ -1,0 +1,42 @@
+{
+  "Id": "Stat",
+  "Title": "Change stat",
+  "Description": "Add to, set, or max out an entity stat.",
+  "Color": "Red",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Stat",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Stat",
+        "Description": "e.g. Health, Stamina.",
+        "Default": "Health",
+        "Width": 200
+      }
+    },
+    {
+      "Id": "Value",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Value",
+        "Description": "+20 to add, 50 to set, or max.",
+        "Default": "max",
+        "Width": 100
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Stat",
+    "Stat": "Stat",
+    "Value": "Value"
+  }
+}

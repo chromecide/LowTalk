@@ -1,0 +1,42 @@
+{
+  "Id": "Set",
+  "Title": "Set variable",
+  "Description": "Store a value in a variable.",
+  "Color": "Purple",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "Var",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Variable",
+        "Description": "$x (this player with this NPC), $player.x, $npc.x, $world.x or $tmp.x.",
+        "Default": "$met",
+        "Width": 200
+      }
+    },
+    {
+      "Id": "Value",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Value",
+        "Description": "The value. A LowTalk expression, e.g. $met, not $player.done, has(\"Food_Bread\", 2), chance(0.5).",
+        "Default": "true",
+        "Width": 300
+      }
+    }
+  ],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Set",
+    "Var": "Var",
+    "Value": "Value"
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "Id": "Branch",
+  "Title": "Branch",
+  "Description": "One branch of an If.",
+  "Color": "Purple",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Branch",
+      "Color": "Purple",
+      "Multiple": false
+    }
+  ],
+  "Content": [
+    {
+      "Id": "When",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "When",
+        "Description": "Condition; leave empty on the last branch for an else. A LowTalk expression, e.g. $met, not $player.done, has(\"Food_Bread\", 2), chance(0.5).",
+        "Default": "",
+        "Width": 300
+      }
+    }
+  ],
+  "Outputs": [
+    {
+      "Id": "Body",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": true,
+      "Label": "Body"
+    }
+  ],
+  "Schema": {
+    "When": "When",
+    "Body": {
+      "Node": "StatementVariants",
+      "Pin": "Body"
+    }
+  }
+}
