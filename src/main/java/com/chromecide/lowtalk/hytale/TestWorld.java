@@ -44,6 +44,7 @@ import com.hypixel.hytale.server.npc.role.Role;
 import com.hypixel.hytale.server.npc.role.support.StateSupport;
 import com.hypixel.hytale.server.npc.role.support.WorldSupport;
 import com.hypixel.hytale.server.npc.util.NPCPhysicsMath;
+import com.hypixel.hytale.server.npc.util.EntityDetectionUtil;
 import org.joml.Vector3d;
 
 import javax.annotation.Nonnull;
@@ -168,6 +169,7 @@ public final class TestWorld {
                 Teleport t = new Teleport(world, new Vector3d(CORRIDOR_START + 1.5, FLOOR_Y + 1.0, 0.5), new Rotation3f(0.0f, 0.0f, 0.0f));
                 store.addComponent(ref, Teleport.getComponentType(), t);
                 out.accept("Off you go. Walk along the corridor; each NPC is a test station.");
+                if (!EntityDetectionUtil.isDetectableByNPCs(ref, store)) out.accept("Note: " + detectability(ref, store));
             });
         });
     }
@@ -286,6 +288,21 @@ public final class TestWorld {
         out.accept("attitude to you: " + attitude + " (CanInteract accepts NEUTRAL, FRIENDLY, REVERED)");
         EntityTrackerSystems.EntityViewer viewer = store.getComponent(playerEntity, EntityTrackerSystems.EntityViewer.getComponentType());
         out.accept("visible to your client: " + (viewer != null && viewer.visible.contains(nearest)));
+        out.accept(detectability(playerEntity, store));
+    }
+
+    /**
+     * NPC brains only see players that pass the game's detectability rule: not spectating, and not in Creative mode
+     * unless the creative setting "allow NPC detection" is on. An undetectable player gets no hint and no reaction.
+     */
+    static String detectability(@Nonnull Ref<EntityStore> playerEntity, @Nonnull Store<EntityStore> store) {
+        Player p = store.getComponent(playerEntity, Player.getComponentType());
+        String mode = p == null ? "?" : String.valueOf(p.getGameMode());
+        boolean detectable = EntityDetectionUtil.isDetectableByNPCs(playerEntity, store);
+        return detectable
+                ? "game mode " + mode + ": NPCs can detect you"
+                : "game mode " + mode + ": NPCs CANNOT detect you. Live NPCs ignore Creative players unless 'Allow NPC detection' is on in "
+                  + "the creative settings; run /gamemode adventure (or survival) to test station 14.";
     }
 
     /** Remove every NPC in the corridor and spawn the stations again on their marks. */

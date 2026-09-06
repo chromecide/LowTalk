@@ -84,3 +84,8 @@ a fresh server folder.
 - A player disconnected on join right after a layout change: read the newest
   client log in the client's `UserData/Logs` folder; it names the file, line,
   and property the client could not parse.
+
+
+## Station 14 and game mode
+
+Station 14 is a live NPC whose own role opens the dialogue, the way a shipped NPC would. The game's NPC brains ignore Creative players unless "Allow NPC detection" is turned on in the creative settings, so in Creative the Talker shows no hint and does not react. Switch with `/gamemode adventure` (the other stations work in any mode because LowTalk's use hook, not the NPC brain, opens them). `/lowtalk testworld go` and `probe` tell you when you are undetectable.
