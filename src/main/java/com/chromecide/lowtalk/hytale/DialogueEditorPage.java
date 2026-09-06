@@ -742,7 +742,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             } else {
                 Path json = registry.findAssetFile(d.id() + ".json");
                 if (json == null) { status = "Could not find " + d.id() + ".json to write to."; return; }
-                com.chromecide.lowtalk.hytale.json.DialogueAsset asset = com.chromecide.lowtalk.hytale.json.JsonConvert.toAsset(d);
+                com.chromecide.lowtalk.hytale.json.LowTalkJson asset = com.chromecide.lowtalk.hytale.json.JsonConvert.toAsset(d);
                 asset.setId(d.id());
                 String out = com.chromecide.lowtalk.hytale.json.JsonCodecs.DIALOGUE
                         .encode(asset, com.hypixel.hytale.codec.EmptyExtraInfo.EMPTY).asDocument()

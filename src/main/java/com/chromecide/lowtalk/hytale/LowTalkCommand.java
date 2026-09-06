@@ -228,7 +228,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
                         context.sendMessage(info(plugin, out.getFileName() + " already exists in that pack; delete or rename it first."));
                         return;
                     }
-                    com.chromecide.lowtalk.hytale.json.DialogueAsset asset = com.chromecide.lowtalk.hytale.json.JsonConvert.toAsset(d);
+                    com.chromecide.lowtalk.hytale.json.LowTalkJson asset = com.chromecide.lowtalk.hytale.json.JsonConvert.toAsset(d);
                     asset.setId(jsonId);
                     if (asset.scope == null && !jsonId.equals(d.scope())) asset.scope = d.scope(); // share memory with the original
                     String json = com.chromecide.lowtalk.hytale.json.JsonCodecs.DIALOGUE

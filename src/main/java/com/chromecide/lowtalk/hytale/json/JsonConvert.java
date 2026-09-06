@@ -27,12 +27,12 @@ public final class JsonConvert {
      * @param display how the source is named in error messages, e.g. "MyPack/hello.json"
      * @throws ParseException with a position naming the node and statement index when an expression or text is bad
      */
-    public static Dialogue toModel(DialogueAsset a, String display) {
+    public static Dialogue toModel(LowTalkJson a, String display) {
         String id = a.getId();
         List<String> bindings = a.npc == null ? List.of() : List.of(a.npc);
         LinkedHashMap<String, Node> nodes = new LinkedHashMap<>();
         int index = 0;
-        for (DialogueAsset.NodeEntry n : a.nodes) {
+        for (LowTalkJson.NodeEntry n : a.nodes) {
             index++;
             Pos p = new Pos(display + " node " + (n.name == null ? "#" + index : n.name), 0);
             if (n.name == null || n.name.isBlank()) throw new ParseException(p, "a node has no Name");
@@ -41,7 +41,7 @@ public final class JsonConvert {
         }
         if (nodes.isEmpty()) throw new ParseException(new Pos(display, 0), "dialogue has no nodes");
         List<Dialogue.Start> starts = new ArrayList<>();
-        for (DialogueAsset.StartEntry s : a.start) {
+        for (LowTalkJson.StartEntry s : a.start) {
             Pos p = new Pos(display + " start", 0);
             if (s.node == null || s.node.isBlank()) throw new ParseException(p, "a Start entry has no Node");
             starts.add(new Dialogue.Start(p, s.node, blank(s.when) ? null : ExprParser.parse(s.when, p)));
@@ -207,8 +207,8 @@ public final class JsonConvert {
 
     // ---- model -> JSON
 
-    public static DialogueAsset toAsset(Dialogue d) {
-        DialogueAsset a = new DialogueAsset(d.id());
+    public static LowTalkJson toAsset(Dialogue d) {
+        LowTalkJson a = new LowTalkJson(d.id());
         a.npc = d.bindings().toArray(new String[0]);
         a.speaker = d.speaker();
         a.title = d.title();
@@ -218,9 +218,9 @@ public final class JsonConvert {
         for (Dialogue.Start s : d.starts()) {
             boolean defaultStart = s.condition() == null && d.starts().size() == 1 && s.node().equals(d.nodes().keySet().iterator().next());
             if (defaultStart) continue;
-            a.start.add(new DialogueAsset.StartEntry(s.node(), s.condition() == null ? null : Printer.expr(s.condition())));
+            a.start.add(new LowTalkJson.StartEntry(s.node(), s.condition() == null ? null : Printer.expr(s.condition())));
         }
-        for (Node n : d.nodeList()) a.nodes.add(new DialogueAsset.NodeEntry(n.name(), statements(n.body())));
+        for (Node n : d.nodeList()) a.nodes.add(new LowTalkJson.NodeEntry(n.name(), statements(n.body())));
         return a;
     }
 

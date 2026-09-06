@@ -12,7 +12,7 @@ import java.util.List;
  * for graph tools. Flat list of named nodes; jumps refer to nodes by name; expressions and interpolated text are
  * LowTalk expression strings, exactly as they appear in .talk files. Codecs live in {@link JsonCodecs}.
  */
-public class DialogueAsset implements JsonAssetWithMap<String, DefaultAssetMap<String, DialogueAsset>> {
+public class LowTalkJson implements JsonAssetWithMap<String, DefaultAssetMap<String, LowTalkJson>> {
     String id;
     AssetExtraInfo.Data data;
 
@@ -25,10 +25,10 @@ public class DialogueAsset implements JsonAssetWithMap<String, DefaultAssetMap<S
     public List<StartEntry> start = new ArrayList<>();
     public List<NodeEntry> nodes = new ArrayList<>();
 
-    public DialogueAsset() {
+    public LowTalkJson() {
     }
 
-    public DialogueAsset(String id) {
+    public LowTalkJson(String id) {
         this.id = id;
     }
 

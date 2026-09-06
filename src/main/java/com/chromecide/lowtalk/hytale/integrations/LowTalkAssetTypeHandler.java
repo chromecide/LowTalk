@@ -28,7 +28,7 @@ import java.util.logging.Level;
  * Same shape as the game's NPCRole handler in the NPCEditor plugin.
  */
 public final class LowTalkAssetTypeHandler extends AssetTypeHandler {
-    public static final String TYPE_ID = "LowTalk";
+    public static final String TYPE_ID = "LowTalkText";
     private static final int MAX_PROBLEMS_SHOWN = 4;
 
     private final LowTalkPlugin plugin;

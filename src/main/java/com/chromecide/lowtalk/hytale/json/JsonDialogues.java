@@ -31,7 +31,7 @@ public final class JsonDialogues {
     /** Asset store path under Server/. Shares the folder with .talk files; the store only reads .json. */
     public static final String PATH = "LowTalk/Dialogues";
     /** The Asset Editor's type id for this store is the asset class's simple name. */
-    public static final String EDITOR_TYPE_ID = DialogueAsset.class.getSimpleName();
+    public static final String EDITOR_TYPE_ID = LowTalkJson.class.getSimpleName();
 
     /** Autocomplete data sets the form fields ask the server for. */
     public static final String DATASET_NPCS = "LowTalkNpcs";
@@ -57,12 +57,12 @@ public final class JsonDialogues {
     public static final String DATASET_CAMERA_EFFECTS = "LowTalkCameraEffects";
     private static final int MAX_SUGGESTIONS = 40;
 
-    private static HytaleAssetStore<String, DialogueAsset, DefaultAssetMap<String, DialogueAsset>> store;
+    private static HytaleAssetStore<String, LowTalkJson, DefaultAssetMap<String, LowTalkJson>> store;
 
     private JsonDialogues() {}
 
     @Nullable
-    public static HytaleAssetStore<String, DialogueAsset, DefaultAssetMap<String, DialogueAsset>> store() {
+    public static HytaleAssetStore<String, LowTalkJson, DefaultAssetMap<String, LowTalkJson>> store() {
         return store;
     }
 
@@ -70,15 +70,15 @@ public final class JsonDialogues {
     public static void register(@Nonnull LowTalkPlugin plugin) {
         JsonCodecs.register();
         store = AssetRegistry.register(
-                HytaleAssetStore.builder(DialogueAsset.class, new DefaultAssetMap<>())
+                HytaleAssetStore.builder(LowTalkJson.class, new DefaultAssetMap<>())
                         .setPath(PATH)
                         .setCodec(JsonCodecs.DIALOGUE)
-                        .setKeyFunction(DialogueAsset::getId)
+                        .setKeyFunction(LowTalkJson::getId)
                         .build());
-        plugin.getEventRegistry().<Class<DialogueAsset>, LoadedAssetsEvent<String, DialogueAsset, DefaultAssetMap<String, DialogueAsset>>>register(
-                LoadedAssetsEvent.class, DialogueAsset.class, e -> onLoaded(plugin, e));
-        plugin.getEventRegistry().<Class<DialogueAsset>, RemovedAssetsEvent<String, DialogueAsset, DefaultAssetMap<String, DialogueAsset>>>register(
-                RemovedAssetsEvent.class, DialogueAsset.class, e -> onRemoved(plugin, e));
+        plugin.getEventRegistry().<Class<LowTalkJson>, LoadedAssetsEvent<String, LowTalkJson, DefaultAssetMap<String, LowTalkJson>>>register(
+                LoadedAssetsEvent.class, LowTalkJson.class, e -> onLoaded(plugin, e));
+        plugin.getEventRegistry().<Class<LowTalkJson>, RemovedAssetsEvent<String, LowTalkJson, DefaultAssetMap<String, LowTalkJson>>>register(
+                RemovedAssetsEvent.class, LowTalkJson.class, e -> onRemoved(plugin, e));
         plugin.getEventRegistry().register(AssetEditorSelectAssetEvent.class, e -> onSelect(plugin, e));
         plugin.getEventRegistry().register(com.hypixel.hytale.builtin.asseteditor.event.AssetEditorFetchAutoCompleteDataEvent.class, DATASET_NPCS,
                 e -> e.setResults(npcSuggestions(plugin, e.getQuery())));
@@ -230,9 +230,9 @@ public final class JsonDialogues {
         return out.toArray(new String[0]);
     }
 
-    private static void onLoaded(LowTalkPlugin plugin, LoadedAssetsEvent<String, DialogueAsset, DefaultAssetMap<String, DialogueAsset>> event) {
-        for (Map.Entry<String, DialogueAsset> entry : event.getLoadedAssets().entrySet()) {
-            DialogueAsset asset = entry.getValue();
+    private static void onLoaded(LowTalkPlugin plugin, LoadedAssetsEvent<String, LowTalkJson, DefaultAssetMap<String, LowTalkJson>> event) {
+        for (Map.Entry<String, LowTalkJson> entry : event.getLoadedAssets().entrySet()) {
+            LowTalkJson asset = entry.getValue();
             String id = asset.getId();
             String display = id + ".json";
             DialogueRegistry.LoadReport report;
@@ -250,7 +250,7 @@ public final class JsonDialogues {
         }
     }
 
-    private static void onRemoved(LowTalkPlugin plugin, RemovedAssetsEvent<String, DialogueAsset, DefaultAssetMap<String, DialogueAsset>> event) {
+    private static void onRemoved(LowTalkPlugin plugin, RemovedAssetsEvent<String, LowTalkJson, DefaultAssetMap<String, LowTalkJson>> event) {
         for (String key : event.getRemovedAssets()) {
             if (plugin.getRegistry().removeAsset(String.valueOf(key))) {
                 plugin.getLogger().at(Level.INFO).log("[json dialogue] removed %s", key);
