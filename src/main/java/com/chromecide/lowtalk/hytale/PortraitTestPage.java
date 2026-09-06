@@ -44,10 +44,6 @@ public class PortraitTestPage extends InteractiveCustomUIPage<PortraitTestPage.D
         cmd.setObject("#D3.Background", new PatchStyle(Value.of(rel)));
         cmd.set("#L4.Text", "D4 PatchStyle \"" + root + "\"");
         cmd.setObject("#D4.Background", new PatchStyle(Value.of(root)));
-        cmd.set("#L5.Text", "D5 Sprite.TexturePath \"" + rel + "\"");
-        cmd.set("#D5.TexturePath", rel);
-        cmd.set("#L6.Text", "D6 Sprite.TexturePath \"" + root + "\"");
-        cmd.set("#D6.TexturePath", root);
         cmd.set("#L7.Text", "D7 string \"Pages/RespawnPageSkull.png\"");
         cmd.set("#D7.Background", "Pages/RespawnPageSkull.png");
         cmd.set("#L8.Text", "D8 string \"Common/UI/Custom/Pages/RespawnPageSkull.png\"");
