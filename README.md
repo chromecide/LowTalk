@@ -157,7 +157,16 @@ Requires Java 25. The Gradle wrapper is included.
 ./gradlew runServer                      # local dev server with the plugin loaded
 ```
 
-## How this was built
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Contributors accept a short
+[CLA](CLA.md) so the project stays easy to relicense as a whole.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
+
+## AI Use Disclosure
 
 LowTalk was made by one person, Chromecide, working with an AI coding agent, Claude Code. It is worth being
 plain about what that means.
@@ -173,12 +182,3 @@ plain about what that means.
 If that is not something you want to run on your server, that is a fair choice, and the whole repository is here
 to read. Bugs are ours whichever of us typed them; please report them. Contributions are welcome from people
 working with or without such tools, on the same terms.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md). Contributors accept a short
-[CLA](CLA.md) so the project stays easy to relicense as a whole.
-
-## License
-
-MIT. See [LICENSE](LICENSE).
