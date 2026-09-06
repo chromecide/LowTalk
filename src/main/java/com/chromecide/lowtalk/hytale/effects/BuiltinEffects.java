@@ -14,7 +14,6 @@ import com.hypixel.hytale.builtin.teleport.TeleportPlugin;
 import com.hypixel.hytale.builtin.teleport.Warp;
 import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.math.vector.Transform;
-import com.hypixel.hytale.protocol.packets.interface_.Notification;
 import com.hypixel.hytale.protocol.packets.interface_.NotificationStyle;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
@@ -261,10 +260,9 @@ public final class BuiltinEffects {
                     throw new RuntimeError(effect.pos(), "notify style must be default, success, warning, or danger, got '" + a + "'");
                 }
             }
-            session.getPlayer().getPacketHandler().write(new Notification(
-                    Message.raw(text).getFormattedMessage(),
-                    secondary == null ? null : Message.raw(secondary).getFormattedMessage(),
-                    null, null, style, null));
+            // The game's helper builds the packet; its shape is Hytale's concern across versions.
+            com.hypixel.hytale.server.core.util.NotificationUtil.sendNotification(session.getPlayer().getPacketHandler(),
+                    Message.raw(text), secondary == null ? null : Message.raw(secondary), (String) null, style);
             return null;
         });
 
