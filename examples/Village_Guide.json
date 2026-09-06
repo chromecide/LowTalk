@@ -1,0 +1,67 @@
+{
+  "Npc": ["Kweebec_Merchant"],
+  "Speaker": "Guide",
+  "Title": "The Valley Guide",
+  "Start": [
+    { "Node": "returning", "When": "$met" },
+    { "Node": "start" }
+  ],
+  "Nodes": [
+    {
+      "Name": "start",
+      "Body": [
+        { "Type": "Say", "Text": "[Well met|Good day], {player}. New to the valley?" },
+        { "Type": "Set", "Var": "$met", "Value": "true" },
+        { "Type": "Jump", "Node": "hub" }
+      ]
+    },
+    {
+      "Name": "returning",
+      "Body": [
+        { "Type": "Say", "Text": "[Back again|Hello again], {player}." },
+        {
+          "Type": "If",
+          "Branches": [
+            { "When": "$player.errand", "Body": [ { "Type": "Say", "Text": "How is the errand going? The miller is waiting." } ] },
+            { "Body": [ { "Type": "Say", "Text": "Still looking for work? Ask me." } ] }
+          ]
+        },
+        { "Type": "Jump", "Node": "hub" }
+      ]
+    },
+    {
+      "Name": "hub",
+      "Body": [
+        {
+          "Type": "Choice",
+          "Options": [
+            {
+              "Text": "Tell me about this place.",
+              "Body": [
+                { "Type": "Say", "Text": "The Rootlings farm the terraces; the ruins to the north are best left alone." }
+              ]
+            },
+            {
+              "Text": "Any work for me?",
+              "If": "not $player.errand",
+              "Once": true,
+              "Body": [
+                { "Type": "Set", "Var": "$player.errand", "Value": "true" },
+                { "Type": "Say", "Text": "Take this bread to the miller. Tell him the guide sent you." },
+                { "Type": "Give", "Item": "Food_Bread", "Count": 1 },
+                { "Type": "Notify", "Text": "New errand: bread for the miller", "Style": "success" }
+              ]
+            },
+            {
+              "Text": "Goodbye.",
+              "Body": [
+                { "Type": "Say", "Text": "Safe travels." },
+                { "Type": "End" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
