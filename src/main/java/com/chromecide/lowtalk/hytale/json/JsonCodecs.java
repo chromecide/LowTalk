@@ -140,12 +140,12 @@ public final class JsonCodecs {
                             .documentation("How long, in seconds (0 to 30); may be an expression.").add());
 
     public static final BuilderCodec<JsonStatement.Command> COMMAND = statement(JsonStatement.Command.class, JsonStatement.Command::new,
-            "Any LowTalk command by name, e.g. notify, title, heal, stat, learn, teleport, time, npc_name, spawn, despawn, reputation, attitude, anim, run.", b -> {
+            "A command added by another plugin, by name. Every built-in command has its own statement type (Give, Anim, Notify, ...) with pickers; use those instead.", b -> {
                 b.append(new KeyedCodec<>("Name", Codec.STRING), (c, v) -> c.name = v, c -> c.name).addValidator(Validators.nonNull())
                         .metadata(new UIEditor(new UIEditor.TextField(JsonDialogues.DATASET_COMMANDS)))
-                        .documentation("Command name, as in <<name ...>>. See /lowtalk help commands.").add();
+                        .documentation("Command name, as in <<name ...>>. Suggestions list plugin-added commands only.").add();
                 b.append(new KeyedCodec<>("Args", Codec.STRING_ARRAY), (c, v) -> c.args = v == null ? new String[0] : v, c -> c.args)
-                        .documentation("Arguments, one per entry, as they would appear in the <<...>>." + TEXT_DOC).add();
+                        .documentation("Arguments, one per entry, exactly as they would appear inside <<...>>. No suggestions here: the editor cannot know what each command expects." + TEXT_DOC).add();
             });
 
     public static final BuilderCodec<JsonStatement.Give> GIVE = statement(JsonStatement.Give.class, JsonStatement.Give::new,

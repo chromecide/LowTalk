@@ -172,10 +172,11 @@ public final class JsonDialogues {
         return out.toArray(new String[0]);
     }
 
+    /** Only commands without a typed statement: every built-in has one, so this is what other plugins add. */
     static String[] commandSuggestions(LowTalkPlugin plugin, String query) {
         String q = query == null ? "" : query.trim().toLowerCase(java.util.Locale.ROOT);
-        java.util.Set<String> names = new java.util.TreeSet<>(com.chromecide.lowtalk.parser.Validator.BUILTIN_COMMANDS.keySet());
-        names.addAll(plugin.getEffects().names());
+        java.util.Set<String> names = new java.util.TreeSet<>(plugin.getEffects().names());
+        names.removeAll(com.chromecide.lowtalk.parser.Validator.BUILTIN_COMMANDS.keySet());
         java.util.List<String> out = new java.util.ArrayList<>();
         for (String n : names) if (q.isEmpty() || n.contains(q)) out.add(n);
         return out.toArray(new String[0]);
