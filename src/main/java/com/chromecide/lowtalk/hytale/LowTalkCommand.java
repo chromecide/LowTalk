@@ -549,6 +549,8 @@ public class LowTalkCommand extends AbstractCommandCollection {
         protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
                                @Nonnull PlayerRef player, @Nonnull World world) {
             plugin.getRegistry().copyTestDialogues();
+            DialogueRegistry.LoadReport report = plugin.reloadDialogues(); // the stations' dialogues must be loaded before anyone talks to them
+            if (!report.ok()) context.sendMessage(info(plugin, "Some dialogues did not load: " + String.join(" ", report.messages())));
             TestWorld.build(plugin, reporter(plugin, player));
         }
     }

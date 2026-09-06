@@ -133,7 +133,9 @@ public final class TestWorld {
             }
             // Load through the chunk store; World's own chunk getters are deprecated for removal in 0.7.
             List<CompletableFuture<?>> loads = new ArrayList<>();
-            for (long index : chunks) loads.add(world.getChunkStore().getChunkReferenceAsync(index));
+            // Flag 4 asks for a fully loaded chunk, as the game's own (now deprecated) World.getChunkAsync did; without it
+            // the chunk arrives in a state where entities cannot be added and every station fails to spawn.
+            for (long index : chunks) loads.add(world.getChunkStore().getChunkReferenceAsync(index, 4));
             out.accept("Loading " + chunks.size() + " chunks...");
             CompletableFuture.allOf(loads.toArray(new CompletableFuture[0])).thenRunAsync(() -> {
                 try {
@@ -144,7 +146,7 @@ public final class TestWorld {
                     plugin.getStore().set(plugin.getStore().world(), WORLD_NAME, "built", true);
                     plugin.getStore().set(plugin.getStore().world(), WORLD_NAME, "end", (double) CORRIDOR_END);
                     plugin.getStore().flush();
-                    out.accept("Test corridor ready with " + spawned + " station NPC(s). Run /lowtalk reload, then /lowtalk testworld go.");
+                    out.accept("Test corridor ready with " + spawned + " station NPC(s). Run /lowtalk testworld go.");
                 } catch (RuntimeException e) {
                     out.accept("Build failed: " + e);
                     plugin.getLogger().at(Level.WARNING).log("Test world build failed: %s", e.toString());
