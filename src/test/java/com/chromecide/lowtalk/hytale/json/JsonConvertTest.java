@@ -64,7 +64,7 @@ class JsonConvertTest {
     @Test
     void roundTripThroughAsset() {
         Dialogue d = DialogueParser.parse("t.talk", SRC);
-        DialogueAsset asset = JsonConvert.toAsset(d);
+        LowTalkJson asset = JsonConvert.toAsset(d);
         assertEquals("t", asset.getId());
         assertArrayEquals(new String[] {"Kweebec_Merchant"}, asset.npc);
         assertEquals("Merchant", asset.speaker);
@@ -117,8 +117,8 @@ class JsonConvertTest {
 
     @Test
     void badJsonIsReportedWithContext() {
-        DialogueAsset asset = new DialogueAsset("bad");
-        DialogueAsset.NodeEntry n = new DialogueAsset.NodeEntry();
+        LowTalkJson asset = new LowTalkJson("bad");
+        LowTalkJson.NodeEntry n = new LowTalkJson.NodeEntry();
         n.name = "start";
         JsonStatement.Jump j = new JsonStatement.Jump();
         n.body.add(j); // no Node
@@ -127,14 +127,14 @@ class JsonConvertTest {
         assertTrue(e.getMessage().contains("Jump has no Node"), e.getMessage());
         assertTrue(e.getMessage().contains("start"), e.getMessage());
 
-        DialogueAsset empty = new DialogueAsset("empty");
+        LowTalkJson empty = new LowTalkJson("empty");
         assertThrows(ParseException.class, () -> JsonConvert.toModel(empty, "empty.json"));
     }
 
     @Test
     void defaultsAreFilledIn() {
-        DialogueAsset asset = new DialogueAsset("simple");
-        DialogueAsset.NodeEntry n = new DialogueAsset.NodeEntry();
+        LowTalkJson asset = new LowTalkJson("simple");
+        LowTalkJson.NodeEntry n = new LowTalkJson.NodeEntry();
         n.name = "start";
         JsonStatement.Say say = new JsonStatement.Say();
         say.text = "Hi.";

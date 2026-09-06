@@ -60,6 +60,6 @@ lowtalk.newdialog.idHint = file and dialogue id, e.g. village_elder
 lowtalk.newdialog.bind = Belongs to
 lowtalk.newdialog.where = Save in
 lowtalk.newdialog.create = Create and edit
-# Names the Asset Editor shows for LowTalk's two asset types (the ids stay LowTalk and DialogueAsset).
-assetTypes.LowTalk.title = LowTalk Dialogue (text, .talk)
-assetTypes.DialogueAsset.title = LowTalk Dialogue (form, .json)
+# Titles for LowTalk's two Asset Editor types. The type list itself shows the ids: LowTalkText and LowTalkJson.
+assetTypes.LowTalkText.title = LowTalk Dialogue (text, .talk)
+assetTypes.LowTalkJson.title = LowTalk Dialogue (form, .json)
