@@ -53,7 +53,12 @@ public final class TestWorld {
     public static final String WORLD_NAME = "lowtalk_test";
 
     /** A test station: where it stands, what NPC role plays it, the tag its dialogue binds to, and the nameplate. */
-    public record Station(int x, String role, String tag, String label) {}
+    public record Station(int x, String role, String tag, String label, boolean frozen) {
+        /** Stations stand still by default; roles that must keep thinking (their own interaction tree) stay unfrozen. */
+        Station(int x, String role, String tag, String label) {
+            this(x, role, tag, label, true);
+        }
+    }
 
     /** LowTalk's own static talker role, shipped in the asset pack (Server/NPC/Roles/LowTalk/). */
     public static final String TESTER = "LowTalk_Tester";
@@ -73,7 +78,7 @@ public final class TestWorld {
             new Station(108, TESTER, "test_world", "11 - Weather, time, translation"),
             new Station(118, TESTER, "test_npc", "12 - NPC control and objectives"),
             new Station(128, TESTER, "test_media", "13 - Music, effects, camera"),
-            new Station(138, "LowTalk_Talker", "test_talker", "14 - Opened by the role")
+            new Station(138, "LowTalk_Talker", "test_talker", "14 - Opened by the role", false)
     );
 
     private static final int CORRIDOR_START = -4;
@@ -345,8 +350,9 @@ public final class TestWorld {
             }
             Ref<EntityStore> ref = pair.first();
             DisplayNameSupport.setDisplayName(ref, s.label(), store); // the NPC plugin's own path: nameplate + display name, persisted
-            // Stations stand still forever; the conversation hold leaves pre-frozen NPCs frozen.
-            store.ensureComponent(ref, Frozen.getComponentType());
+            // Stations stand still forever; the conversation hold leaves pre-frozen NPCs frozen. A frozen NPC's role
+            // never ticks, so a station whose own role must react to the player (station 14) is left unfrozen.
+            if (s.frozen()) store.ensureComponent(ref, Frozen.getComponentType());
             UUIDComponent uuid = store.getComponent(ref, UUIDComponent.getComponentType());
             if (uuid != null) {
                 VariableStore vs = plugin.getStore();
