@@ -66,6 +66,13 @@ their state. It leaves journals and trackers to the mods that do those well.
 **Requirements:** a Hytale server; one jar per Hytale line (release and pre-release) is attached to each GitHub
 release. No dependencies.
 
+**AI Use Disclosure**
+
+LowTalk was designed, directed and play-tested by one person; most of the code
+and documentation was written by Claude Code under that direction. There is no AI inside the mod: every line a
+player reads is written by a dialogue author, and the plugin makes no network calls. The repository is public so
+you can see exactly what you are running.
+
 **Screenshots to capture before publishing:**
 
 1. The window mid-conversation with four options visible.
@@ -76,10 +83,3 @@ release. No dependencies.
 6. The Node Editor showing the demo graph.
 7. A `.talk` file open in a text editor next to the in-game result.
 8. `/lowtalk reload` output with a deliberate error, showing the line number.
-
-**AI Use Disclosure**
-
-LowTalk was designed, directed and play-tested by one person; most of the code
-and documentation was written by Claude Code under that direction. There is no AI inside the mod: every line a
-player reads is written by a dialogue author, and the plugin makes no network calls. The repository is public so
-you can see exactly what you are running.
