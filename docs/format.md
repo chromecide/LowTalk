@@ -232,6 +232,40 @@ Buying or selling?
     <<jump goodbye>>
 ```
 
+## The same dialogue as JSON
+
+Every dialogue can also be written as a JSON asset with the same model, for
+people who prefer the Asset Editor's form editor over text. Put a `.json`
+file in `Server/LowTalk/Dialogues` of an asset pack; it is a registered asset
+type, so the editor offers a form with tooltips, item and objective pickers,
+and undo. Expressions and text are the same strings as in `.talk`.
+
+```json
+{
+  "Npc": ["Kweebec_Merchant"],
+  "Speaker": "Merchant",
+  "Nodes": [
+    { "Name": "start",
+      "Body": [
+        { "Type": "Say", "Text": "[Well met|Hello], {player}." },
+        { "Type": "Choice", "Options": [
+          { "Text": "Trade", "If": "has(\"Food_Bread\")", "Once": true,
+            "Body": [ { "Type": "Take", "Item": "Food_Bread" }, { "Type": "Jump", "Node": "start" } ] },
+          { "Text": "Goodbye", "Body": [ { "Type": "End" } ] }
+        ] }
+      ] }
+  ]
+}
+```
+
+Statement types: `Say`, `Choice`, `If`, `Once`, `Random`, `Set`, `Jump`,
+`End`, `Input`, `Wait`, `Command` (any command by `Name` and `Args`), and the
+typed conveniences `Give`, `Take`, `Sound`, `Effect`, `Cure`, `Objective`,
+`Weather`. `/lowtalk convert <id> json <pack>` writes a loaded `.talk`
+dialogue as JSON into a pack, and `/lowtalk convert <id> talk [pack]` goes
+the other way. Ids must be unique across both formats; a `.talk` file wins a
+clash. JSON files do not support `include:`.
+
 ## Opening dialogues from the game's own systems
 
 LowTalk plugs into three official extension points, so map makers can start a

@@ -67,6 +67,8 @@ public class DialogueRegistry {
 
     /** Loaded files by absolute path, in load order. Guarded by {@code this}. */
     private final Map<Path, Loaded> files = new LinkedHashMap<>();
+    /** Dialogues that arrived as JSON assets through the game's asset pipeline, by id. Guarded by {@code this}. */
+    private final Map<String, Loaded> assets = new LinkedHashMap<>();
     private volatile Map<String, Dialogue> byId = Map.of();
     private volatile Map<String, List<Dialogue>> byRole = Map.of();
     private volatile Map<String, List<Dialogue>> byTag = Map.of();
@@ -221,6 +223,54 @@ public class DialogueRegistry {
         return acc.toReport(byId.size());
     }
 
+    /**
+     * Load or replace a dialogue that came from a JSON asset (already converted to the model). Validated like a file;
+     * an id already taken by a .talk file is reported and the asset is skipped.
+     */
+    public synchronized LoadReport loadAsset(@Nonnull String id, @Nonnull String display, @Nonnull Dialogue d, boolean checkAssets) {
+        assets.remove(id);
+        Report acc = new Report();
+        acc.files++;
+        Validator validator = new Validator(extraCommands, extraFunctions);
+        boolean bad = false;
+        for (Validator.Problem pr : validator.validate(d)) {
+            acc.messages.add(pr.toString());
+            if (pr.error()) {
+                bad = true;
+                acc.errors++;
+            } else {
+                acc.warnings++;
+            }
+        }
+        if (!bad) {
+            if (checkAssets) {
+                for (String w : AssetChecks.check(d)) {
+                    acc.messages.add(w);
+                    acc.warnings++;
+                }
+            }
+            Loaded clash = null;
+            for (Loaded other : files.values()) if (other.dialogue().id().equals(id)) clash = other;
+            if (clash != null) {
+                acc.messages.add("error " + display + ": the .talk file " + clash.display() + " already uses the id '" + id + "'");
+                acc.errors++;
+            } else {
+                assets.put(id, new Loaded(null, display, d));
+            }
+        } else {
+            acc.messages.add("skipped " + display + " because of errors");
+        }
+        rebuildIndexes();
+        return acc.toReport(byId.size());
+    }
+
+    /** Forget an asset-sourced dialogue (deleted or renamed). */
+    public synchronized boolean removeAsset(@Nonnull String id) {
+        boolean removed = assets.remove(id) != null;
+        if (removed) rebuildIndexes();
+        return removed;
+    }
+
     /** Forget one file (deleted or renamed in the Asset Editor). */
     public synchronized boolean unloadFile(@Nonnull Path file) {
         boolean removed = files.remove(file.toAbsolutePath().normalize()) != null;
@@ -284,7 +334,13 @@ public class DialogueRegistry {
         Map<String, Dialogue> ids = new LinkedHashMap<>();
         Map<String, List<Dialogue>> roles = new LinkedHashMap<>();
         Map<String, List<Dialogue>> tags = new LinkedHashMap<>();
-        for (Loaded l : files.values()) {
+        List<Loaded> all = new ArrayList<>(files.values());
+        for (Loaded a : assets.values()) {
+            boolean taken = false;
+            for (Loaded f : files.values()) if (f.dialogue().id().equals(a.dialogue().id())) taken = true;
+            if (!taken) all.add(a); // a .talk file with the same id wins; the clash was reported when the asset loaded
+        }
+        for (Loaded l : all) {
             Dialogue d = l.dialogue();
             ids.put(d.id(), d);
             for (String b : d.bindings()) {

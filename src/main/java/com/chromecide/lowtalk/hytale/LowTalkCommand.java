@@ -47,6 +47,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         this.addSubCommand(new Stop(plugin));
         this.addSubCommand(new Help(plugin));
         this.addSubCommand(new Info(plugin));
+        this.addSubCommand(new Convert(plugin));
     }
 
     private static Message info(LowTalkPlugin plugin, String text) {
@@ -146,6 +147,87 @@ public class LowTalkCommand extends AbstractCommandCollection {
                 sb.append(e.name());
             }
             return sb.toString();
+        }
+    }
+
+    /**
+     * /lowtalk convert <id> <json|talk> [pack]: write a loaded dialogue in the other format. JSON goes into an asset
+     * pack's Server/LowTalk/Dialogues (where the Asset Editor's form can edit it); .talk goes into the same pack folder
+     * or, with no pack, into the plugin's dialogues folder.
+     */
+    static class Convert extends CommandBase {
+        private final LowTalkPlugin plugin;
+        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", ArgTypes.STRING);
+        private final RequiredArg<String> formatArg = withRequiredArg("format", "json or talk", ArgTypes.STRING);
+        private final OptionalArg<String> packArg = withOptionalArg("pack", "Asset pack name to write into (required for json)", ArgTypes.GREEDY_STRING);
+
+        Convert(LowTalkPlugin plugin) {
+            super("convert", "Write a dialogue as .json (form editor) or .talk (text)");
+            this.plugin = plugin;
+            this.requirePermission(CREATOR);
+        }
+
+        @Override
+        protected void executeSync(@Nonnull CommandContext context) {
+            String id = idArg.get(context);
+            Dialogue d = plugin.getRegistry().byId(id);
+            if (d == null) {
+                context.sendMessage(info(plugin, "No dialogue with id '" + id + "'. Try /lowtalk list."));
+                return;
+            }
+            String format = formatArg.get(context).trim().toLowerCase(java.util.Locale.ROOT);
+            String packName = packArg.provided(context) ? packArg.get(context).trim() : null;
+            java.nio.file.Path dir;
+            if (packName != null) {
+                com.hypixel.hytale.assetstore.AssetPack pack = com.hypixel.hytale.server.core.asset.AssetModule.get().getAssetPack(packName);
+                if (pack == null) {
+                    context.sendMessage(info(plugin, "No asset pack called '" + packName + "'. Names look like Group:Name, as shown in the Asset Editor."));
+                    return;
+                }
+                if (pack.isImmutable()) {
+                    context.sendMessage(info(plugin, "Asset pack '" + packName + "' is read-only; create a pack in the Asset Editor first."));
+                    return;
+                }
+                dir = pack.getRoot().resolve(DialogueRegistry.PACK_DIR);
+            } else if (format.equals("json")) {
+                context.sendMessage(info(plugin, "JSON dialogues live in asset packs: /lowtalk convert " + id + " json <pack name>"));
+                return;
+            } else {
+                dir = plugin.getRegistry().getFolder();
+            }
+            try {
+                java.nio.file.Files.createDirectories(dir);
+                switch (format) {
+                    case "json" -> {
+                        java.nio.file.Path out = dir.resolve(id + ".json");
+                        if (java.nio.file.Files.exists(out)) {
+                            context.sendMessage(info(plugin, out.getFileName() + " already exists in that pack; delete or rename it first."));
+                            return;
+                        }
+                        com.chromecide.lowtalk.hytale.json.DialogueAsset asset = com.chromecide.lowtalk.hytale.json.JsonConvert.toAsset(d);
+                        String json = com.chromecide.lowtalk.hytale.json.JsonCodecs.DIALOGUE
+                                .encode(asset, com.hypixel.hytale.codec.EmptyExtraInfo.EMPTY).asDocument()
+                                .toJson(org.bson.json.JsonWriterSettings.builder().indent(true).build());
+                        java.nio.file.Files.writeString(out, json + "\n", java.nio.charset.StandardCharsets.UTF_8);
+                        var store = com.chromecide.lowtalk.hytale.json.JsonDialogues.store();
+                        if (store != null) store.loadAssetsFromPaths(packName, java.util.List.of(out));
+                        context.sendMessage(info(plugin, "Wrote " + out + ". The .talk file with the same id wins while both exist; remove one of them."));
+                    }
+                    case "talk" -> {
+                        java.nio.file.Path out = dir.resolve(id + ".talk");
+                        if (java.nio.file.Files.exists(out)) {
+                            context.sendMessage(info(plugin, out.getFileName() + " already exists there; delete or rename it first."));
+                            return;
+                        }
+                        java.nio.file.Files.writeString(out, com.chromecide.lowtalk.parser.Printer.dialogue(d), java.nio.charset.StandardCharsets.UTF_8);
+                        DialogueRegistry.LoadReport r = plugin.getRegistry().loadFile(out, null, true);
+                        context.sendMessage(info(plugin, "Wrote " + out + (r.ok() ? "" : " (with problems, see the server log)") + "."));
+                    }
+                    default -> context.sendMessage(info(plugin, "Format must be json or talk."));
+                }
+            } catch (java.io.IOException e) {
+                context.sendMessage(info(plugin, "Could not write the file: " + e.getMessage()));
+            }
         }
     }
 

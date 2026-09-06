@@ -24,6 +24,10 @@ First working version.
 - World and NPC control through the game's own systems: `weather`, `time`,
   `npc_name`, `state`, `despawn`, `spawn`; objective lines, cancel and task
   completion; `t()` translations, `weather()`, `objective_line()`.
+- JSON dialogue assets: the same model as `.talk`, registered as a game asset
+  store so the Asset Editor's form editor (tooltips, item/sound/effect/
+  objective pickers, undo) can author them; `/lowtalk convert` translates
+  between `.talk` and `.json` losslessly.
 - Creator aids: "did you mean" suggestions for misspelt commands, functions,
   node names and dialogue ids; curly quotes are called out; `/lowtalk help`
   reference and `/lowtalk info` outlines, also shown when selecting a file in

@@ -89,6 +89,11 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
      */
     private void registerGameHooks() {
         try {
+            com.chromecide.lowtalk.hytale.json.JsonDialogues.register(this);
+        } catch (RuntimeException e) {
+            getLogger().at(Level.WARNING).log("Could not register the JSON dialogue asset type: %s", e.toString());
+        }
+        try {
             com.hypixel.hytale.builtin.triggervolumes.TriggerVolumesPlugin.get().registerEffectType(
                     com.chromecide.lowtalk.hytale.integrations.LowTalkTriggerEffect.TYPE_ID,
                     com.chromecide.lowtalk.hytale.integrations.LowTalkTriggerEffect.class,

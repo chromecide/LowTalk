@@ -59,6 +59,9 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.11.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    // Tests that touch classes implementing Hytale interfaces (the JSON dialogue asset) need the server on the test classpath.
+    testCompileOnly("com.hypixel.hytale:Server:0.+")
+    testRuntimeOnly("com.hypixel.hytale:Server:0.+")
 }
 
 tasks.named<Test>("test") {
