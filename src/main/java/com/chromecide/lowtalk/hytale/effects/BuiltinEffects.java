@@ -16,7 +16,6 @@ import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.math.vector.Transform;
 import com.hypixel.hytale.protocol.packets.interface_.Notification;
 import com.hypixel.hytale.protocol.packets.interface_.NotificationStyle;
-import com.hypixel.hytale.protocol.packets.interface_.ShowEventTitle;
 import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
 import com.hypixel.hytale.server.core.modules.entitystats.asset.EntityStatType;
@@ -290,10 +289,9 @@ public final class BuiltinEffects {
                     throw new RuntimeError(effect.pos(), "title takes a secondary text, 'major' and a number of seconds; got an extra '" + a + "'");
                 }
             }
-            session.getPlayer().getPacketHandler().write(new ShowEventTitle(
-                    0.5f, 0.5f, seconds, null, major,
-                    Message.raw(primary).getFormattedMessage(),
-                    secondary == null ? null : Message.raw(secondary).getFormattedMessage()));
+            // The game's own helper, so the packet layout (which changed between 0.6 and 0.7) is its concern, not ours.
+            com.hypixel.hytale.server.core.util.EventTitleUtil.showEventTitleToPlayer(session.getPlayer(),
+                    Message.raw(primary), Message.raw(secondary == null ? "" : secondary), major, null, seconds, 0.5f, 0.5f);
             return null;
         });
 
