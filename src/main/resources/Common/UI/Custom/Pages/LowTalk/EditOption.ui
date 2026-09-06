@@ -1,0 +1,44 @@
+$C = "../../Common.ui";
+
+// One player option: its label, where it leads, and a Go button that walks into that node.
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 38, Bottom: 6);
+
+  Label #Arrow {
+    Anchor: (Width: 26);
+    Style: (FontSize: 16, TextColor: #ffd37a, VerticalAlignment: Center, HorizontalAlignment: Center);
+    Text: "->";
+  }
+
+  $C.@TextField #Label {
+    @Anchor = (Right: 6);
+    FlexWeight: 1;
+    PlaceholderText: %server.lowtalk.editor.optionText;
+  }
+
+  DropdownBox #Target {
+    Anchor: (Width: 200, Right: 6, Height: $C.@DropdownBoxHeight);
+    Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 200);
+  }
+
+  $C.@TextButton #Go {
+    @Anchor = (Width: 54, Right: 4);
+    @Text = %server.lowtalk.editor.go;
+  }
+
+  $C.@SecondaryTextButton #Up {
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "^";
+  }
+
+  $C.@SecondaryTextButton #Down {
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "v";
+  }
+
+  $C.@SecondaryTextButton #Del {
+    @Anchor = (Width: 34);
+    @Text = "x";
+  }
+}

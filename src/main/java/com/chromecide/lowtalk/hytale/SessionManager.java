@@ -43,6 +43,17 @@ public class SessionManager {
         return s;
     }
 
+    /** Open starting in a named node (the editor's Test button). World thread only. */
+    @Nullable
+    public DialogueSession openAt(@Nonnull Dialogue dialogue, @Nonnull String startNode, @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity,
+                                  @Nonnull Store<EntityStore> store, @Nonnull World world, @Nonnull NpcInfo npc) {
+        DialogueSession existing = sessions.remove(player.getUuid());
+        if (existing != null) existing.end();
+        DialogueSession s = DialogueSession.open(plugin, plugin.getFunctions(), dialogue, player, playerEntity, store, world, npc.id(), npc.name(), startNode);
+        if (s != null) sessions.put(player.getUuid(), s);
+        return s;
+    }
+
     /** Open with an optional NPC; null means a narrator conversation. World thread only. */
     @Nullable
     public DialogueSession openFor(@Nonnull Dialogue dialogue, @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity,

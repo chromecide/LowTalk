@@ -1,0 +1,33 @@
+$C = "../../Common.ui";
+
+// One spoken line: who says it and what they say, plus move and delete.
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 38, Bottom: 6);
+
+  $C.@TextField #Speaker {
+    @Anchor = (Width: 120, Right: 6);
+    PlaceholderText: %server.lowtalk.editor.speaker;
+  }
+
+  $C.@TextField #Text {
+    @Anchor = (Right: 6);
+    FlexWeight: 1;
+    PlaceholderText: %server.lowtalk.editor.line;
+  }
+
+  $C.@SecondaryTextButton #Up {
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "^";
+  }
+
+  $C.@SecondaryTextButton #Down {
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "v";
+  }
+
+  $C.@SecondaryTextButton #Del {
+    @Anchor = (Width: 34);
+    @Text = "x";
+  }
+}

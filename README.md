@@ -97,6 +97,7 @@ conversation. Each one remembers each player separately.
 | `/lowtalk test <id> [apply] [choices...]` | Play a dialogue headlessly with scripted choices |
 | `/lowtalk testworld build` / `go` | Build or visit the test corridor world |
 | `/lowtalk thaw` | Unfreeze the NPC you're looking at |
+| `/lowtalk tool` | Get the LowTalk tool: click an NPC with it to edit its dialogue in place (creator) |
 | `/lowtalk stop` | Leave your current conversation |
 | `/lowtalk help [name]` | The format reference in chat: commands, functions, keywords, or one entry |
 | `/lowtalk info <id>` | Outline of a dialogue: nodes, options, variables, unreachable nodes |
@@ -108,6 +109,17 @@ Permissions: `lowtalk.creator` covers authoring (`list`, `open`, `tags`, `vars`,
 they reach dialogues only by using an NPC, and `stop` is open to everyone.
 
 ## Editing in game
+
+**In place, with the LowTalk tool.** `/lowtalk tool` puts a tool in your hand (it is also in the
+creative Tools tab). Click an NPC that has a dialogue bound and its window opens in edit mode:
+every line and option is a field, options have a target dropdown (a node, the end, back to the
+options, or a new node) and a Go button that walks into the node the way a player would. Add
+lines, options and nodes, rename or delete nodes, then Save to write the file where it lives and
+reload it, or Test to play the unsaved draft from the node you are on. Saving rewrites a `.talk`
+file in the printer's layout, so comments in it are dropped (the editor tells you when that
+happens). If/else, once, random and command statements show as read-only rows in this version;
+edit those in the Asset Editor.
+
 
 LowTalk registers `.talk` with Hytale's Asset Editor, so dialogue authoring
 uses the game's own tooling rather than a separate editor:

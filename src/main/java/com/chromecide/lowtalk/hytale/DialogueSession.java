@@ -75,11 +75,19 @@ public class DialogueSession implements EffectHost {
     public static DialogueSession prepare(@Nonnull Host host, @Nonnull FunctionRegistry functions, @Nonnull Dialogue dialogue,
                                           @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity, @Nonnull Store<EntityStore> store,
                                           @Nonnull World world, @Nonnull UUID npcId, @Nonnull String npcName) {
+        return prepare(host, functions, dialogue, player, playerEntity, store, world, npcId, npcName, null);
+    }
+
+    /** As above, starting in {@code startNode} when given (the editor's Test button). */
+    @Nullable
+    public static DialogueSession prepare(@Nonnull Host host, @Nonnull FunctionRegistry functions, @Nonnull Dialogue dialogue,
+                                          @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity, @Nonnull Store<EntityStore> store,
+                                          @Nonnull World world, @Nonnull UUID npcId, @Nonnull String npcName, @Nullable String startNode) {
         HytaleContext ctx = new HytaleContext(dialogue, player, npcId, npcName, host.store(), functions);
         DialogueSession s = new DialogueSession(host, dialogue, player, world, npcId, npcName, ctx);
         Conversation.Result first;
         try {
-            first = s.conversation.start();
+            first = startNode == null ? s.conversation.start() : s.conversation.startAt(startNode);
         } catch (RuntimeError e) {
             s.fail(e);
             return null;
@@ -104,7 +112,15 @@ public class DialogueSession implements EffectHost {
     public static DialogueSession open(@Nonnull Host host, @Nonnull FunctionRegistry functions, @Nonnull Dialogue dialogue,
                                        @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity, @Nonnull Store<EntityStore> store,
                                        @Nonnull World world, @Nonnull UUID npcId, @Nonnull String npcName) {
-        DialogueSession s = prepare(host, functions, dialogue, player, playerEntity, store, world, npcId, npcName);
+        return open(host, functions, dialogue, player, playerEntity, store, world, npcId, npcName, null);
+    }
+
+    /** As above, starting in {@code startNode} when given. */
+    @Nullable
+    public static DialogueSession open(@Nonnull Host host, @Nonnull FunctionRegistry functions, @Nonnull Dialogue dialogue,
+                                       @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity, @Nonnull Store<EntityStore> store,
+                                       @Nonnull World world, @Nonnull UUID npcId, @Nonnull String npcName, @Nullable String startNode) {
+        DialogueSession s = prepare(host, functions, dialogue, player, playerEntity, store, world, npcId, npcName, startNode);
         if (s == null) return null;
         Player playerComponent = store.getComponent(playerEntity, Player.getComponentType());
         if (playerComponent == null) {

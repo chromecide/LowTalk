@@ -1,0 +1,119 @@
+$C = "../../Common.ui";
+
+// The dialogue window in edit mode: the same conversation, with every line and option editable in place.
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  $C.@DecoratedContainer {
+    Anchor: (Width: 820, Height: 600);
+
+    #Title {
+      $C.@Title #PageTitle {
+        @Text = "";
+      }
+    }
+
+    #Content {
+      LayoutMode: Top;
+      Padding: (Full: 14);
+
+      Group #NodeRow {
+        LayoutMode: Left;
+        Anchor: (Height: 38, Bottom: 6);
+
+        Label #NodeLabel {
+          Anchor: (Width: 48);
+          Style: (FontSize: 13, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+          Text: %server.lowtalk.editor.node;
+        }
+
+        $C.@TextField #NodeName {
+          @Anchor = (Width: 180, Right: 6);
+          PlaceholderText: %server.lowtalk.editor.nodeName;
+        }
+
+        $C.@SecondaryTextButton #RenameButton {
+          @Anchor = (Width: 90, Right: 14);
+          @Text = %server.lowtalk.editor.rename;
+        }
+
+        DropdownBox #NodeJump {
+          Anchor: (Width: 240, Right: 6, Height: $C.@DropdownBoxHeight);
+          Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 240);
+        }
+
+        $C.@SecondaryTextButton #BackButton {
+          @Anchor = (Width: 80, Right: 6);
+          @Text = %server.lowtalk.editor.back;
+        }
+
+        $C.@SecondaryTextButton #DeleteNodeButton {
+          @Anchor = (Width: 120);
+          @Text = %server.lowtalk.editor.deleteNode;
+        }
+      }
+
+      Label #Crumbs {
+        Anchor: (Height: 18, Bottom: 6);
+        Style: (FontSize: 12, TextColor: #8fa3b8);
+      }
+
+      Group #Rows {
+        FlexWeight: 1;
+        LayoutMode: TopScrolling;
+        ScrollbarStyle: $C.@DefaultScrollbarStyle;
+        Padding: (Right: 8);
+      }
+
+      Group #AddRow {
+        LayoutMode: Left;
+        Anchor: (Top: 8, Height: 36);
+
+        $C.@SecondaryTextButton #AddLineButton {
+          @Anchor = (Width: 110, Right: 6);
+          @Text = %server.lowtalk.editor.addLine;
+        }
+
+        $C.@SecondaryTextButton #AddOptionButton {
+          @Anchor = (Width: 120, Right: 6);
+          @Text = %server.lowtalk.editor.addOption;
+        }
+
+        $C.@SecondaryTextButton #AddNodeButton {
+          @Anchor = (Width: 110);
+          @Text = %server.lowtalk.editor.addNode;
+        }
+      }
+
+      Label #Status {
+        Anchor: (Height: 40, Top: 6);
+        Style: (FontSize: 13, TextColor: #ffd37a, Wrap: true);
+      }
+
+      Group #ToolRow {
+        LayoutMode: Left;
+        Anchor: (Top: 6, Height: 38);
+
+        $C.@TextButton #SaveButton {
+          @Anchor = (Width: 120, Right: 6);
+          @Text = %server.lowtalk.editor.save;
+        }
+
+        $C.@TextButton #TestButton {
+          @Anchor = (Width: 130, Right: 6);
+          @Text = %server.lowtalk.editor.test;
+        }
+
+        $C.@SecondaryTextButton #DiscardButton {
+          @Anchor = (Width: 110, Right: 6);
+          @Text = %server.lowtalk.editor.discard;
+        }
+
+        $C.@SecondaryTextButton #CloseButton {
+          @Anchor = (Width: 110);
+          @Text = %server.lowtalk.editor.close;
+        }
+      }
+    }
+  }
+}

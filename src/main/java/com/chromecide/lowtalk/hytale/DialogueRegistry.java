@@ -380,6 +380,35 @@ public class DialogueRegistry {
 
     // ---- lookups
 
+    /** Where a loaded dialogue came from: a file (.talk) or an asset (file null), or null if not loaded. */
+    @Nullable
+    public synchronized Loaded loadedFor(@Nonnull String id) {
+        for (Loaded l : files.values()) if (l.dialogue().id().equals(id)) return l;
+        return assets.get(id);
+    }
+
+    /** The first file with this name in any dialogue source (plugin folder, then the asset packs), or null. */
+    @Nullable
+    public Path findAssetFile(@Nonnull String fileName) {
+        for (Source src : sources()) {
+            if (!Files.isDirectory(src.root())) continue;
+            try (Stream<Path> walk = Files.walk(src.root())) {
+                Path hit = walk.filter(p -> p.getFileName() != null && p.getFileName().toString().equals(fileName)).findFirst().orElse(null);
+                if (hit != null) return hit;
+            } catch (IOException e) {
+                logger.at(Level.WARNING).log("Could not search %s: %s", src.root(), e.getMessage());
+            }
+        }
+        return null;
+    }
+
+    /** The asset pack (source label) a file under a pack's dialogue folder belongs to; the server's own folder is "". */
+    @Nonnull
+    public String packNameFor(@Nonnull Path file) {
+        Source src = sourceFor(file.toAbsolutePath().normalize());
+        return src == null ? "" : src.label();
+    }
+
     /** Every loaded dialogue, in load order. */
     public List<Dialogue> all() {
         return new ArrayList<>(byId.values());

@@ -48,6 +48,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         this.addSubCommand(new Help(plugin));
         this.addSubCommand(new Info(plugin));
         this.addSubCommand(new Convert(plugin));
+        this.addSubCommand(new Tool(plugin));
     }
 
     /** Tab completion and did-you-mean for dialogue ids; the id argument of open, info, test and convert. */
@@ -565,6 +566,30 @@ public class LowTalkCommand extends AbstractCommandCollection {
         protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
                                @Nonnull PlayerRef player, @Nonnull World world) {
             TestWorld.teleport(plugin, player, reporter(plugin, player));
+        }
+    }
+
+    /** /lowtalk tool: put the dialogue editing tool in your hand, like /triggervolume tool does for its tool. */
+    static class Tool extends AbstractPlayerCommand {
+        private final LowTalkPlugin plugin;
+
+        Tool(LowTalkPlugin plugin) {
+            super("tool", "Get the LowTalk tool: click an NPC with it to edit its dialogue in place");
+            this.plugin = plugin;
+            this.requirePermission(CREATOR);
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef player, @Nonnull World world) {
+            com.hypixel.hytale.server.core.inventory.InventoryComponent.Hotbar hotbar =
+                    store.getComponent(ref, com.hypixel.hytale.server.core.inventory.InventoryComponent.Hotbar.getComponentType());
+            if (hotbar == null) {
+                context.sendMessage(info(plugin, "You have no hotbar to put the tool in."));
+                return;
+            }
+            hotbar.getInventory().setItemStackForSlot(hotbar.getActiveSlot(), new com.hypixel.hytale.server.core.inventory.ItemStack(DialogueEditorPage.TOOL_ITEM));
+            context.sendMessage(info(plugin, "LowTalk tool in hand. Click an NPC with a bound dialogue to edit it; Save writes the file, Test plays your draft."));
         }
     }
 

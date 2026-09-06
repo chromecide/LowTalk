@@ -1,0 +1,28 @@
+$C = "../../Common.ui";
+
+// Any other statement (if, once, random, set, a command): shown as its .talk text, movable and deletable.
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 38, Bottom: 6);
+
+  Label #Text {
+    FlexWeight: 1;
+    Anchor: (Right: 6);
+    Style: (FontSize: 13, TextColor: #b7cedd, VerticalAlignment: Center);
+  }
+
+  $C.@SecondaryTextButton #Up {
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "^";
+  }
+
+  $C.@SecondaryTextButton #Down {
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "v";
+  }
+
+  $C.@SecondaryTextButton #Del {
+    @Anchor = (Width: 34);
+    @Text = "x";
+  }
+}

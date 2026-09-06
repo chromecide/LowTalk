@@ -91,6 +91,13 @@ public final class Conversation {
         return advance();
     }
 
+    /** Start in a named node instead of the start directive (the in-game editor's Test button). */
+    public Result startAt(@Nonnull String node) {
+        if (!dialogue.nodes().containsKey(node)) throw new RuntimeError("no node named " + node);
+        jumpTo(node, dialogue.starts().get(0).pos());
+        return advance();
+    }
+
     /** Called after a Say when the player presses Continue. */
     public Result next() {
         if (finished) return new Result(new Step.Finish(), List.of());

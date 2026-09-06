@@ -11,6 +11,9 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.component.system.EntityEventSystem;
 import com.hypixel.hytale.protocol.InteractionType;
+import com.hypixel.hytale.server.core.inventory.InventoryComponent;
+import com.hypixel.hytale.server.core.inventory.ItemStack;
+import java.util.List;
 import com.hypixel.hytale.server.core.entity.movement.MovementStatesComponent;
 import com.hypixel.hytale.server.core.event.events.ecs.UseEntityEvent;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
@@ -37,7 +40,6 @@ public class NpcUseSystem extends EntityEventSystem<EntityStore, UseEntityEvent.
     public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk, @Nonnull Store<EntityStore> store,
                        @Nonnull CommandBuffer<EntityStore> commandBuffer, @Nonnull UseEntityEvent.Pre event) {
         if (event.getInteractionType() != InteractionType.Use) return;
-        if (!plugin.getSettings().isUseHook()) return; // roles and interaction JSON open dialogues instead
 
         Ref<EntityStore> playerEntity = chunk.getReferenceTo(index);
         PlayerRef player = commandBuffer.getComponent(playerEntity, PlayerRef.getComponentType());
@@ -46,6 +48,25 @@ public class NpcUseSystem extends EntityEventSystem<EntityStore, UseEntityEvent.
         Ref<EntityStore> target = event.getTargetEntity();
         NpcInfo npc = NpcInfo.of(target, commandBuffer, player, plugin.getStore());
         if (npc == null) return;
+
+        // A creator holding the LowTalk tool edits the NPC's dialogue instead of playing it.
+        if (holdingTool(playerEntity, commandBuffer)) {
+            event.setCancelled(true);
+            if (!player.hasPermission(LowTalkCommand.CREATOR)) {
+                player.sendMessage(com.hypixel.hytale.server.core.Message.raw("LowTalk: the dialogue tool needs the " + LowTalkCommand.CREATOR + " permission."));
+                return;
+            }
+            List<Dialogue> bound = plugin.getRegistry().candidates(npc.role(), npc.tags());
+            if (bound.isEmpty()) {
+                player.sendMessage(com.hypixel.hytale.server.core.Message.raw("LowTalk: nothing is bound to " + npc.name()
+                        + ". Bind a dialogue with npc: " + npc.role() + " in its file, or tag the NPC with /lowtalk tag <name> and use npc: @<name>."));
+                return;
+            }
+            DialogueEditorPage.open(plugin, bound.get(0), player, playerEntity, store, npc);
+            return;
+        }
+
+        if (!plugin.getSettings().isUseHook()) return; // roles and interaction JSON open dialogues instead
 
         // An NPC left frozen by a crash mid-conversation is freed the next time anyone talks to it.
         if (plugin.getStore().isHeld(npc.id()) && !plugin.getSessions().isTalkingTo(npc.id())) {
@@ -78,6 +99,14 @@ public class NpcUseSystem extends EntityEventSystem<EntityStore, UseEntityEvent.
             if (modeMatches(config.getRoleBindingMode(), crouching)) return d;
         }
         return null;
+    }
+
+    /** True if the player's active hotbar item is the LowTalk tool. */
+    static boolean holdingTool(Ref<EntityStore> playerEntity, com.hypixel.hytale.component.ComponentAccessor<EntityStore> accessor) {
+        InventoryComponent.Hotbar hotbar = accessor.getComponent(playerEntity, InventoryComponent.Hotbar.getComponentType());
+        if (hotbar == null) return false;
+        ItemStack held = hotbar.getInventory().getItemStack((short) hotbar.getActiveSlot());
+        return held != null && DialogueEditorPage.TOOL_ITEM.equals(held.getItemId());
     }
 
     private static boolean modeMatches(String mode, boolean crouching) {
