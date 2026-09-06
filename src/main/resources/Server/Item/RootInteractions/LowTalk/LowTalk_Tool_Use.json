@@ -1,0 +1,18 @@
+{
+  "$Comment": "The LowTalk tool's click: the game's own UseEntity interaction, which raises the use-entity event LowTalk listens to. Same chain bare hands use on an NPC, without the block and break fallbacks.",
+  "Cooldown": {
+    "Cooldown": 0.25,
+    "ClickBypass": true
+  },
+  "Interactions": [
+    {
+      "Type": "Simple",
+      "Effects": {
+        "ItemAnimationId": "Interact"
+      },
+      "Next": {
+        "Type": "UseEntity"
+      }
+    }
+  ]
+}

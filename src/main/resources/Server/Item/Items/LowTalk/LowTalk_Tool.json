@@ -11,6 +11,11 @@
   "SubCategory": "BasicTools",
   "MaxStack": 1,
   "PlayerAnimationsId": "Item",
+  "Interactions": {
+    "Primary": "LowTalk_Tool_Use",
+    "Secondary": "LowTalk_Tool_Use",
+    "Use": "LowTalk_Tool_Use"
+  },
   "InteractionConfig": {
     "UseDistance": {
       "Adventure": 8,
