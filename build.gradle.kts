@@ -74,6 +74,21 @@ tasks.named<ProcessResources>("processResources") {
     exclude("data/**", "lowtalk.json", "*.bak", "*.tmp")
     // Ship the example dialogues so the plugin can copy them into a fresh server.
     from("examples") { into("lowtalk-examples") }
+    // The same examples inside LowTalk's own asset pack, so they show in the Asset Editor as reference material and
+    // can be copied into a creator's pack with "Copy Asset". They are unbound there (npc: none) so shipping them
+    // never changes any NPC; the working, role-bound copies are the ones in the plugin's dialogues folder.
+    from("examples") {
+        exclude("tests/**")
+        into("Server/LowTalk/Dialogues/Examples")
+        rename { name -> "Example_" + name }
+        filter { line ->
+            when {
+                line.startsWith("npc: ") -> "npc: none   # shipped example: copy this asset into your pack and set a role id or @tag here"
+                line.trim().startsWith("\"Npc\":") -> line.substring(0, line.indexOf("\"Npc\"")) + "\"Npc\": [\"none\"],"
+                else -> line
+            }
+        }
+    }
 }
 
 // Validate .talk files from the command line without a server:

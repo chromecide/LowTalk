@@ -265,6 +265,8 @@ and undo. Expressions and text are the same strings as in `.talk`.
 }
 ```
 
+`"Npc": ["none"]` is the JSON spelling of `npc: none`, for a dialogue opened only by roles, triggers or commands.
+
 Statement types: `Say`, `Choice`, `If`, `Once`, `Random`, `Set`, `Jump`,
 `End`, `Input`, `Wait`, one typed entry per command (`Give`, `Take`, `Shop`,
 `Attitude`, `Anim`, `Sound`, `NpcName`, `State`, `Despawn`, `Spawn`,

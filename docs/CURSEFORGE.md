@@ -87,7 +87,10 @@ you can see exactly what you are running.
 ![The Node Editor showing a whole dialogue as a wired graph](screenshots/node-editor-graph.png)
 *The same kind of dialogue drawn in Hytale's Node Editor with the LowTalk workspace: nodes, options, branches and commands wired up.*
 
-![The Asset Editor's text mode with a .talk file open](screenshots/asset-editor-text.png)
-*Text mode in the Asset Editor: the Companions sample dialogue, validated and loaded on every save.*
+![The Asset Editor's form view of a dialogue: an option with its condition, once flag and body](screenshots/asset-editor-form.png)
+*The Asset Editor's form: a dialogue as fields. This option is shown only until the errand is taken, once, and its body hands over bread.*
 
-Still to capture: the Asset Editor's form view with a picker open; a merchant handing over bread with the narration line; the fortune teller's text-input prompt; `/lowtalk reload` output showing a line-numbered error.
+![The Asset Editor's text mode with a .talk file open and LowTalk's load report in the corner](screenshots/asset-editor-text.png)
+*Text mode in the Asset Editor. Every save is validated and loaded; the notification says what was loaded and which NPCs it binds to.*
+
+Still to capture: a merchant handing over bread with the narration line; the fortune teller's text-input prompt; `/lowtalk reload` output showing a line-numbered error.
