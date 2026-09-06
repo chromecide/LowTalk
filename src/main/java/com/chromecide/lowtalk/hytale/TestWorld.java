@@ -65,13 +65,11 @@ public final class TestWorld {
 
     public static final String WORLD_NAME = "lowtalk_test";
 
-    /** A test station: where it stands, what NPC role plays it, the tag its dialogue binds to, and the nameplate. */
-    public record Station(int x, String role, String tag, String label, boolean frozen) {
-        /** Stations stand still by default; roles that must keep thinking (their own interaction tree) stay unfrozen. */
-        Station(int x, String role, String tag, String label) {
-            this(x, role, tag, label, true);
-        }
-    }
+    /**
+     * A test station: where it stands, what NPC role plays it, the tag its dialogue binds to, and the nameplate.
+     * Stations are ordinary live NPCs; the tester role stands still through its template's MotionStatic parameter.
+     */
+    public record Station(int x, String role, String tag, String label) {}
 
     /** LowTalk's own static talker role, shipped in the asset pack (Server/NPC/Roles/LowTalk/). */
     public static final String TESTER = "LowTalk_Tester";
@@ -91,7 +89,7 @@ public final class TestWorld {
             new Station(108, TESTER, "test_world", "11 - Weather, time, translation"),
             new Station(118, TESTER, "test_npc", "12 - NPC control and objectives"),
             new Station(128, TESTER, "test_media", "13 - Music, effects, camera"),
-            new Station(138, "LowTalk_Talker", "test_talker", "14 - Opened by the role", false)
+            new Station(138, "LowTalk_Talker", "test_talker", "14 - Opened by the role")
     );
 
     private static final int CORRIDOR_START = -4;
@@ -330,21 +328,6 @@ public final class TestWorld {
         return out;
     }
 
-    /** Freeze every NPC in the corridor (for a corridor built before stations were frozen at spawn). */
-    public static void freezeAll(@Nonnull LowTalkPlugin plugin, @Nonnull Consumer<String> out) {
-        withWorld(plugin, out, world -> world.execute(() -> {
-            Store<EntityStore> store = world.getEntityStore().getStore();
-            int frozen = 0;
-            for (Ref<EntityStore> ref : corridorNpcs(store)) {
-                if (!store.getArchetype(ref).contains(Frozen.getComponentType())) {
-                    store.ensureComponent(ref, Frozen.getComponentType());
-                    frozen++;
-                }
-            }
-            out.accept("Froze " + frozen + " NPC(s) in the corridor.");
-        }));
-    }
-
     private static void withWorld(LowTalkPlugin plugin, Consumer<String> out, Consumer<World> then) {
         Universe universe = Universe.get();
         World existing = universe.getWorld(WORLD_NAME);
@@ -421,11 +404,8 @@ public final class TestWorld {
         int spawned = 0;
         for (Station s : STATIONS) {
             Vector3d pos = new Vector3d(s.x() + 0.5, FLOOR_Y + 1.0, 0.5);
-            // Frozen stations stand sideways; a live one faces the entrance, since the game's CanInteract sensor only
-            // accepts players inside the NPC's front view sector.
-            Rotation3f facing = s.frozen()
-                    ? new Rotation3f(0.0f, (float) Math.PI / 2.0f, 0.0f)
-                    : new Rotation3f(0.0f, Rotation3f.lookAt(pos, new Vector3d(pos.x - 5.0, pos.y, pos.z)).yaw(), 0.0f);
+            // Face the entrance: the game's CanInteract sensor only accepts players inside the NPC's front view sector.
+            Rotation3f facing = new Rotation3f(0.0f, Rotation3f.lookAt(pos, new Vector3d(pos.x - 5.0, pos.y, pos.z)).yaw(), 0.0f);
             var pair = npcs.spawnNPC(store, s.role(), null, pos, facing);
             if (pair == null) {
                 out.accept("Could not spawn " + s.role() + " for station '" + s.label() + "'");
@@ -433,9 +413,6 @@ public final class TestWorld {
             }
             Ref<EntityStore> ref = pair.first();
             DisplayNameSupport.setDisplayName(ref, s.label(), store); // the NPC plugin's own path: nameplate + display name, persisted
-            // Stations stand still forever; the conversation hold leaves pre-frozen NPCs frozen. A frozen NPC's role
-            // never ticks, so a station whose own role must react to the player (station 14) is left unfrozen.
-            if (s.frozen()) store.ensureComponent(ref, Frozen.getComponentType());
             UUIDComponent uuid = store.getComponent(ref, UUIDComponent.getComponentType());
             if (uuid != null) {
                 VariableStore vs = plugin.getStore();

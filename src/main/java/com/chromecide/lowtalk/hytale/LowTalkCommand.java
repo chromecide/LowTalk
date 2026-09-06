@@ -487,7 +487,6 @@ public class LowTalkCommand extends AbstractCommandCollection {
             this.requirePermission(ADMIN);
             this.addSubCommand(new TestWorldBuild(plugin));
             this.addSubCommand(new TestWorldGo(plugin));
-            this.addSubCommand(new TestWorldFreeze(plugin));
             this.addSubCommand(new TestWorldRespawn(plugin));
             this.addSubCommand(new TestWorldProbe(plugin));
         }
@@ -526,22 +525,6 @@ public class LowTalkCommand extends AbstractCommandCollection {
             TestWorld.resetPlayer(plugin, ref, store, player, out);
             TestWorld.respawn(plugin, out);
             TestWorld.teleport(plugin, player, out);
-        }
-    }
-
-    static class TestWorldFreeze extends AbstractPlayerCommand {
-        private final LowTalkPlugin plugin;
-
-        TestWorldFreeze(LowTalkPlugin plugin) {
-            super("freeze", "Freeze every NPC in the test corridor in place");
-            this.plugin = plugin;
-            this.requirePermission(ADMIN);
-        }
-
-        @Override
-        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
-                               @Nonnull PlayerRef player, @Nonnull World world) {
-            TestWorld.freezeAll(plugin, reporter(plugin, player));
         }
     }
 
