@@ -4,7 +4,7 @@
 npc: Klops_Merchant
 title: Madame Klops
 speaker: Madame Klops
-portrait: Pages/RespawnPageSkull@2x.png
+portrait: Pages/RespawnPageSkull.png
 
 start: known when $player.true_name
 start: stranger

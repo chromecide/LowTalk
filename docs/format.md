@@ -22,7 +22,7 @@ Lines before the first node are directives, `key: value`, one per line.
 | `speaker:` | Default speaker name for bare lines. Defaults to the NPC's in-game name. |
 | `title:` | Shown in the window header. Defaults to the speaker. |
 | `scope:` | Variable namespace shared with other files. Defaults to the file name. |
-| `portrait:` | An image shown beside the text, as a path inside `Common/UI/Custom/` of any loaded asset pack, e.g. `Portraits/elder.png` from your own pack. |
+| `portrait:` | An image shown beside the text, as a path inside `Common/UI/Custom/` of any loaded asset pack, e.g. `Portraits/elder.png` from your own pack or `Pages/RespawnPageSkull.png` from the game. Name the base file; the client picks its `@2x` variant itself. |
 | `include:` | Pull the nodes of another file into this one, e.g. `include: _shared`. See [Includes](#includes). Repeatable. |
 | `on:` | `on: join` opens this dialogue by itself when a player finishes loading into a world. It runs without an NPC, so `speaker:` names the voice. Gate repeats with a guarded `start:`, a once-block, or an early `<<end>>` (a dialogue that ends before saying anything never opens a window). |
 
