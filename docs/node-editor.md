@@ -24,6 +24,15 @@ On macOS this copies the folder into
 `Hytale.app/Contents/Resources/NodeEditor/Workspaces/`. On other systems pass
 the path to your client's `NodeEditor/Workspaces` folder as the argument.
 
+## A demo graph
+
+`tools/nodeeditor/examples/Demo_Graph.json` is a small dialogue saved as a
+laid-out graph: a guide who greets you differently once met and hands out one
+errand. Copy it into a pack's `Server/LowTalk/Dialogues/` and open it in the
+Node Editor to see how the pieces wire together, or run `/lowtalk open
+Demo_Graph` in game to play it. `tools/nodeeditor/make_demo.py` regenerates
+it.
+
 ## Using it
 
 1. Launch the Node Editor (next to the game client, `NodeEditor` inside the
