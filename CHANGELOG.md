@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Hytale 0.6.4 notes
+
+Checked 2026-09-08 the day the release-line update landed. The 0.6.4 server differs from 0.6.3 in fifteen classes
+(block-entity anchor migration, prefab paste offsets, explosion radius guard, respawn-page validity check, ICE
+keepalives, world-gen prop distribution); none is touched by LowTalk or Companions. Both mods compile unchanged,
+boot clean on 0.6.4 and every asset, NPC role and UI macro they reference is still present. The release jar keeps
+its `>=0.6.3 <0.7.0` range because the two builds are identical.
+
 ### Hytale 0.7.0-pre.1 notes
 
 Dry run 2026-09-06 against the pre-release line. One compile break: the event-title packet's boolean became a
