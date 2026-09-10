@@ -122,7 +122,7 @@ without it: options that need a missing command are hidden and conditions on mis
 
 | LowTalk | Hytale release line | Hytale pre-release line |
 |---------|---------------------|-------------------------|
-| 0.1.0   | 0.6.3, 0.6.4 (`LowTalk-0.1.0.jar`) | 0.7.0-pre.1 (`LowTalk-0.1.0+hytale.0.7.0-pre.1.jar`) |
+| 0.1.0   | 0.6.3, 0.6.4 (`LowTalk-0.1.0.jar`) | 0.7.0-pre.1, 0.7.0-pre.2 (`LowTalk-0.1.0+hytale.0.7.0-pre.2.jar`) |
 
 Each release ships one jar per Hytale line; the server refuses a jar built for the other line. Both come from
 the same commit: `./gradlew buildAll` writes them to `build/dist/`. See [CONTRIBUTING.md](CONTRIBUTING.md) for how
