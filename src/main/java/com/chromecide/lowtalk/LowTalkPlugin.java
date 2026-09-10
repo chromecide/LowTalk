@@ -53,6 +53,7 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
     @Override
     protected void setup() {
         config.save();
+        com.chromecide.lowtalk.hytale.compat.AssetLoadOrderFix.apply(getLogger());
         LowTalkConfig cfg = config.get();
         Path data = getDataDirectory();
 
