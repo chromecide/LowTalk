@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.1.1 (2026-09-11)
+
+Compatibility release. No dialogue-facing changes.
+
+- Boots reliably on Hytale 0.7.0-pre.2: LowTalk injects the Interaction-after-Beam asset load-order edge the
+  server forgets to declare (see the pre.2 notes below). No effect on the 0.6.x release line.
+- Verified on 0.6.4 (release) and 0.7.0-pre.2 (pre-release); jars for both lines.
+
 ### Hytale 0.7.0-pre.2 notes
 
 Checked 2026-09-11. Both mods compile and boot. 363 server classes changed, mostly world generation; the only new
@@ -29,6 +37,7 @@ style enum (fixed by using `EventTitleUtil`, present in both lines). Deprecated 
 entities) and the `Warp` class (still returned by the teleport plugin). All imported classes and all UI macros we
 use still exist. Both mods boot, load their assets and pass the test corridor.
 
+## 0.1.0 (2026-09-06)
 
 First working version.
 
