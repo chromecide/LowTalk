@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Hytale 0.6.5 notes
+
+Checked 2026-09-11. Eight server classes changed (connection registry and packet handlers, kick and ban
+plumbing, the Asset Editor packet handler's pending-packet queue, world-map image builder); none is touched by
+either mod. Classes compiled against 0.6.4 and 0.6.5 are identical, both mods boot clean, and the 0.1.1 release
+jar's `>=0.6.3 <0.7.0` range already covers it.
+
 ## 0.1.1 (2026-09-11)
 
 Compatibility release. No dialogue-facing changes.
