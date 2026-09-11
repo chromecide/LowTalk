@@ -37,7 +37,9 @@ it.
 
 1. Launch the Node Editor (next to the game client, `NodeEditor` inside the
    Hytale app bundle on macOS).
-2. Create a new file and choose the `LowTalk - Dialogue` workspace. The root
+2. On the start screen (0.7.0-pre.2 and later; older builds go straight to
+   File > New) create a new file and choose the `LowTalk - Dialogue`
+   workspace. The editor reopens on the workspace you used last. The root
    node is the dialogue: its NPCs, default speaker, title and start rules.
 3. Add `Node` nodes for each named stretch of conversation and wire them to
    the root's Nodes pin. Each Node has a Body pin; connect statements to it in
