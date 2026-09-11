@@ -81,6 +81,8 @@ node per stretch of conversation, statements wired into bodies, options and bran
 is the same JSON asset the form edits, so the server loads it like any other, and the form can open it afterwards.
 
 See [node-editor.md](node-editor.md) for installing the workspace, a demo graph, and how the pieces connect.
+The workspace lives inside the client install, so every game update removes it; rerun
+`sh tools/nodeeditor/install.sh` when the editor stops offering `LowTalk - Dialogue`.
 
 ## As a text file
 
