@@ -28,6 +28,11 @@ identity hashes. Vanilla and a plain `mods/` install happened to pass; the Gradl
 "Asset 'Rope' of type Beam doesn't exist". LowTalk now injects the missing edge during setup (`AssetLoadOrderFix`),
 which is a no-op on 0.6.x and once Hypixel fixes it. Bug report drafted for Hypixel.
 
+The Node Editor update (start screen, minimap, themes, snapping, copy/paste and unknown-node fixes) changes
+nothing in our workspace format: every key we use is still one Hypixel's own workspaces use. But the client update
+deleted the installed `LowTalk - Dialogue` workspace on both lines, as every client update will; rerun
+`sh tools/nodeeditor/install.sh` (pass the pre-release client's `NodeEditor/Workspaces` path for that line).
+
 ### Hytale 0.6.4 notes
 
 Checked 2026-09-08 the day the release-line update landed. The 0.6.4 server differs from 0.6.3 in fifteen classes

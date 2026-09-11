@@ -75,7 +75,8 @@ Ah, {player}. Back again.
 
 - [Creating and editing dialogues](docs/creating.md): in game, Asset Editor, Node Editor, text files.
 - [The dialogue format](docs/format.md), the full reference for text and JSON.
-- [The Node Editor workspace](docs/node-editor.md).
+- [The Node Editor workspace](docs/node-editor.md). Reinstall it after every client update with
+  `sh tools/nodeeditor/install.sh`; updates wipe it.
 - [API for other plugins](docs/api.md).
 - [Testing](docs/testing.md): unit tests, the headless runner, and the in-game test corridor.
 - [Design](docs/DESIGN.md), how it works and why.

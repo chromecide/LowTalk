@@ -14,15 +14,19 @@ types the JSON asset uses. A test keeps the two in step.
 ## Installing the workspace
 
 The editor reads workspaces from the client install, so this is a per-machine
-step, and a game update may remove it. Run it again when that happens.
+step. **Every client update replaces the install and deletes the workspace**
+(confirmed on 0.6.5 and 0.7.0-pre.2: only Hypixel's three workspaces came
+back). If the Node Editor stops offering `LowTalk - Dialogue`, run the script
+again; it is safe to repeat.
 
 ```
 sh tools/nodeeditor/install.sh
 ```
 
 On macOS this copies the folder into
-`Hytale.app/Contents/Resources/NodeEditor/Workspaces/`. On other systems pass
-the path to your client's `NodeEditor/Workspaces` folder as the argument.
+`Hytale.app/Contents/Resources/NodeEditor/Workspaces/` of the release client.
+On other systems, or for the pre-release client, pass the path to that
+client's `NodeEditor/Workspaces` folder as the argument.
 
 ## A demo graph
 
