@@ -22,9 +22,9 @@ Compatibility release. No dialogue-facing changes.
 Checked 2026-09-11. Both mods compile and boot. 363 server classes changed, mostly world generation; the only new
 deprecation is the boolean `showEventTitleToPlayer` overload (marked for removal, replaced by `EventTitleStyle` and
 `EventTitleConfig` variants that do not exist on 0.6.x, so the shared source keeps the old call until 0.7 reaches
-the release line). One real bug: the Interaction asset store now validates beam references but does not declare
-that it loads after the Beam store, and stores sit in a hash map, so whether the server boots depends on class
-identity hashes. Vanilla and a plain `mods/` install happened to pass; the Gradle dev layout failed every time with
+the release line). One real bug: the new `AttachBeam` interaction validates its beam reference as soon as the asset embedding it
+(the vanilla Hookshot's ProjectileConfig) is decoded, but no store declares a load order against the Beam store,
+and stores sit in a hash map, so whether the server boots depends on class identity hashes. Vanilla and a plain `mods/` install happened to pass; the Gradle dev layout failed every time with
 "Asset 'Rope' of type Beam doesn't exist". LowTalk now injects the missing edge during setup (`AssetLoadOrderFix`),
 which is a no-op on 0.6.x and once Hypixel fixes it. Bug report drafted for Hypixel.
 
