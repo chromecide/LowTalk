@@ -35,7 +35,6 @@ public class BlockUseSystem extends EntityEventSystem<EntityStore, UseBlockEvent
     @Override
     public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk, @Nonnull Store<EntityStore> store,
                        @Nonnull CommandBuffer<EntityStore> commandBuffer, @Nonnull UseBlockEvent.Pre event) {
-        if (event.getInteractionType() != InteractionType.Use) return;
         Ref<EntityStore> playerEntity = chunk.getReferenceTo(index);
         PlayerRef player = commandBuffer.getComponent(playerEntity, PlayerRef.getComponentType());
         if (player == null) return;
@@ -49,9 +48,17 @@ public class BlockUseSystem extends EntityEventSystem<EntityStore, UseBlockEvent
                 player.sendMessage(LowTalkCommand.msg(plugin, "toolNeedsPermission").param("permission", LowTalkCommand.CREATOR));
                 return;
             }
+            if (event.getInteractionType() == InteractionType.Secondary) {
+                BlockBindings.Binding b = plugin.getBlockBindings().get(world.getName(), pos.x, pos.y, pos.z);
+                Dialogue bd = b == null ? null : plugin.getRegistry().byId(b.dialogue());
+                if (bd == null) player.sendMessage(LowTalkCommand.msg(plugin, "blockNotBoundPlay"));
+                else plugin.getSessions().openFor(bd, player, playerEntity, store, world, null);
+                return;
+            }
             BindBlockPage.open(plugin, player, playerEntity, store, world.getName(), pos, blockId);
             return;
         }
+        if (event.getInteractionType() != InteractionType.Use) return;
 
         BlockBindings.Binding binding = plugin.getBlockBindings().get(world.getName(), pos.x, pos.y, pos.z);
         if (binding == null) return;

@@ -1,0 +1,19 @@
+{
+  "$Comment": "Right click: the same chain; LowTalk plays whatever dialogue is bound to the NPC or block, the way a player would see it.",
+  "Cooldown": {
+    "Cooldown": 0.25,
+    "ClickBypass": true
+  },
+  "Interactions": [
+    {
+      "Type": "Simple",
+      "Effects": {
+        "ItemAnimationId": "Interact"
+      },
+      "Next": {
+        "Type": "UseEntity",
+        "Failed": "LowTalk_Tool_Block"
+      }
+    }
+  ]
+}
