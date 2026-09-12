@@ -169,7 +169,8 @@ log line appears before the error.
   stays visible, number keys pick options) or `window` (centred, dimmed
   screen). `ForceLayout` (default empty) overrides every mod and dialogue.
   `HideHudDuringDialogue` (default `Reticle`, `Hotbar`) lists the HUD parts
-  hidden while a dialogue is open. Mod authors set their own defaults in their
+  hidden while a dialogue is open. `History` (default `full`) keeps the whole
+  transcript on screen; `latest` shows only the NPC's current line. Mod authors set their own defaults in their
   pack's `Server/LowTalk/Settings.json`; see [docs/format.md](docs/format.md#layout).
 - `HoldNpcDuringDialogue` (default true): freeze and face the NPC while talking.
 - `ClearSkyWeather` (default `Default_Flat`): what `<<weather clear>>` shows in

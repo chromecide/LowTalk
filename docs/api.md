@@ -76,10 +76,11 @@ config. Either ship `Server/LowTalk/Settings.json` in the pack:
 or set the same two things in code, once, during setup:
 
 ```java
-api.setPackDefaults("Chromecide:Companions", "bottom", List.of("Reticle", "Hotbar"));
+api.setPackDefaults("Chromecide:Companions", "bottom", List.of("Reticle", "Hotbar"), "latest");
 ```
 
-The pack id is your plugin's `Group:Name`. Pass null for a setting you want to leave to the server config. A
+The pack id is your plugin's `Group:Name`; the last argument is the history mode, `full` or `latest`, and there is
+a three-argument form without it. Pass null for a setting you want to leave to the server config. A
 dialogue's own `layout:` directive and a `Settings.json` in the pack both win over the API call, and the server's
 `ForceLayout` wins over everything. Layouts are `bottom`, `top` and `window`; HUD names are the game's own
 (`Hotbar`, `Reticle`, `Chat`, `Compass`, `Health`, ...).
