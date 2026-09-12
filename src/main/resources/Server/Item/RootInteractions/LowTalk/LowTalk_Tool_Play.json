@@ -12,7 +12,9 @@
       },
       "Next": {
         "Type": "UseEntity",
-        "Failed": "LowTalk_Tool_Block"
+        "Failed": {
+          "Type": "UseBlock"
+        }
       }
     }
   ]

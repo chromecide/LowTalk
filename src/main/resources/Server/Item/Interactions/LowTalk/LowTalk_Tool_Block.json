@@ -1,4 +1,0 @@
-{
-  "$Comment": "Fallback of the tool's chains when no entity is targeted: the game's UseBlock, which raises the use-block event for blocks whose type has a Use interaction.",
-  "Type": "UseBlock"
-}
