@@ -11,9 +11,10 @@ it, ship it with your adventure map.
 
 They all make the same thing, and you can switch between them at any point.
 
-- **In game.** `/lowtalk tool`, click an NPC, and its conversation opens in edit mode: the window a player sees,
-  with every line and option editable, an Add menu for everything the format can say, and pickers fed by the
-  game's own lists. Click an NPC with no dialogue and it offers to create one. No files, no syntax.
+- **In game.** `/lowtalk tool`, use it on an NPC, prop or block, and a page shows what it says and lets you bind,
+  edit or create a dialogue for it. Edit opens the conversation in edit mode: the window a player sees, with
+  every line and option editable, an Add menu for everything the format can say, and pickers fed by the game's
+  own lists. Use the tool on nothing for a browser of every dialogue. No files, no syntax.
 - **In the Asset Editor.** Dialogues are a registered asset type. Edit them as a form with tooltips and
   autocomplete, or as text, in any asset pack; every save is validated and loaded live.
 - **In the Node Editor.** Hytale's standalone graph editor gets a LowTalk workspace, so a whole conversation can
