@@ -61,6 +61,17 @@ public class LowTalkCommand extends AbstractCommandCollection {
         return Message.raw(text).color(plugin.getSettings().getInfoColor());
     }
 
+    /** A translated feedback line: {@code key} is the part after {@code server.lowtalk.msg.}; chain {@code .param(...)} for fill-ins. */
+    static Message msg(LowTalkPlugin plugin, String key) {
+        return Message.translation("server.lowtalk.msg." + key).color(plugin.getSettings().getInfoColor());
+    }
+
+    /** "No dialogue with id 'x'.", with a suggestion when one is close. */
+    static Message noDialogue(LowTalkPlugin plugin, String id) {
+        String near = com.chromecide.lowtalk.parser.Suggest.closest(id, plugin.getRegistry().ids());
+        return near == null ? msg(plugin, "noDialogue").param("id", id) : msg(plugin, "noDialogueNear").param("id", id).param("near", near);
+    }
+
     /** Re-read every dialogue file. */
     static class Reload extends CommandBase {
         private final LowTalkPlugin plugin;
@@ -77,8 +88,8 @@ public class LowTalkCommand extends AbstractCommandCollection {
             for (String m : report.messages()) {
                 context.sendMessage(info(plugin, m));
             }
-            context.sendMessage(info(plugin, "LowTalk: " + report.loaded() + " of " + report.files() + " dialogue file(s) loaded, "
-                    + report.errors() + " error(s), " + report.warnings() + " warning(s)."));
+            context.sendMessage(msg(plugin, "reloaded").param("loaded", report.loaded()).param("files", report.files())
+                    .param("errors", report.errors()).param("warnings", report.warnings()));
         }
     }
 
@@ -95,7 +106,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         protected void executeSync(@Nonnull CommandContext context) {
             DialogueRegistry reg = plugin.getRegistry();
             if (reg.ids().isEmpty()) {
-                context.sendMessage(info(plugin, "No dialogues loaded. Put .talk files in " + reg.getFolder() + " and run /lowtalk reload."));
+                context.sendMessage(msg(plugin, "noDialoguesLoaded").param("folder", reg.getFolder().toString()));
                 return;
             }
             for (String id : reg.ids()) {
@@ -121,11 +132,11 @@ public class LowTalkCommand extends AbstractCommandCollection {
         protected void executeSync(@Nonnull CommandContext context) {
             String topic = topicArg.provided(context) ? topicArg.get(context).trim() : "";
             if (topic.isEmpty()) {
-                context.sendMessage(info(plugin, "LowTalk format help. /lowtalk help commands | functions | keywords lists each group; /lowtalk help <name> explains one."));
-                context.sendMessage(info(plugin, "Commands: " + names(com.chromecide.lowtalk.parser.Reference.commands())));
-                context.sendMessage(info(plugin, "Functions: " + names(com.chromecide.lowtalk.parser.Reference.functions())));
-                context.sendMessage(info(plugin, "Keywords: " + names(com.chromecide.lowtalk.parser.Reference.keywords())));
-                context.sendMessage(info(plugin, "Full docs: docs/format.md in the LowTalk repository."));
+                context.sendMessage(msg(plugin, "helpIntro"));
+                context.sendMessage(msg(plugin, "helpCommands").param("names", names(com.chromecide.lowtalk.parser.Reference.commands())));
+                context.sendMessage(msg(plugin, "helpFunctions").param("names", names(com.chromecide.lowtalk.parser.Reference.functions())));
+                context.sendMessage(msg(plugin, "helpKeywords").param("names", names(com.chromecide.lowtalk.parser.Reference.keywords())));
+                context.sendMessage(msg(plugin, "helpDocs"));
                 return;
             }
             java.util.List<com.chromecide.lowtalk.parser.Reference.Entry> group = switch (topic.toLowerCase(java.util.Locale.ROOT)) {
@@ -141,7 +152,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
             com.chromecide.lowtalk.parser.Reference.Entry e = com.chromecide.lowtalk.parser.Reference.lookup(topic);
             if (e == null) {
                 String near = com.chromecide.lowtalk.parser.Suggest.closest(topic, com.chromecide.lowtalk.parser.Reference.allNames());
-                context.sendMessage(info(plugin, "Nothing called '" + topic + "'." + (near == null ? "" : " Did you mean " + near + "?")));
+                context.sendMessage(near == null ? msg(plugin, "nothingCalled").param("topic", topic) : msg(plugin, "nothingCalledNear").param("topic", topic).param("near", near));
                 return;
             }
             context.sendMessage(info(plugin, e.line()));
@@ -190,8 +201,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
             String id = idArg.get(context);
             Dialogue d = plugin.getRegistry().byId(id);
             if (d == null) {
-                String near = com.chromecide.lowtalk.parser.Suggest.closest(id, plugin.getRegistry().ids());
-                context.sendMessage(info(plugin, "No dialogue with id '" + id + "'." + (near == null ? " Try /lowtalk list." : " Did you mean " + near + "?")));
+                context.sendMessage(noDialogue(plugin, id));
                 return;
             }
             String packName = packArg.get(context).trim();
@@ -209,11 +219,11 @@ public class LowTalkCommand extends AbstractCommandCollection {
                         if (!names.isEmpty()) names.append(", ");
                         names.append(ap.getName());
                     }
-                    context.sendMessage(info(plugin, "No asset pack called '" + packName + "'. Writable packs: " + (names.isEmpty() ? "none (create one in the Asset Editor)" : names)));
+                    context.sendMessage(names.isEmpty() ? msg(plugin, "noPackNone").param("pack", packName) : msg(plugin, "noPack").param("pack", packName).param("packs", names.toString()));
                     return;
                 }
                 if (pack.isImmutable()) {
-                    context.sendMessage(info(plugin, "Asset pack '" + packName + "' is read-only; create a pack in the Asset Editor first."));
+                    context.sendMessage(msg(plugin, "packReadOnly").param("pack", packName));
                     return;
                 }
                 dir = pack.getRoot().resolve(DialogueRegistry.PACK_DIR);
@@ -225,7 +235,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
                     String jsonId = assetName(id);
                     java.nio.file.Path out = dir.resolve(jsonId + ".json");
                     if (java.nio.file.Files.exists(out)) {
-                        context.sendMessage(info(plugin, out.getFileName() + " already exists in that pack; delete or rename it first."));
+                        context.sendMessage(msg(plugin, "fileExists").param("file", out.getFileName().toString()));
                         return;
                     }
                     com.chromecide.lowtalk.hytale.json.LowTalkJson asset = com.chromecide.lowtalk.hytale.json.JsonConvert.toAsset(d);
@@ -237,20 +247,21 @@ public class LowTalkCommand extends AbstractCommandCollection {
                     java.nio.file.Files.writeString(out, json + "\n", java.nio.charset.StandardCharsets.UTF_8);
                     var store = com.chromecide.lowtalk.hytale.json.JsonDialogues.store();
                     if (store != null) store.loadAssetsFromPaths(packName, java.util.List.of(out));
-                    context.sendMessage(info(plugin, "Wrote " + out.getFileName() + " into " + packName + " as dialogue '" + jsonId + "'"
-                            + (jsonId.equals(id) ? "." : " (the original keeps '" + id + "'; both are loaded and share the same variables, so remove one when you have chosen).")));
+                    context.sendMessage(jsonId.equals(id)
+                            ? msg(plugin, "wroteJson").param("file", out.getFileName().toString()).param("pack", packName).param("id", jsonId)
+                            : msg(plugin, "wroteJsonKept").param("file", out.getFileName().toString()).param("pack", packName).param("id", jsonId).param("original", id));
                 } else {
                     java.nio.file.Path out = dir.resolve(id + ".talk");
                     if (java.nio.file.Files.exists(out)) {
-                        context.sendMessage(info(plugin, out.getFileName() + " already exists there; delete or rename it first."));
+                        context.sendMessage(msg(plugin, "fileExists").param("file", out.getFileName().toString()));
                         return;
                     }
                     java.nio.file.Files.writeString(out, com.chromecide.lowtalk.parser.Printer.dialogue(d), java.nio.charset.StandardCharsets.UTF_8);
                     DialogueRegistry.LoadReport r = plugin.getRegistry().loadFile(out, null, true);
-                    context.sendMessage(info(plugin, "Wrote " + out + (r.ok() ? "" : " (with problems, see the server log)") + "."));
+                    context.sendMessage(msg(plugin, r.ok() ? "wrote" : "wroteProblems").param("file", out.toString()));
                 }
             } catch (java.io.IOException e) {
-                context.sendMessage(info(plugin, "Could not write the file: " + e.getMessage()));
+                context.sendMessage(msg(plugin, "writeFailed").param("error", String.valueOf(e.getMessage())));
             }
         }
     }
@@ -281,8 +292,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         protected void executeSync(@Nonnull CommandContext context) {
             Dialogue d = plugin.getRegistry().byId(idArg.get(context));
             if (d == null) {
-                String near = com.chromecide.lowtalk.parser.Suggest.closest(idArg.get(context), plugin.getRegistry().ids());
-                context.sendMessage(info(plugin, "No dialogue with id '" + idArg.get(context) + "'." + (near == null ? " Try /lowtalk list." : " Did you mean " + near + "?")));
+                context.sendMessage(noDialogue(plugin, idArg.get(context)));
                 return;
             }
             for (String line : com.chromecide.lowtalk.parser.Outline.of(d).lines()) context.sendMessage(info(plugin, line));
@@ -306,8 +316,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
             String id = idArg.get(context);
             Dialogue d = plugin.getRegistry().byId(id);
             if (d == null) {
-                String near = com.chromecide.lowtalk.parser.Suggest.closest(id, plugin.getRegistry().ids());
-                context.sendMessage(info(plugin, "No dialogue with id '" + id + "'." + (near == null ? " Try /lowtalk list." : " Did you mean " + near + "?")));
+                context.sendMessage(noDialogue(plugin, id));
                 return;
             }
             plugin.getSessions().openFor(d, player, ref, store, world, lookedAtNpc(ref, store, player, plugin));
@@ -333,20 +342,19 @@ public class LowTalkCommand extends AbstractCommandCollection {
             String tag = tagArg.get(context).trim();
             if (tag.startsWith("@")) tag = tag.substring(1);
             if (tag.isEmpty()) {
-                context.sendMessage(info(plugin, "Give a tag name."));
+                context.sendMessage(msg(plugin, "tagNeedsName"));
                 return;
             }
             NpcInfo npc = lookedAtNpc(ref, store, player, plugin);
             if (npc == null) {
-                context.sendMessage(info(plugin, "Look at an NPC first."));
+                context.sendMessage(msg(plugin, "lookAtNpc"));
                 return;
             }
             VariableStore vs = plugin.getStore();
             boolean changed = add ? vs.addTag(vs.npc(npc.id()), tag) : vs.removeTag(vs.npc(npc.id()), tag);
             vs.flush();
-            context.sendMessage(info(plugin, changed
-                    ? (add ? "Tagged " : "Untagged ") + npc.name() + " (" + npc.role() + ") " + (add ? "with" : "from") + " @" + tag
-                    : npc.name() + (add ? " already has" : " does not have") + " @" + tag));
+            context.sendMessage(msg(plugin, changed ? (add ? "tagged" : "untagged") : (add ? "tagAlready" : "tagMissing"))
+                    .param("npc", npc.name()).param("role", String.valueOf(npc.role())).param("tag", tag));
         }
     }
 
@@ -364,7 +372,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
                                @Nonnull PlayerRef player, @Nonnull World world) {
             NpcInfo npc = lookedAtNpc(ref, store, player, plugin);
             if (npc == null) {
-                context.sendMessage(info(plugin, "Look at an NPC first."));
+                context.sendMessage(msg(plugin, "lookAtNpc"));
                 return;
             }
             context.sendMessage(info(plugin, npc.name() + "  role=" + npc.role() + "  tags=" + npc.tags() + "  id=" + npc.id()));
@@ -390,7 +398,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
             VariableStore vs = plugin.getStore();
             Map<String, Map<String, Object>> scopes = vs.snapshotScopes(vs.player(player.getUuid()));
             if (scopes.isEmpty()) {
-                context.sendMessage(info(plugin, "No variables saved for you yet."));
+                context.sendMessage(msg(plugin, "noVars"));
                 return;
             }
             scopes.forEach((scope, vars) -> vars.forEach((k, v) ->
@@ -413,7 +421,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
                                @Nonnull PlayerRef player, @Nonnull World world) {
             plugin.getSessions().end(player.getUuid());
             int removed = plugin.getStore().resetPlayer(player.getUuid());
-            context.sendMessage(info(plugin, "Forgotten. " + removed + " memory file(s) removed; every NPC meets you fresh now."));
+            context.sendMessage(msg(plugin, "forgotten").param("count", removed));
         }
     }
 
@@ -432,11 +440,11 @@ public class LowTalkCommand extends AbstractCommandCollection {
                                @Nonnull PlayerRef player, @Nonnull World world) {
             NpcInfo npc = lookedAtNpc(ref, store, player, plugin);
             if (npc == null) {
-                context.sendMessage(info(plugin, "Look at an NPC first."));
+                context.sendMessage(msg(plugin, "lookAtNpc"));
                 return;
             }
             boolean was = NpcHold.thawNow(store, npc.ref(), npc.id(), plugin.getStore());
-            context.sendMessage(info(plugin, was ? npc.name() + " is free to move again." : npc.name() + " was not frozen."));
+            context.sendMessage(msg(plugin, was ? "thawed" : "notFrozen").param("npc", npc.name()));
         }
     }
 
@@ -461,7 +469,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
                                @Nonnull PlayerRef player, @Nonnull World world) {
             Dialogue d = plugin.getRegistry().byId(idArg.get(context));
             if (d == null) {
-                context.sendMessage(info(plugin, "No dialogue with id '" + idArg.get(context) + "'. Try /lowtalk list."));
+                context.sendMessage(msg(plugin, "noDialogue").param("id", idArg.get(context)));
                 return;
             }
             java.util.List<String> tokens = new java.util.ArrayList<>();
@@ -567,7 +575,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
                                @Nonnull PlayerRef player, @Nonnull World world) {
             plugin.getRegistry().copyTestDialogues();
             DialogueRegistry.LoadReport report = plugin.reloadDialogues(); // the stations' dialogues must be loaded before anyone talks to them
-            if (!report.ok()) context.sendMessage(info(plugin, "Some dialogues did not load: " + String.join(" ", report.messages())));
+            if (!report.ok()) context.sendMessage(msg(plugin, "someNotLoaded").param("messages", String.join(" ", report.messages())));
             TestWorld.build(plugin, reporter(plugin, player));
         }
     }
@@ -604,11 +612,11 @@ public class LowTalkCommand extends AbstractCommandCollection {
             com.hypixel.hytale.server.core.inventory.InventoryComponent.Hotbar hotbar =
                     store.getComponent(ref, com.hypixel.hytale.server.core.inventory.InventoryComponent.Hotbar.getComponentType());
             if (hotbar == null) {
-                context.sendMessage(info(plugin, "You have no hotbar to put the tool in."));
+                context.sendMessage(msg(plugin, "noHotbar"));
                 return;
             }
             hotbar.getInventory().setItemStackForSlot(hotbar.getActiveSlot(), new com.hypixel.hytale.server.core.inventory.ItemStack(DialogueEditorPage.TOOL_ITEM));
-            context.sendMessage(info(plugin, "LowTalk tool in hand. Click an NPC with a bound dialogue to edit it; Save writes the file, Test plays your draft."));
+            context.sendMessage(msg(plugin, "toolInHand"));
         }
     }
 

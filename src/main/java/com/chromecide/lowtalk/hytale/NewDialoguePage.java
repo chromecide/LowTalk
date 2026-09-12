@@ -142,7 +142,9 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
             vs.flush();
         }
         close();
-        playerRef.sendMessage(com.hypixel.hytale.server.core.Message.raw("LowTalk: created " + file.getFileName() + (byTag ? " and tagged " + npc.name() + " @" + tag : "") + "."));
+        playerRef.sendMessage(byTag
+                ? LowTalkCommand.msg(plugin, "createdTagged").param("file", file.getFileName().toString()).param("npc", npc.name()).param("tag", tag)
+                : LowTalkCommand.msg(plugin, "created").param("file", file.getFileName().toString()));
         store.getExternalData().getWorld().execute(() -> {
             if (!playerEntity.isValid()) return;
             DialogueEditorPage.open(plugin, d, playerRef, playerEntity, store, npc);

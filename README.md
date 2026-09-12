@@ -178,6 +178,14 @@ log line appears before the error.
   worlds that have no natural weather.
 - `DialoguesFolder`, `CopyExamplesOnFirstRun`, `LogConversations`, `InfoColor`.
 
+## Translating
+
+The mod's own words, the dialogue window, the editor, chat feedback and Asset Editor notices, are translation
+keys in `Server/Languages/en-US/server.lang`. To add a language, copy that file to
+`Server/Languages/<language>/server.lang` in any asset pack (the language codes are the game's, such as `de-DE`)
+and translate the right-hand sides; `{name}` fill-ins stay as they are. The game sends each player the table for
+their language. Dialogue text is written in one language by its author; translating dialogues is not supported yet.
+
 ## Building
 
 Requires Java 25. The Gradle wrapper is included.

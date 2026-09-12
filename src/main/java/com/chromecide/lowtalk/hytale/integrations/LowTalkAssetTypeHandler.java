@@ -66,7 +66,7 @@ public final class LowTalkAssetTypeHandler extends AssetTypeHandler {
                 java.nio.file.Files.writeString(dataPath, source, StandardCharsets.UTF_8);
                 if (editorClient != null) {
                     editorClient.sendPopupNotification(AssetEditorPopupNotificationType.Info,
-                            Message.raw("LowTalk: started " + name + " from a template. Reopen it to see the text, then edit and save."));
+                            Message.translation("server.lowtalk.msg.templateStarted").param("name", name));
                 }
             } catch (java.io.IOException e) {
                 plugin.getLogger().at(Level.WARNING).log("Could not write the dialogue template to %s: %s", dataPath, e.toString());
@@ -112,12 +112,12 @@ public final class LowTalkAssetTypeHandler extends AssetTypeHandler {
         DialogueRegistry.Loaded loaded = plugin.getRegistry().forFile(file);
         if (loaded != null) {
             event.getEditorClient().sendPopupNotification(AssetEditorPopupNotificationType.Info,
-                    Message.raw("LowTalk: loaded.\n" + String.join("\n", com.chromecide.lowtalk.parser.Outline.of(loaded.dialogue()).lines())));
+                    Message.translation("server.lowtalk.msg.loadedOutline").param("outline", String.join("\n", com.chromecide.lowtalk.parser.Outline.of(loaded.dialogue()).lines())));
             return;
         }
         if (file.getFileName().toString().startsWith("_")) {
             event.getEditorClient().sendPopupNotification(AssetEditorPopupNotificationType.Info,
-                    Message.raw("LowTalk: files starting with _ are shared through include: and are not dialogues on their own."));
+                    Message.translation("server.lowtalk.msg.sharedFile"));
             return;
         }
         // Not loaded: re-run the checks so the creator sees why.
@@ -134,13 +134,13 @@ public final class LowTalkAssetTypeHandler extends AssetTypeHandler {
         if (client == null) return;
         if (report.errors() > 0) {
             client.sendPopupNotification(AssetEditorPopupNotificationType.Error,
-                    Message.raw("LowTalk: " + name + " has " + report.errors() + " error(s) and is not loaded.\n" + firstProblems(report.messages(), true)));
+                    Message.translation("server.lowtalk.msg.hasErrors").param("name", name).param("count", report.errors()).param("problems", firstProblems(report.messages(), true)));
         } else if (report.warnings() > 0) {
             client.sendPopupNotification(AssetEditorPopupNotificationType.Warning,
-                    Message.raw("LowTalk: " + name + " loaded with " + report.warnings() + " warning(s).\n" + firstProblems(report.messages(), false)));
+                    Message.translation("server.lowtalk.msg.hasWarnings").param("name", name).param("count", report.warnings()).param("problems", firstProblems(report.messages(), false)));
         } else if (!quietWhenFine) {
             client.sendPopupNotification(AssetEditorPopupNotificationType.Success,
-                    Message.raw("LowTalk: " + name + " loaded. Talk to a bound NPC or use /lowtalk open to try it."));
+                    Message.translation("server.lowtalk.msg.loadedOk").param("name", name));
         }
     }
 
