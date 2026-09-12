@@ -9,6 +9,18 @@
   interaction before UseEntity, the same order as bare hands. The Entity Tool's NPC outline is part of the
   client's built-in tool and cannot be enabled on a custom item.
 
+### Talking props
+
+- Any block or item spawned as a prop (Entity Spawn page, `/npc spawn page`) can carry a dialogue: use the LowTalk
+  tool on it, pick the dialogue and an optional speaker name. Using the prop opens the dialogue. The binding
+  follows the prop when the Entity Tool moves it, and is stored in the plugin's `props.json`. The prop gains the
+  game's own interactions component so the interact key reaches it; without LowTalk that component is inert.
+  `/lowtalk prop list` and `/lowtalk prop unbind <uuid>` clean up after deleted props.
+- A bound prop shows a prompt when a player comes close, chosen when binding: talk, read, examine, listen, use, or
+  none. It uses the same marker and prompt packet the game's talkative NPCs use.
+- The tool's use chain ends in a LowTalk interaction type (`LowTalkTarget`), registered the same way the game
+  registers its own, so the tool reaches entities the stock UseEntity step ignores.
+
 ### Clickable blocks
 
 - A dialogue can be bound to a placed block: click it with the LowTalk tool for a small page, or look at it and

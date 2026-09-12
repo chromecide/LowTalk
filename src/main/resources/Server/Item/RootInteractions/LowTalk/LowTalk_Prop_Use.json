@@ -1,0 +1,8 @@
+{
+  "$Comment": "What a prop with a LowTalk dialogue runs when used: nothing. Its purpose is to exist, so the game raises the use-entity event LowTalk answers. Without LowTalk the id is unknown and the game substitutes an empty interaction.",
+  "Interactions": [
+    {
+      "Type": "Simple"
+    }
+  ]
+}

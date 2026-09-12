@@ -362,6 +362,14 @@ dialogue without touching Java or `.talk` bindings:
   being touched; for a statue or a wall, use a trigger volume. Bindings are kept in LowTalk's own data folder
   (`blocks.json`), never in the world, so removing the mod leaves every block as it was. `/lowtalk block unbind`
   and `/lowtalk block list` manage them from chat.
+- **Props.** For anything else, a statue, a book on a table, a signpost, spawn it as a prop: the game's Entity
+  Spawn page (`/npc spawn page`) turns any block or item into an entity that the Entity Tool can move, rotate,
+  scale, freeze and delete. Use the LowTalk tool on the prop, pick a dialogue, optionally the name it speaks
+  as (else the dialogue's `speaker:`, else its `title:`), and the prompt players see when close ("Press [F] to
+  read", or none). Using the prop opens the dialogue. The binding is tied to
+  the prop, not to a spot, so it survives being moved. Bindings are kept in `props.json` in LowTalk's data folder;
+  the prop itself only gains the game's own interactions component, which does nothing without LowTalk.
+  `/lowtalk prop list` and `/lowtalk prop unbind <uuid>` clean up after props that no longer exist.
 - **Choice pages.** A shop or other choice page can lead into a dialogue with
   `"Interactions": [ { "Type": "LowTalkDialogue", "Dialogue": "haggle" } ]`,
   and an entry can be gated by what was said:

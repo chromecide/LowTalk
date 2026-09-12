@@ -51,6 +51,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         this.addSubCommand(new Convert(plugin));
         this.addSubCommand(new Tool(plugin));
         this.addSubCommand(new BlockCommand(plugin));
+        this.addSubCommand(new PropCommand(plugin));
     }
 
     /** Tab completion and did-you-mean for dialogue ids; the id argument of open, info, test and convert. */
@@ -428,6 +429,61 @@ public class LowTalkCommand extends AbstractCommandCollection {
                                @Nonnull PlayerRef player, @Nonnull World world) {
             context.sendMessage(msg(plugin, "blockBindings").param("count", plugin.getBlockBindings().size()));
             for (String line : plugin.getBlockBindings().describeAll()) context.sendMessage(info(plugin, line));
+        }
+    }
+
+    static class PropCommand extends AbstractCommandCollection {
+        PropCommand(LowTalkPlugin plugin) {
+            super("prop", "Dialogues bound to props");
+            this.requirePermission(CREATOR);
+            this.addSubCommand(new PropList(plugin));
+            this.addSubCommand(new PropUnbind(plugin));
+        }
+    }
+
+    static class PropList extends AbstractPlayerCommand {
+        private final LowTalkPlugin plugin;
+
+        PropList(LowTalkPlugin plugin) {
+            super("list", "List every prop binding");
+            this.plugin = plugin;
+            this.requirePermission(CREATOR);
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef player, @Nonnull World world) {
+            context.sendMessage(msg(plugin, "propBindings").param("count", plugin.getPropBindings().size()));
+            for (String line : plugin.getPropBindings().describeAll()) context.sendMessage(info(plugin, line));
+        }
+    }
+
+    /** Drop a binding by UUID, for props that no longer exist; the tool's Unbind covers props still in the world. */
+    static class PropUnbind extends AbstractPlayerCommand {
+        private final LowTalkPlugin plugin;
+        private final RequiredArg<String> idArg = withRequiredArg("uuid", "Prop entity UUID, from /lowtalk prop list", ArgTypes.STRING);
+
+        PropUnbind(LowTalkPlugin plugin) {
+            super("unbind", "Remove a prop binding by UUID");
+            this.plugin = plugin;
+            this.requirePermission(CREATOR);
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef player, @Nonnull World world) {
+            java.util.UUID id;
+            try {
+                id = java.util.UUID.fromString(idArg.get(context).trim());
+            } catch (IllegalArgumentException e) {
+                context.sendMessage(msg(plugin, "propBadUuid"));
+                return;
+            }
+            boolean had = plugin.getPropBindings().remove(id);
+            plugin.getPropBindings().flush();
+            Ref<EntityStore> prop = store.getExternalData().getRefFromUUID(id);
+            if (prop != null) com.chromecide.lowtalk.hytale.PropSupport.removeInteractions(prop, store);
+            context.sendMessage(msg(plugin, had ? "propUnbound" : "propNotBound").param("prop", id.toString()));
         }
     }
 

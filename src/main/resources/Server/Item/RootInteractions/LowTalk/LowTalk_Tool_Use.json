@@ -1,5 +1,5 @@
 {
-  "$Comment": "The LowTalk tool's use: the game's own UseBlock then UseEntity interactions, which raise the use events LowTalk listens to. Same order as bare hands, without the break-block fallback.",
+  "$Comment": "The LowTalk tool's use: the game's own UseBlock then UseEntity interactions, which raise the use events LowTalk listens to (same order as bare hands, without the break-block fallback), then LowTalk's own LowTalkTarget step for entities UseEntity ignores, such as unbound props.",
   "Cooldown": {
     "Cooldown": 0.25,
     "ClickBypass": true
@@ -13,7 +13,10 @@
       "Next": {
         "Type": "UseBlock",
         "Failed": {
-          "Type": "UseEntity"
+          "Type": "UseEntity",
+          "Failed": {
+            "Type": "LowTalkTarget"
+          }
         }
       }
     }
