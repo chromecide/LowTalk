@@ -18,6 +18,7 @@ import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Map;
 
 /**
@@ -49,6 +50,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         this.addSubCommand(new Info(plugin));
         this.addSubCommand(new Convert(plugin));
         this.addSubCommand(new Tool(plugin));
+        this.addSubCommand(new BlockCommand(plugin));
     }
 
     /** Tab completion and did-you-mean for dialogue ids; the id argument of open, info, test and convert. */
@@ -320,6 +322,112 @@ public class LowTalkCommand extends AbstractCommandCollection {
                 return;
             }
             plugin.getSessions().openFor(d, player, ref, store, world, lookedAtNpc(ref, store, player, plugin));
+        }
+    }
+
+    /** Bind a dialogue to the block you are looking at, or list or remove bindings. */
+    static class BlockCommand extends AbstractCommandCollection {
+        BlockCommand(LowTalkPlugin plugin) {
+            super("block", "Dialogues bound to placed blocks");
+            this.requirePermission(CREATOR);
+            this.addSubCommand(new BlockBind(plugin));
+            this.addSubCommand(new BlockUnbind(plugin));
+            this.addSubCommand(new BlockList(plugin));
+        }
+    }
+
+    /** The block the player is looking at, within reach, with its type id; null when none. */
+    @Nullable
+    static Object[] lookedAtBlock(Ref<EntityStore> playerEntity, Store<EntityStore> store, World world) {
+        org.joml.Vector3i pos = com.hypixel.hytale.server.core.util.TargetUtil.getTargetBlock(playerEntity, 6.0, store);
+        if (pos == null) return null;
+        com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk chunk =
+                world.getChunkIfLoaded(com.hypixel.hytale.math.util.ChunkUtil.indexChunkFromBlock(pos.x, pos.z));
+        com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType type = chunk == null ? null : chunk.getBlockType(pos.x, pos.y, pos.z);
+        return new Object[] {pos, type};
+    }
+
+    static class BlockBind extends AbstractPlayerCommand {
+        private final LowTalkPlugin plugin;
+        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", dialogueIds());
+        private final OptionalArg<String> modeArg = withOptionalArg("mode", "instead (default) or also", ArgTypes.STRING);
+
+        BlockBind(LowTalkPlugin plugin) {
+            super("bind", "Bind a dialogue to the block you are looking at");
+            this.plugin = plugin;
+            this.requirePermission(CREATOR);
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef player, @Nonnull World world) {
+            String id = idArg.get(context);
+            if (plugin.getRegistry().byId(id) == null) {
+                context.sendMessage(noDialogue(plugin, id));
+                return;
+            }
+            String mode = modeArg.provided(context) ? modeArg.get(context).trim().toLowerCase() : BlockBindings.MODE_INSTEAD;
+            if (!BlockBindings.isMode(mode)) {
+                context.sendMessage(msg(plugin, "blockMode"));
+                return;
+            }
+            Object[] target = lookedAtBlock(ref, store, world);
+            if (target == null) {
+                context.sendMessage(msg(plugin, "lookAtBlock"));
+                return;
+            }
+            org.joml.Vector3i pos = (org.joml.Vector3i) target[0];
+            com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType type = (com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType) target[1];
+            String blockId = type == null ? "?" : String.valueOf(type.getId());
+            if (type == null || type.getInteractions() == null || !type.getInteractions().containsKey(com.hypixel.hytale.protocol.InteractionType.Use)) {
+                context.sendMessage(msg(plugin, "blockNoUse").param("block", blockId));
+                return;
+            }
+            plugin.getBlockBindings().set(world.getName(), pos.x, pos.y, pos.z, id, mode);
+            plugin.getBlockBindings().flush();
+            context.sendMessage(msg(plugin, "blockBound").param("block", blockId).param("dialogue", id).param("mode", mode));
+        }
+    }
+
+    static class BlockUnbind extends AbstractPlayerCommand {
+        private final LowTalkPlugin plugin;
+
+        BlockUnbind(LowTalkPlugin plugin) {
+            super("unbind", "Remove the dialogue from the block you are looking at");
+            this.plugin = plugin;
+            this.requirePermission(CREATOR);
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef player, @Nonnull World world) {
+            Object[] target = lookedAtBlock(ref, store, world);
+            if (target == null) {
+                context.sendMessage(msg(plugin, "lookAtBlock"));
+                return;
+            }
+            org.joml.Vector3i pos = (org.joml.Vector3i) target[0];
+            String blockId = target[1] == null ? "?" : String.valueOf(((com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType) target[1]).getId());
+            boolean had = plugin.getBlockBindings().remove(world.getName(), pos.x, pos.y, pos.z);
+            plugin.getBlockBindings().flush();
+            context.sendMessage(msg(plugin, had ? "blockUnbound" : "blockNotBound").param("block", blockId));
+        }
+    }
+
+    static class BlockList extends AbstractPlayerCommand {
+        private final LowTalkPlugin plugin;
+
+        BlockList(LowTalkPlugin plugin) {
+            super("list", "List every block binding");
+            this.plugin = plugin;
+            this.requirePermission(CREATOR);
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef player, @Nonnull World world) {
+            context.sendMessage(msg(plugin, "blockBindings").param("count", plugin.getBlockBindings().size()));
+            for (String line : plugin.getBlockBindings().describeAll()) context.sendMessage(info(plugin, line));
         }
     }
 

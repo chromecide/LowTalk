@@ -33,6 +33,7 @@ import java.util.logging.Level;
  * everything that touches Hytale is under {@code hytale}.
  */
 public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
+    private com.chromecide.lowtalk.hytale.BlockBindings blockBindings;
     private final com.chromecide.lowtalk.hytale.presentation.PresentationResolver presentation =
             new com.chromecide.lowtalk.hytale.presentation.PresentationResolver(
                     d -> this.registry == null ? "" : this.registry.packOf(d),
@@ -79,6 +80,8 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
         // functions (so they validate as known), and the game's assets are loaded (so id checks can run).
 
         this.getEntityStoreRegistry().registerSystem(new NpcUseSystem(this));
+        this.blockBindings = new com.chromecide.lowtalk.hytale.BlockBindings(data.resolve("data"), getLogger());
+        this.getEntityStoreRegistry().registerSystem(new com.chromecide.lowtalk.hytale.BlockUseSystem(this));
         this.getEntityStoreRegistry().registerSystem(new NpcGoneSystem(this));
         this.getEntityStoreRegistry().registerSystem(new NpcHintSystem(this));
         this.getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, e -> sessions.end(e.getPlayerRef().getUuid()));
@@ -183,6 +186,7 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
     protected void shutdown() {
         if (sessions != null) sessions.endAll();
         if (store != null) store.flush();
+        if (blockBindings != null) blockBindings.flush();
     }
 
     /** Reload dialogues; running sessions are ended so nobody is left inside a stale tree. */
@@ -260,6 +264,7 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
     public LowTalkConfig getSettings() { return config.get(); }
     public VariableStore getStore() { return store; }
     public DialogueRegistry getRegistry() { return registry; }
+    public com.chromecide.lowtalk.hytale.BlockBindings getBlockBindings() { return blockBindings; }
     public FunctionRegistry getFunctions() { return functions; }
     public EffectRegistry getEffects() { return effects; }
     public SessionManager getSessions() { return sessions; }
