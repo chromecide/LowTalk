@@ -20,6 +20,7 @@ import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -38,6 +39,7 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
     private static final String LAYOUT = "Pages/LowTalk/NewDialoguePage.ui";
     private static final String BIND_ROLE = "role";
     private static final String BIND_TAG = "tag";
+    private static final String BIND_NONE = "none";
 
     public static class Data {
         public static final BuilderCodec<Data> CODEC = BuilderCodec.builder(Data.class, Data::new)
@@ -55,12 +57,14 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
     }
 
     private final LowTalkPlugin plugin;
+    /** The NPC the dialogue is for, or null when created from the browser with nothing to attach it to. */
+    @Nullable
     private final NpcInfo npc;
     private final Ref<EntityStore> playerEntity;
     private final LinkedHashMap<String, Path> targets;
     private String status = "";
 
-    public NewDialoguePage(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef playerRef, @Nonnull Ref<EntityStore> playerEntity, @Nonnull NpcInfo npc) {
+    public NewDialoguePage(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef playerRef, @Nonnull Ref<EntityStore> playerEntity, @Nullable NpcInfo npc) {
         super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC);
         this.plugin = plugin;
         this.npc = npc;
@@ -76,21 +80,35 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
         p.getPageManager().openCustomPage(playerEntity, store, new NewDialoguePage(plugin, player, playerEntity, npc));
     }
 
+    /** From the browser: a dialogue attached to nothing (npc: none), to be bound to a prop, block, trigger or role later. */
+    public static void openUnattached(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity,
+                                      @Nonnull Store<EntityStore> store) {
+        plugin.getSessions().end(player.getUuid());
+        Player p = store.getComponent(playerEntity, Player.getComponentType());
+        if (p == null) return;
+        p.getPageManager().openCustomPage(playerEntity, store, new NewDialoguePage(plugin, player, playerEntity, null));
+    }
+
     @Override
     public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder cmd, @Nonnull UIEventBuilder evt, @Nonnull Store<EntityStore> store) {
         cmd.append(LAYOUT);
-        cmd.set("#Intro.Text", npc.name() + " (" + npc.role() + ") has no dialogue yet. Create one and it opens in the editor.");
-        String suggested = npc.role() == null ? "new_dialogue" : npc.role().toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9_-]", "_");
+        if (npc == null) cmd.set("#Intro.Text", LowTalkCommand.msg(plugin, "newUnattachedIntro"));
+        else cmd.set("#Intro.Text", npc.name() + " (" + npc.role() + ") has no dialogue yet. Create one and it opens in the editor.");
+        String suggested = npc == null || npc.role() == null ? "new_dialogue" : npc.role().toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9_-]", "_");
         int n = 2;
         String id = suggested;
         while (plugin.getRegistry().byId(id) != null) id = suggested + "_" + n++;
         cmd.set("#Id.Value", id);
-        cmd.set("#Speaker.Value", npc.name());
+        cmd.set("#Speaker.Value", npc == null ? "Narrator" : npc.name());
         List<DropdownEntryInfo> bind = new ArrayList<>();
-        bind.add(new DropdownEntryInfo(LocalizableString.fromString("every " + npc.role() + " (bind by role)"), BIND_ROLE));
-        bind.add(new DropdownEntryInfo(LocalizableString.fromString("only this NPC (bind by tag)"), BIND_TAG));
+        if (npc == null) {
+            bind.add(new DropdownEntryInfo(LocalizableString.fromString("nothing yet (npc: none); bind it to a prop, block, trigger or role later"), BIND_NONE));
+        } else {
+            bind.add(new DropdownEntryInfo(LocalizableString.fromString("every " + npc.role() + " (bind by role)"), BIND_ROLE));
+            bind.add(new DropdownEntryInfo(LocalizableString.fromString("only this NPC (bind by tag)"), BIND_TAG));
+        }
         cmd.set("#Bind.Entries", bind);
-        cmd.set("#Bind.Value", BIND_ROLE);
+        cmd.set("#Bind.Value", npc == null ? BIND_NONE : BIND_ROLE);
         List<DropdownEntryInfo> where = new ArrayList<>();
         for (Map.Entry<String, Path> e : targets.entrySet()) {
             String label = e.getKey().isEmpty() ? "the server's dialogues folder" : "asset pack " + e.getKey();
@@ -114,10 +132,10 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
         String where = data.where == null || data.where.equals("$server") ? "" : data.where;
         Path root = targets.get(where);
         if (root == null) { fail("That place is not available."); return; }
-        boolean byTag = BIND_TAG.equals(data.bind);
+        boolean byTag = npc != null && BIND_TAG.equals(data.bind);
         String tag = byTag ? id : null;
-        String binding = byTag ? "@" + tag : npc.role();
-        String speaker = data.speaker == null || data.speaker.isBlank() ? npc.name() : data.speaker.trim();
+        String binding = npc == null ? "none" : (byTag ? "@" + tag : npc.role());
+        String speaker = data.speaker == null || data.speaker.isBlank() ? (npc == null ? "Narrator" : npc.name()) : data.speaker.trim();
         String text = "npc: " + binding + "\n"
                 + "speaker: " + speaker + "\n\n"
                 + "== start\n"
@@ -141,13 +159,12 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
             vs.addTag(vs.npc(npc.id()), tag);
             vs.flush();
         }
-        close();
         playerRef.sendMessage(byTag
                 ? LowTalkCommand.msg(plugin, "createdTagged").param("file", file.getFileName().toString()).param("npc", npc.name()).param("tag", tag)
                 : LowTalkCommand.msg(plugin, "created").param("file", file.getFileName().toString()));
         store.getExternalData().getWorld().execute(() -> {
             if (!playerEntity.isValid()) return;
-            DialogueEditorPage.open(plugin, d, playerRef, playerEntity, store, npc);
+            DialogueEditorPage.open(plugin, d, playerRef, playerEntity, store, npc == null ? BrowsePage.narrator(d) : npc);
         });
     }
 

@@ -91,6 +91,13 @@ public final class PropBindings {
 
     public synchronized int size() { return byId.size(); }
 
+    /** The ids of every dialogue some prop opens. */
+    public synchronized java.util.Set<String> dialogues() {
+        java.util.Set<String> out = new java.util.HashSet<>();
+        for (Binding b : byId.values()) out.add(b.dialogue());
+        return out;
+    }
+
     private void load() {
         if (!Files.isRegularFile(file)) return;
         try {

@@ -51,6 +51,8 @@ Ah, {player}. Back again.
 
 ## Features
 
+- **Dialogue browser.** The tool on nothing opens every loaded dialogue with what it is attached to, Edit and
+  Test each, create new ones that belong to nothing yet, and reload files. Also `/lowtalk browse`.
 - **Talking props.** Spawn any block or item as a prop (the game's Entity Spawn page, `/npc spawn page`), use the
   LowTalk tool on it, pick a dialogue and optionally a name. Using the prop talks. The Entity Tool moves, scales
   and removes props, and the binding follows the prop.
@@ -107,6 +109,7 @@ Ah, {player}. Back again.
 | `/lowtalk tool` | Get the LowTalk tool: click an NPC with it to edit its dialogue in place (creator) |
 - `/lowtalk block bind <dialogue> [instead|also]`, `block unbind`, `block list`: dialogues on the block you are
   looking at (creator).
+- `/lowtalk browse`: the dialogue browser, the same page the tool opens when used on nothing (creator).
 - `/lowtalk prop list`, `prop unbind <uuid>`: prop bindings, for cleaning up after props that are gone (creator).
   Binding and unbinding a prop that still exists is done with the tool.
 | `/lowtalk stop` | Leave your current conversation |

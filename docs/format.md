@@ -362,6 +362,8 @@ dialogue without touching Java or `.talk` bindings:
   being touched; for a statue or a wall, use a trigger volume. Bindings are kept in LowTalk's own data folder
   (`blocks.json`), never in the world, so removing the mod leaves every block as it was. `/lowtalk block unbind`
   and `/lowtalk block list` manage them from chat.
+- **Nothing yet.** The LowTalk tool used on nothing opens the dialogue browser: every loaded dialogue, what it is
+  attached to, Edit and Test, and New dialogue for one that belongs to nothing (`npc: none`) until you bind it.
 - **Props.** For anything else, a statue, a book on a table, a signpost, spawn it as a prop: the game's Entity
   Spawn page (`/npc spawn page`) turns any block or item into an entity that the Entity Tool can move, rotate,
   scale, freeze and delete. Use the LowTalk tool on the prop, pick a dialogue, optionally the name it speaks
