@@ -53,6 +53,8 @@ how the pieces wire together, or run `/lowtalk open <name>` in game to play it.
   once met. `tools/nodeeditor/make_demo.py` regenerates it.
 
 Both generators share `graphgen.py`, which lays the passages out on the canvas.
+Regenerating keeps a layout arranged by hand in the editor as long as the
+graph's structure is unchanged; add or remove a node and it lays out afresh.
 
 ## Using it
 
