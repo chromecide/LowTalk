@@ -106,6 +106,11 @@ public final class Validator {
             out.add(new Problem(new Pos(d.file(), 1), false, "layout: '" + layout + "' is not one of "
                     + com.chromecide.lowtalk.hytale.presentation.DialogueLayout.keys() + "; the default layout will be used"));
         }
+        String history = d.otherDirectives().get("history");
+        if (history != null && !com.chromecide.lowtalk.hytale.presentation.History.isValid(history)) {
+            out.add(new Problem(new Pos(d.file(), 1), false, "history: '" + history + "' is not one of "
+                    + com.chromecide.lowtalk.hytale.presentation.History.keys() + "; the default will be used"));
+        }
         for (String b : d.bindings()) {
             if (b == null || b.isBlank() || b.equals("@")) {
                 out.add(new Problem(new Pos(d.file(), 1), true, "an npc: binding is empty; give it a role id like Kweebec_Merchant or a tag like @elder"));

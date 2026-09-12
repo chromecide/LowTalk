@@ -76,7 +76,7 @@ class NodeEditorWorkspaceTest {
         JsonObject body = option.getAsJsonObject("Body");
         assertEquals("StatementVariants", body.get("Node").getAsString());
         JsonObject root = read(WORKSPACE.resolve("Dialogue.json")).getAsJsonObject("Schema");
-        for (String k : new String[] {"Npc", "Speaker", "Title", "Scope", "Portrait", "On", "Layout", "Start", "Passages"}) assertTrue(root.has(k), k);
+        for (String k : new String[] {"Npc", "Speaker", "Title", "Scope", "Portrait", "On", "Layout", "History", "Start", "Passages"}) assertTrue(root.has(k), k);
         JsonArray outputs = read(WORKSPACE.resolve("Dialogue.json")).getAsJsonArray("Outputs");
         assertEquals(2, outputs.size());
     }

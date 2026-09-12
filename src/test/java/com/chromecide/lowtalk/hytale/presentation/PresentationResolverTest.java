@@ -95,6 +95,21 @@ class PresentationResolverTest {
     }
 
     @Test
+    void historyFollowsTheSameChain() {
+        PresentationResolver r = resolver("Some:Pack");
+        assertEquals(History.FULL, r.resolve(dialogue("")).history(), "built-in default");
+        r.setServerDefaults(new Presentation.Defaults(null, null, History.LATEST), null);
+        assertEquals(History.LATEST, r.resolve(dialogue("")).history());
+        r.setApiDefaults("Some:Pack", new Presentation.Defaults(null, null, History.FULL));
+        assertEquals(History.FULL, r.resolve(dialogue("")).history());
+        r.setPackFiles(Map.of("Some:Pack", new Presentation.Defaults(DialogueLayout.TOP, null, History.LATEST)));
+        assertEquals(History.LATEST, r.resolve(dialogue("")).history());
+        assertEquals(History.FULL, r.resolve(dialogue("history: full")).history(), "directive wins");
+        assertEquals(History.LATEST, r.resolve(dialogue("history: sideways")).history(), "unknown value falls through");
+        assertEquals("latest, from the pack's Settings.json", r.explainHistoryDefault("x"));
+    }
+
+    @Test
     void layoutKeysParse() {
         assertEquals(DialogueLayout.WINDOW, DialogueLayout.parse(" Window "));
         assertNull(DialogueLayout.parse(null));

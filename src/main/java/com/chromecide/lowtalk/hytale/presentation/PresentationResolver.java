@@ -80,7 +80,13 @@ public final class PresentationResolver {
         if (hide == null) hide = serverDefaults.hideHud();
         if (hide == null) hide = List.of();
 
-        return Presentation.of(layout, new ArrayList<>(hide));
+        History history = History.parse(dialogue.otherDirectives().get("history"));
+        if (history == null) history = fromFile.history();
+        if (history == null) history = fromApi.history();
+        if (history == null) history = serverDefaults.history();
+        if (history == null) history = History.DEFAULT;
+
+        return Presentation.of(layout, new ArrayList<>(hide), history);
     }
 
     /** What a dialogue with this id would get without a directive of its own, as "bottom, from pack X". */
@@ -95,6 +101,19 @@ public final class PresentationResolver {
         if (a != null && a.layout() != null) return a.layout().key() + ", set by the pack's plugin";
         if (serverDefaults.layout() != null) return serverDefaults.layout().key() + ", the server config";
         return DialogueLayout.DEFAULT.key() + ", built in";
+    }
+
+    /** What a dialogue with this id would get for history without a directive of its own. */
+    @Nonnull
+    public String explainHistoryDefault(@Nonnull String dialogueId) {
+        String pack = packOfId.apply(dialogueId);
+        if (pack == null) pack = "";
+        Presentation.Defaults f = packFiles.get(pack);
+        if (f != null && f.history() != null) return f.history().key() + ", from the pack's Settings.json";
+        Presentation.Defaults a = apiDefaults.get(pack);
+        if (a != null && a.history() != null) return a.history().key() + ", set by the pack's plugin";
+        if (serverDefaults.history() != null) return serverDefaults.history().key() + ", the server config";
+        return History.DEFAULT.key() + ", built in";
     }
 
     /** The level that decided a dialogue's layout, for {@code /lowtalk} diagnostics. */

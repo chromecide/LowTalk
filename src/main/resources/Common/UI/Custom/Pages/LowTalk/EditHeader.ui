@@ -120,6 +120,17 @@ Group {
     }
 
     DropdownBox #Layout {
+      Anchor: (Width: 300, Right: 20, Height: $C.@DropdownBoxHeight);
+      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 360);
+    }
+
+    Label {
+      Anchor: (Width: 70);
+      Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+      Text: %server.lowtalk.editor.history;
+    }
+
+    DropdownBox #History {
       Anchor: (Width: 300, Height: $C.@DropdownBoxHeight);
       Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 360);
     }

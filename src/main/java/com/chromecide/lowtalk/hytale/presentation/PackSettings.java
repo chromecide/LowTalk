@@ -40,10 +40,13 @@ public final class PackSettings {
             .documentation("Where dialogues from this pack appear: window, bottom or top.").add()
             .<String[]>append(new KeyedCodec<>("HideHud", new ArrayCodec<>(Codec.STRING, String[]::new)), (s, v) -> s.hideHud = v, s -> s.hideHud)
             .documentation("HUD parts hidden while a dialogue from this pack is open, e.g. Reticle, Hotbar, Compass.").add()
+            .append(new KeyedCodec<>("History", Codec.STRING), (s, v) -> s.history = v, s -> s.history)
+            .documentation("How much stays on screen: full (the whole transcript) or latest (only the NPC's current line).").add()
             .build();
 
     private String layout;
     private String[] hideHud;
+    private String history;
 
     private PackSettings() {}
 
@@ -55,7 +58,12 @@ public final class PackSettings {
             if (l == null) logger.at(Level.WARNING).log("%s/%s of pack %s: unknown Layout '%s' (use %s)", PACK_DIR, FILE, pack, layout, DialogueLayout.keys());
         }
         List<String> hide = hideHud == null ? null : Arrays.asList(hideHud);
-        return new Presentation.Defaults(l, hide);
+        History h = null;
+        if (history != null && !history.isBlank()) {
+            h = History.parse(history);
+            if (h == null) logger.at(Level.WARNING).log("%s/%s of pack %s: unknown History '%s' (use %s)", PACK_DIR, FILE, pack, history, History.keys());
+        }
+        return new Presentation.Defaults(l, hide, h);
     }
 
     /** Parse one settings file; null on a malformed file (logged). */
@@ -89,8 +97,9 @@ public final class PackSettings {
                 Presentation.Defaults d = read(file, pack.getName(), logger);
                 if (d != null && !d.isEmpty()) {
                     out.put(pack.getName(), d);
-                    logger.at(Level.INFO).log("Pack %s sets dialogue defaults: layout=%s hideHud=%s", pack.getName(),
-                            d.layout() == null ? "(inherit)" : d.layout().key(), d.hideHud() == null ? "(inherit)" : d.hideHud());
+                    logger.at(Level.INFO).log("Pack %s sets dialogue defaults: layout=%s hideHud=%s history=%s", pack.getName(),
+                            d.layout() == null ? "(inherit)" : d.layout().key(), d.hideHud() == null ? "(inherit)" : d.hideHud(),
+                            d.history() == null ? "(inherit)" : d.history().key());
                 }
             } catch (RuntimeException ignored) {
                 // packs inside archives may not resolve

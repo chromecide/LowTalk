@@ -139,13 +139,14 @@ add({
         small("Portrait", "Portrait", "Image beside the text, a path inside Common/UI/Custom of any pack.", width=300),
         small("On", "On", "join opens this dialogue by itself when a player joins.", width=120),
         enum("Layout", "Layout", ["default", "bottom", "top", "window"], "Where the conversation appears; default follows the pack or server setting.", width=140),
+        enum("History", "History", ["default", "full", "latest"], "full keeps the whole transcript on screen; latest shows only the NPC's current line.", width=140),
     ],
     "Outputs": [
         out_pin("StartPin", PIN_START, "Start rules", description="Optional. Which node to begin at; the first rule whose When is true wins. Without rules the first node starts."),
         out_pin("PassagesPin", PIN_NODE, "Passages", description="The named stretches of conversation. Jump statements and start rules refer to them by name."),
     ],
     "Schema": {
-        "Npc": "Npc", "Speaker": "Speaker", "Title": "Title", "Scope": "Scope", "Portrait": "Portrait", "On": "On", "Layout": "Layout",
+        "Npc": "Npc", "Speaker": "Speaker", "Title": "Title", "Scope": "Scope", "Portrait": "Portrait", "On": "On", "Layout": "Layout", "History": "History",
         "Start": {"Node": "Start", "Pin": "StartPin"},
         "Passages": {"Node": "Passage", "Pin": "PassagesPin"},
     },
