@@ -73,6 +73,14 @@ Well met, traveler.
 Elder: Sit, child. There is much to tell.
 ```
 
+A trailing `=> label` names the Continue button that follows the line, so a
+long telling can read "Go on", "And then?" or "..." instead of Continue:
+
+```
+The Trork came down the pass in numbers we had never seen.  => And then?
+We held the bridge for nine days.
+```
+
 A bare line uses the default speaker. `Name: text` overrides it for that line.
 A line that happens to start with a word and a colon, like `Note: bring bread`,
 would be read as a speaker; put a backslash in front (`\Note: bring bread`) to

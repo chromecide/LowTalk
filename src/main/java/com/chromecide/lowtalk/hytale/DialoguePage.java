@@ -220,6 +220,11 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
         switch (current) {
             case Step.Say say -> {
                 cmd.set("#ContinueRow.Visible", !say.last());
+                if (say.button() != null && !say.button().isBlank()) {
+                    cmd.set("#ContinueButton.Text", say.button().trim());
+                } else {
+                    cmd.set("#ContinueButton.Text", com.hypixel.hytale.server.core.Message.translation("server.lowtalk.ui.continue"));
+                }
                 sizeBar(cmd, 0, false, !say.last());
             }
             case Step.Choose choose -> {

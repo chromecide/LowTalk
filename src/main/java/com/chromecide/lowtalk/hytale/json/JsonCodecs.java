@@ -57,6 +57,8 @@ public final class JsonCodecs {
                 b.append(new KeyedCodec<>("Text", Codec.STRING), (s, v) -> s.text = v, s -> s.text)
                         .addValidator(Validators.nonNull()).metadata(new UIEditor(new UIEditor.MultilineTextField()))
                         .documentation("What is said." + TEXT_DOC).add();
+                b.append(new KeyedCodec<>("Button", Codec.STRING), (s, v) -> s.button = v, s -> s.button)
+                        .documentation("Label of the Continue button shown after this line, e.g. \"Go on\". Leave empty for Continue.").add();
             });
 
     public static final BuilderCodec<JsonStatement.OptionEntry> OPTION = statement(JsonStatement.OptionEntry.class, JsonStatement.OptionEntry::new,

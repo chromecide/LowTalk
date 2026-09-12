@@ -31,6 +31,8 @@ public final class DialogueParser {
     private static final Pattern COMMAND = Pattern.compile("^<<\\s*(.*?)\\s*>>$");
     /** The last <<...>> on an option line, when it is a modifier; greedy group 1 leaves earlier ones for the next pass. */
     private static final Pattern TRAILING_MODIFIER = Pattern.compile("^(.*)<<\\s*(if|show if|once)\\b\\s*([^<>]*?)\\s*>>\\s*$");
+    /** {@code text => Go on}: the label of the Continue button after a line. */
+    private static final Pattern BUTTON_LABEL = Pattern.compile("^(.*?)\\s*=>\\s*(\\S.*?)\\s*$");
     private static final Set<String> CLOSERS = Set.of("endif", "elseif", "else", "endonce", "or", "endrandom");
     private static final Pattern SET = Pattern.compile("^set\\s+(\\$[A-Za-z0-9_.]+)\\s*=\\s*(.+)$");
     private static final Pattern INPUT = Pattern.compile("^input\\s+(\\$[A-Za-z0-9_.]+)(?:\\s+(.+))?$");
@@ -309,13 +311,20 @@ public final class DialogueParser {
             throw new ParseException(p, "malformed command, expected <<...>>: " + l.text());
         }
         idx++;
-        Matcher sp = SPEAKER.matcher(l.text());
-        if (sp.matches() && !l.text().startsWith("http")) {
-            return new Statement.Line(p, sp.group(1).trim(), TextParser.parse(sp.group(2), p));
+        String lineText = l.text();
+        String button = null;
+        Matcher bl = BUTTON_LABEL.matcher(lineText);
+        if (bl.matches() && !bl.group(1).isBlank()) {
+            lineText = bl.group(1);
+            button = bl.group(2);
         }
-        String text = l.text();
+        Matcher sp = SPEAKER.matcher(lineText);
+        if (sp.matches() && !lineText.startsWith("http")) {
+            return new Statement.Line(p, sp.group(1).trim(), TextParser.parse(sp.group(2), p), button);
+        }
+        String text = lineText;
         if (text.startsWith("\\")) text = text.substring(1); // escaped leading char, e.g. \-> or \Speaker:
-        return new Statement.Line(p, null, TextParser.parse(text, p));
+        return new Statement.Line(p, null, TextParser.parse(text, p), button);
     }
 
     private static String commandKeyword(String text) {

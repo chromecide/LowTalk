@@ -133,11 +133,12 @@ public final class Printer {
             switch (s) {
                 case Statement.Line l -> {
                     String t = text(l.text());
+                    String suffix = l.button() == null || l.button().isBlank() ? "" : "  => " + l.button().trim();
                     if (l.speaker() != null) {
-                        sb.append(pad).append(l.speaker()).append(": ").append(t).append('\n');
+                        sb.append(pad).append(l.speaker()).append(": ").append(t).append(suffix).append('\n');
                     } else {
                         boolean escape = t.startsWith("->") || t.startsWith("<<") || t.startsWith("==") || t.startsWith("\\") || LOOKS_LIKE_SPEAKER.matcher(t).matches();
-                        sb.append(pad).append(escape ? "\\" : "").append(t).append('\n');
+                        sb.append(pad).append(escape ? "\\" : "").append(t).append(suffix).append('\n');
                     }
                 }
                 case Statement.Choice c -> {

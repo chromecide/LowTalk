@@ -14,6 +14,7 @@ public abstract class JsonStatement {
     public static final class Say extends JsonStatement {
         public String speaker;
         public String text = "";
+        public String button;
     }
 
     /** Options shown together as buttons. */

@@ -44,7 +44,8 @@ ruins = [
     jump("start"),
 ]
 war = [
-    say("The Trork came down the pass in numbers we had never seen. We held the bridge for nine days."),
+    # A line can name its Continue button; the default is Continue.
+    say("The Trork came down the pass in numbers we had never seen. We held the bridge for nine days.", button="And then?"),
     say("On the tenth the river rose and took the bridge, and them with it. Some say the grove asked it to."),
     jump("start"),
 ]

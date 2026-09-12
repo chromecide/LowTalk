@@ -8,7 +8,8 @@
       "Id": "In",
       "Type": "Start",
       "Color": "Grey",
-      "Multiple": false
+      "Multiple": false,
+      "Description": "Connect to the dialogue's Start rules pin."
     }
   ],
   "Content": [

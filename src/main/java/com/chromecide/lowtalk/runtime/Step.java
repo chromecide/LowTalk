@@ -6,9 +6,13 @@ import java.util.List;
 public sealed interface Step {
 
     /** A line. {@code last} means nothing follows it, so the button should read Leave rather than Continue. */
-    record Say(String speaker, String text, boolean last) implements Step {
+    record Say(String speaker, String text, boolean last, String button) implements Step {
         public Say(String speaker, String text) {
-            this(speaker, text, false);
+            this(speaker, text, false, null);
+        }
+
+        public Say(String speaker, String text, boolean last) {
+            this(speaker, text, last, null);
         }
     }
 

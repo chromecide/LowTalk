@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Lines
+
+- A line can name its Continue button: `text => Go on` in `.talk`, a `Button` field on Say in JSON, the form and
+  the Node Editor, and a third field on line rows in the in-game editor. Empty keeps Continue.
+- Node Editor workspace: every pin now carries a description (shown as a tooltip), and Say's speaker is marked
+  optional.
+
 ### Examples
 
 - `Lore_Keeper`: a simpler Node Editor example, a Kweebec elder with a hub of three lore topics, one node each,

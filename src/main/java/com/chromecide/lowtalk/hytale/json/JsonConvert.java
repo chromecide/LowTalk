@@ -77,7 +77,7 @@ public final class JsonConvert {
 
     private static Statement statement(JsonStatement s, Pos p) {
         return switch (s) {
-            case JsonStatement.Say say -> new Statement.Line(p, blank(say.speaker) ? null : say.speaker, text(say.text, p));
+            case JsonStatement.Say say -> new Statement.Line(p, blank(say.speaker) ? null : say.speaker, text(say.text, p), blank(say.button) ? null : say.button.trim());
             case JsonStatement.Choice c -> {
                 List<Option> options = new ArrayList<>();
                 for (JsonStatement.OptionEntry o : c.options) {
@@ -241,6 +241,7 @@ public final class JsonConvert {
                 JsonStatement.Say say = new JsonStatement.Say();
                 say.speaker = l.speaker();
                 say.text = Printer.text(l.text());
+                say.button = l.button();
                 return say;
             }
             case Statement.Choice c -> {
