@@ -1,5 +1,5 @@
 {
-  "$Comment": "Creative tool shaped like the game's editor tools: BuilderTool id so the client treats it as a tool and shows its legend HUD; the click chains stay ordinary UseEntity/UseBlock, not the builder-tool packets, which a plugin cannot handle.",
+  "$Comment": "Creative tool: click an NPC with it to open its dialogue in edit mode. Same shape as the game's editor tools, without a client-side BuilderTool id.",
   "TranslationProperties": {
     "Name": "server.items.LowTalk_Tool.name",
     "Description": "server.items.LowTalk_Tool.description"
@@ -12,9 +12,9 @@
   "MaxStack": 1,
   "PlayerAnimationsId": "Item",
   "Interactions": {
-    "Primary": "LowTalk_Tool_Edit",
-    "Secondary": "LowTalk_Tool_Play",
-    "Use": "LowTalk_Tool_Edit"
+    "Primary": "LowTalk_Tool_Use",
+    "Secondary": "LowTalk_Tool_Use",
+    "Use": "LowTalk_Tool_Use"
   },
   "InteractionConfig": {
     "UseDistance": {
@@ -26,11 +26,5 @@
   "Model": "Items/Block_Spawner_Block.blockymodel",
   "Texture": "Items/Block_Spawner_Block_Large_Texture.png",
   "Scale": 0.6,
-  "Quality": "Tool",
-  "HudUI": [
-    {
-      "Path": "Hud/LowTalk/ToolLegend.ui",
-      "Type": "Legend"
-    }
-  ]
+  "Quality": "Tool"
 }

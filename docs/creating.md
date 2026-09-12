@@ -20,10 +20,8 @@ method has a limit, it says so.
 
 The quickest way to make an NPC talk. Nothing to install, nothing to type in a file.
 
-1. `/lowtalk tool` puts the tool in your hand. It is also in the creative Tools tab. While you hold it a legend
-   on the left lists what each click does, with your own key bindings.
-2. Left click an NPC (right click plays its dialogue as a player would see it; left click a usable block such as a
-   door, chest or sign to bind a dialogue to it instead).
+1. `/lowtalk tool` puts the tool in your hand. It is also in the creative Tools tab.
+2. Click an NPC.
    - If it already has a dialogue, the window opens in **edit mode**: the same window a player sees, one passage at a
      time, but every line and option is a field.
    - If it has none, a small form asks for a name, the speaker, whether the dialogue belongs to every NPC of this
