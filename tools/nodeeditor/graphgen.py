@@ -56,9 +56,37 @@ def dialogue(npc, speaker, title, starts, nodes, scope="", portrait="", on="", l
     ])
 
 
+def _walk_saved(obj, out):
+    """Node objects of a saved graph in generator order (same tree, same walk), for carrying layouts over."""
+    if not isinstance(obj, dict) or "$NodeId" not in obj:
+        return
+    out.append(obj)
+    for key, val in obj.items():
+        if key.startswith("$"):
+            continue
+        if isinstance(val, list):
+            for item in val:
+                _walk_saved(item, out)
+
+
+def _saved_layout(path):
+    """Positions from an existing output, in walk order, so hand-made layouts survive regeneration."""
+    try:
+        with open(path, encoding="utf-8-sig") as f:
+            doc = json.load(f)
+    except (OSError, ValueError):
+        return None
+    meta = doc.get("$NodeEditorMetadata") or {}
+    nodes = meta.get("$Nodes") or {}
+    order = []
+    _walk_saved(doc, order)
+    return [(o["$NodeId"], nodes.get(o["$NodeId"])) for o in order], meta
+
+
 def write_graph(root, out_paths):
     positions = {}
     next_y = [0]
+    saved = _saved_layout(out_paths[0]) if out_paths else None
 
     def layout(n, depth):
         child_ys = []
@@ -89,7 +117,7 @@ def write_graph(root, out_paths):
 
     layout(root, 0)
     doc = emit(root, is_root=True)
-    doc["$NodeEditorMetadata"] = {
+    meta = {
         "$Nodes": positions,
         "$FloatingNodes": [],
         "$Links": {},
@@ -97,6 +125,21 @@ def write_graph(root, out_paths):
         "$Comments": [],
         "$WorkspaceID": WORKSPACE_ID,
     }
+    # Keep a layout someone arranged by hand in the editor: same number of nodes in the same walk order means the
+    # structure is unchanged, so each new node takes the saved position (and title) of its counterpart.
+    if saved:
+        saved_nodes, saved_meta = saved
+        new_ids = list(positions.keys())
+        if len(saved_nodes) == len(new_ids) and all(sp is not None for _, sp in saved_nodes):
+            for new_id, (_, saved_pos) in zip(new_ids, saved_nodes):
+                positions[new_id] = dict(saved_pos)
+            for key in ("$Groups", "$Comments", "$FloatingNodes"):
+                if saved_meta.get(key):
+                    meta[key] = saved_meta[key]
+            print("kept the saved layout")
+        else:
+            print("structure changed; laid out afresh")
+    doc["$NodeEditorMetadata"] = meta
     text = json.dumps(doc, indent=2) + "\n"
     for out in out_paths:
         os.makedirs(os.path.dirname(out), exist_ok=True)
