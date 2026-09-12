@@ -1,5 +1,5 @@
 {
-  "$Comment": "Creative tool, shaped like the game's editor tools: a legend HUD while held, left click edits or binds, right click plays. Not a client-side BuilderTool id, so the interactions are ordinary UseEntity/UseBlock chains.",
+  "$Comment": "Creative tool shaped like the game's editor tools: BuilderTool id so the client treats it as a tool and shows its legend HUD; the click chains stay ordinary UseEntity/UseBlock, not the builder-tool packets, which a plugin cannot handle.",
   "TranslationProperties": {
     "Name": "server.items.LowTalk_Tool.name",
     "Description": "server.items.LowTalk_Tool.description"
@@ -32,5 +32,9 @@
       "Path": "Hud/LowTalk/ToolLegend.ui",
       "Type": "Legend"
     }
-  ]
+  ],
+  "BuilderTool": {
+    "Id": "LowTalk",
+    "IsBrush": false
+  }
 }
