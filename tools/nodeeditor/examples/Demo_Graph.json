@@ -1,308 +1,346 @@
 {
-	"$NodeId":	"Dialogue-9744682f-78e9-4383-a7c3-98001fdd060a",
-	"Npc":	["@guide"],
-	"Speaker":	"Guide",
-	"Title":	"The Valley Guide",
-	"Scope":	"",
-	"Portrait":	"",
-	"On":	"",
-	"Start":	[{
-			"$NodeId":	"Start-6351efcc-0728-4d6e-b9dc-18392000366d",
-			"Node":	"start",
-			"When":	""
-		}, {
-			"$NodeId":	"Start-fcd71215-5a39-4c59-acbf-de92860aa313",
-			"Node":	"returning",
-			"When":	"$met"
-		}],
-	"Nodes":	[{
-			"$NodeId":	"Node-fe41beaf-a5ee-41a3-a207-67e38d3c6c2e",
-			"Name":	"start",
-			"Body":	[{
-					"$NodeId":	"Say-f34974bf-2cb0-4799-b128-98cdf7e8fcd9",
-					"Type":	"Say",
-					"Speaker":	"",
-					"Text":	"[Well met|Good day], {player}. Welcome to the valley."
-				}, {
-					"$NodeId":	"Set-658cb19e-a7d5-4e67-8ec5-64550267dc1b",
-					"Type":	"Set",
-					"Var":	"$met",
-					"Value":	"true"
-				}, {
-					"$NodeId":	"Choice-d123ef7a-50a0-4242-96eb-4ebcb4d0373e",
-					"Type":	"Choice",
-					"Options":	[{
-							"$NodeId":	"Option-17935da4-8909-4f80-b50f-5d752997609d",
-							"Text":	"Tell me about this place.",
-							"If":	"",
-							"ShowIf":	"",
-							"Once":	false,
-							"Body":	[{
-									"$NodeId":	"Say-17231f9f-214e-45c3-a265-092aa94ddb41",
-									"Type":	"Say",
-									"Speaker":	"",
-									"Text":	"The Rootlings farm the terraces; the ruins to the north are best left alone."
-								}, {
-									"$NodeId":	"Jump-82ddc384-7512-47e5-8571-057deb89d664",
-									"Type":	"Jump",
-									"Node":	"start"
-								}]
-						}, {
-							"$NodeId":	"Option-3b4fe228-40a9-4091-8a5c-d47c921dc1c0",
-							"Text":	"Any work for me?",
-							"If":	"not $player.errand",
-							"ShowIf":	"",
-							"Once":	true,
-							"Body":	[{
-									"$NodeId":	"Set-a711f783-1d6d-4e84-b1e4-21935491052e",
-									"Type":	"Set",
-									"Var":	"$player.errand",
-									"Value":	"true"
-								}, {
-									"$NodeId":	"Say-5ad8dc1a-01a9-4604-a127-9daf8cc5937a",
-									"Type":	"Say",
-									"Speaker":	"",
-									"Text":	"Take this bread to the miller. Tell him the guide sent you."
-								}, {
-									"$NodeId":	"Give-76376e9a-bde9-4ffd-9875-0caa580950e7",
-									"Type":	"Give",
-									"Item":	"Food_Bread",
-									"Count":	1
-								}, {
-									"$NodeId":	"Notify-8cc3d8b4-e866-40b3-b876-97dfbd8b8963",
-									"Type":	"Notify",
-									"Text":	"New errand: bread for the miller",
-									"Detail":	"",
-									"Style":	"success"
-								}, {
-									"$NodeId":	"Jump-f72f4021-bbfd-4efc-97ed-9344022a512d",
-									"Type":	"Jump",
-									"Node":	"start"
-								}]
-						}, {
-							"$NodeId":	"Option-7d635928-a891-4803-87e5-3362895b6cba",
-							"Text":	"Goodbye.",
-							"If":	"",
-							"ShowIf":	"",
-							"Once":	false,
-							"Body":	[{
-									"$NodeId":	"Say-877e5d84-1197-411b-acab-2bceb4b616fc",
-									"Type":	"Say",
-									"Speaker":	"",
-									"Text":	"Safe travels."
-								}, {
-									"$NodeId":	"End-c87fb002-4038-4e23-b5ed-9e000ba74057",
-									"Type":	"End"
-								}]
-						}]
-				}]
-		}, {
-			"$NodeId":	"Node-21e57c22-f913-4aff-ac4e-a486c12639a4",
-			"Name":	"returning",
-			"Body":	[{
-					"$NodeId":	"Say-83c5d4c7-28e2-47b0-b911-f75b2d7539a7",
-					"Type":	"Say",
-					"Speaker":	"",
-					"Text":	"[Back again|Hello again], {player}."
-				}, {
-					"$NodeId":	"If-a494f3fc-eb31-4914-bfc9-210d63d3cd5f",
-					"Type":	"If",
-					"Branches":	[{
-							"$NodeId":	"Branch-78c5dbd7-9e92-4b62-975e-ed83ce2072bd",
-							"When":	"$player.errand",
-							"Body":	[{
-									"$NodeId":	"Say-79ae26aa-79ff-4274-b1b1-daac8b1287b6",
-									"Type":	"Say",
-									"Speaker":	"",
-									"Text":	"How is the errand going? The miller is waiting."
-								}]
-						}, {
-							"$NodeId":	"Branch-bc046369-f62b-48b8-9e0e-d9d1516fb4d0",
-							"When":	"",
-							"Body":	[{
-									"$NodeId":	"Say-bacdff99-e676-4667-a449-ae9f8b937ed3",
-									"Type":	"Say",
-									"Speaker":	"",
-									"Text":	"Still looking for work? Ask me."
-								}]
-						}]
-				}, {
-					"$NodeId":	"Jump-9babf8d3-f1c8-483c-96dd-e4adea8b589f",
-					"Type":	"Jump",
-					"Node":	"start"
-				}]
-		}],
-	"$NodeEditorMetadata":	{
-		"$Nodes":	{
-			"Dialogue-9744682f-78e9-4383-a7c3-98001fdd060a":	{
-				"$Position":	{
-					"$x":	-967,
-					"$y":	925
-				},
-				"$Title":	"[ROOT] Dialogue"
-			},
-			"Start-fcd71215-5a39-4c59-acbf-de92860aa313":	{
-				"$Position":	{
-					"$x":	-50,
-					"$y":	967
-				}
-			},
-			"Start-6351efcc-0728-4d6e-b9dc-18392000366d":	{
-				"$Position":	{
-					"$x":	-53,
-					"$y":	800
-				}
-			},
-			"Node-fe41beaf-a5ee-41a3-a207-67e38d3c6c2e":	{
-				"$Position":	{
-					"$x":	421,
-					"$y":	1361
-				}
-			},
-			"Say-f34974bf-2cb0-4799-b128-98cdf7e8fcd9":	{
-				"$Position":	{
-					"$x":	1040,
-					"$y":	340
-				}
-			},
-			"Set-658cb19e-a7d5-4e67-8ec5-64550267dc1b":	{
-				"$Position":	{
-					"$x":	1040,
-					"$y":	510
-				}
-			},
-			"Choice-d123ef7a-50a0-4242-96eb-4ebcb4d0373e":	{
-				"$Position":	{
-					"$x":	1040,
-					"$y":	1360
-				}
-			},
-			"Option-17935da4-8909-4f80-b50f-5d752997609d":	{
-				"$Position":	{
-					"$x":	1560,
-					"$y":	765
-				}
-			},
-			"Say-17231f9f-214e-45c3-a265-092aa94ddb41":	{
-				"$Position":	{
-					"$x":	2544,
-					"$y":	492
-				}
-			},
-			"Jump-82ddc384-7512-47e5-8571-057deb89d664":	{
-				"$Position":	{
-					"$x":	2544,
-					"$y":	765
-				}
-			},
-			"Option-3b4fe228-40a9-4091-8a5c-d47c921dc1c0":	{
-				"$Position":	{
-					"$x":	1560,
-					"$y":	1360
-				}
-			},
-			"Set-a711f783-1d6d-4e84-b1e4-21935491052e":	{
-				"$Position":	{
-					"$x":	2971,
-					"$y":	1087
-				}
-			},
-			"Say-5ad8dc1a-01a9-4604-a127-9daf8cc5937a":	{
-				"$Position":	{
-					"$x":	2983,
-					"$y":	1332
-				}
-			},
-			"Give-76376e9a-bde9-4ffd-9875-0caa580950e7":	{
-				"$Position":	{
-					"$x":	3071,
-					"$y":	1647
-				}
-			},
-			"Notify-8cc3d8b4-e866-40b3-b876-97dfbd8b8963":	{
-				"$Position":	{
-					"$x":	3059,
-					"$y":	1869
-				}
-			},
-			"Jump-f72f4021-bbfd-4efc-97ed-9344022a512d":	{
-				"$Position":	{
-					"$x":	3071,
-					"$y":	2154
-				}
-			},
-			"Option-7d635928-a891-4803-87e5-3362895b6cba":	{
-				"$Position":	{
-					"$x":	1560,
-					"$y":	1955
-				}
-			},
-			"Say-877e5d84-1197-411b-acab-2bceb4b616fc":	{
-				"$Position":	{
-					"$x":	2337,
-					"$y":	1782
-				}
-			},
-			"End-c87fb002-4038-4e23-b5ed-9e000ba74057":	{
-				"$Position":	{
-					"$x":	2356,
-					"$y":	2033
-				}
-			},
-			"Node-21e57c22-f913-4aff-ac4e-a486c12639a4":	{
-				"$Position":	{
-					"$x":	374,
-					"$y":	2425
-				}
-			},
-			"Say-83c5d4c7-28e2-47b0-b911-f75b2d7539a7":	{
-				"$Position":	{
-					"$x":	1040,
-					"$y":	2210
-				}
-			},
-			"If-a494f3fc-eb31-4914-bfc9-210d63d3cd5f":	{
-				"$Position":	{
-					"$x":	1040,
-					"$y":	2465
-				}
-			},
-			"Branch-78c5dbd7-9e92-4b62-975e-ed83ce2072bd":	{
-				"$Position":	{
-					"$x":	1560,
-					"$y":	2380
-				}
-			},
-			"Say-79ae26aa-79ff-4274-b1b1-daac8b1287b6":	{
-				"$Position":	{
-					"$x":	2425,
-					"$y":	2328
-				}
-			},
-			"Branch-bc046369-f62b-48b8-9e0e-d9d1516fb4d0":	{
-				"$Position":	{
-					"$x":	1560,
-					"$y":	2550
-				}
-			},
-			"Say-bacdff99-e676-4667-a449-ae9f8b937ed3":	{
-				"$Position":	{
-					"$x":	2437,
-					"$y":	2586
-				}
-			},
-			"Jump-9babf8d3-f1c8-483c-96dd-e4adea8b589f":	{
-				"$Position":	{
-					"$x":	1040,
-					"$y":	2720
-				}
-			}
-		},
-		"$FloatingNodes":	[],
-		"$Links":	{
-		},
-		"$Groups":	[],
-		"$Comments":	[],
-		"$WorkspaceID":	"LowTalk - Dialogue"
-	}
+  "$NodeId": "Dialogue-75df9e69-e299-4885-9c3c-fbe890fe07c4",
+  "Npc": [
+    "@guide"
+  ],
+  "Speaker": "Guide",
+  "Title": "The Valley Guide",
+  "Scope": "",
+  "Portrait": "",
+  "On": "",
+  "Start": [
+    {
+      "$NodeId": "Start-11706312-9273-40ee-8a42-0153300c2f89",
+      "Node": "returning",
+      "When": "$met"
+    },
+    {
+      "$NodeId": "Start-07a0bbbb-0d76-4f4b-8ba2-76dbfe11b3de",
+      "Node": "start",
+      "When": ""
+    }
+  ],
+  "Nodes": [
+    {
+      "$NodeId": "Node-a0af0105-de43-4f38-90dc-62e139a96de0",
+      "Name": "start",
+      "Body": [
+        {
+          "$NodeId": "Say-a8b1e900-171c-4d93-a3bd-bed34b241582",
+          "Type": "Say",
+          "Speaker": "",
+          "Text": "[Well met|Good day], {player}. Welcome to the valley."
+        },
+        {
+          "$NodeId": "Set-a73a00d2-e1f5-4dfe-bd0f-531a0ec38164",
+          "Type": "Set",
+          "Var": "$met",
+          "Value": "true"
+        },
+        {
+          "$NodeId": "Choice-5a58ae49-fe4e-4a50-b430-633b4a01d5ba",
+          "Type": "Choice",
+          "Options": [
+            {
+              "$NodeId": "Option-66a87695-9750-4521-b6aa-adb81950ba22",
+              "Text": "Tell me about this place.",
+              "If": "",
+              "ShowIf": "",
+              "Once": false,
+              "Body": [
+                {
+                  "$NodeId": "Say-5ce6e82c-9d01-4442-88e8-814506ebff12",
+                  "Type": "Say",
+                  "Speaker": "",
+                  "Text": "The Rootlings farm the terraces; the ruins to the north are best left alone."
+                },
+                {
+                  "$NodeId": "Jump-f8003ede-264c-4128-b610-ebd2be601361",
+                  "Type": "Jump",
+                  "Node": "start"
+                }
+              ]
+            },
+            {
+              "$NodeId": "Option-55796790-0d75-4aba-a51b-ed21e3e10aef",
+              "Text": "Any work for me?",
+              "If": "not $player.errand",
+              "ShowIf": "",
+              "Once": true,
+              "Body": [
+                {
+                  "$NodeId": "Say-96652a85-4f06-48b5-98db-526781c0bee1",
+                  "Type": "Say",
+                  "Speaker": "",
+                  "Text": "Take this bread to the miller. Tell him the guide sent you."
+                },
+                {
+                  "$NodeId": "Give-3f33587b-872b-4b71-be54-b38f3ceb4cf5",
+                  "Type": "Give",
+                  "Item": "Food_Bread",
+                  "Count": 1
+                },
+                {
+                  "$NodeId": "Set-d5f58008-43e5-4e18-9130-2536f79266bd",
+                  "Type": "Set",
+                  "Var": "$player.errand",
+                  "Value": "true"
+                },
+                {
+                  "$NodeId": "Notify-d16faa3f-e6fa-44f2-8eb0-1261572fa32d",
+                  "Type": "Notify",
+                  "Text": "New errand: bread for the miller",
+                  "Detail": "",
+                  "Style": "success"
+                },
+                {
+                  "$NodeId": "Jump-bfda5019-e705-4690-ad77-b411d0bba961",
+                  "Type": "Jump",
+                  "Node": "start"
+                }
+              ]
+            },
+            {
+              "$NodeId": "Option-458a7148-dffd-43ba-932e-9e6a83f5c4a0",
+              "Text": "Goodbye.",
+              "If": "",
+              "ShowIf": "",
+              "Once": false,
+              "Body": [
+                {
+                  "$NodeId": "Say-32477ee1-4e8b-4768-a146-4cd380ca794c",
+                  "Type": "Say",
+                  "Speaker": "",
+                  "Text": "Safe travels."
+                },
+                {
+                  "$NodeId": "End-abbd8581-60a6-4bc3-b59a-b0dda6b33303",
+                  "Type": "End"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "$NodeId": "Node-3ad207dc-fa39-4760-a6bd-25d2077e296e",
+      "Name": "returning",
+      "Body": [
+        {
+          "$NodeId": "Say-65c1c7ae-1efc-48b9-bde1-b28e80cd4903",
+          "Type": "Say",
+          "Speaker": "",
+          "Text": "[Back again|Hello again], {player}."
+        },
+        {
+          "$NodeId": "If-2316c769-9cdd-484c-93eb-23dd3374500e",
+          "Type": "If",
+          "Branches": [
+            {
+              "$NodeId": "Branch-f010bd0c-d94c-4f37-9b47-8b60b04d5dc2",
+              "When": "$player.errand",
+              "Body": [
+                {
+                  "$NodeId": "Say-e4d08016-f79a-425f-9173-16d71ca60002",
+                  "Type": "Say",
+                  "Speaker": "",
+                  "Text": "How is the errand going? The miller is waiting."
+                }
+              ]
+            },
+            {
+              "$NodeId": "Branch-dab925e9-1a92-4818-8001-017a8a4bf9cd",
+              "When": "",
+              "Body": [
+                {
+                  "$NodeId": "Say-6a3a1ff9-a3f8-4329-91b2-c165ebcfc59e",
+                  "Type": "Say",
+                  "Speaker": "",
+                  "Text": "Still looking for work? Ask me."
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "$NodeId": "Jump-cad71693-2c27-4c59-a6bd-74e71fece758",
+          "Type": "Jump",
+          "Node": "start"
+        }
+      ]
+    }
+  ],
+  "$NodeEditorMetadata": {
+    "$Nodes": {
+      "Start-11706312-9273-40ee-8a42-0153300c2f89": {
+        "$Position": {
+          "$x": 520,
+          "$y": 0
+        }
+      },
+      "Start-07a0bbbb-0d76-4f4b-8ba2-76dbfe11b3de": {
+        "$Position": {
+          "$x": 520,
+          "$y": 170
+        }
+      },
+      "Say-a8b1e900-171c-4d93-a3bd-bed34b241582": {
+        "$Position": {
+          "$x": 1040,
+          "$y": 340
+        }
+      },
+      "Set-a73a00d2-e1f5-4dfe-bd0f-531a0ec38164": {
+        "$Position": {
+          "$x": 1040,
+          "$y": 510
+        }
+      },
+      "Say-5ce6e82c-9d01-4442-88e8-814506ebff12": {
+        "$Position": {
+          "$x": 2080,
+          "$y": 680
+        }
+      },
+      "Jump-f8003ede-264c-4128-b610-ebd2be601361": {
+        "$Position": {
+          "$x": 2080,
+          "$y": 850
+        }
+      },
+      "Option-66a87695-9750-4521-b6aa-adb81950ba22": {
+        "$Position": {
+          "$x": 1560,
+          "$y": 765
+        }
+      },
+      "Say-96652a85-4f06-48b5-98db-526781c0bee1": {
+        "$Position": {
+          "$x": 2080,
+          "$y": 1020
+        }
+      },
+      "Give-3f33587b-872b-4b71-be54-b38f3ceb4cf5": {
+        "$Position": {
+          "$x": 2080,
+          "$y": 1190
+        }
+      },
+      "Set-d5f58008-43e5-4e18-9130-2536f79266bd": {
+        "$Position": {
+          "$x": 2080,
+          "$y": 1360
+        }
+      },
+      "Notify-d16faa3f-e6fa-44f2-8eb0-1261572fa32d": {
+        "$Position": {
+          "$x": 2080,
+          "$y": 1530
+        }
+      },
+      "Jump-bfda5019-e705-4690-ad77-b411d0bba961": {
+        "$Position": {
+          "$x": 2080,
+          "$y": 1700
+        }
+      },
+      "Option-55796790-0d75-4aba-a51b-ed21e3e10aef": {
+        "$Position": {
+          "$x": 1560,
+          "$y": 1360
+        }
+      },
+      "Say-32477ee1-4e8b-4768-a146-4cd380ca794c": {
+        "$Position": {
+          "$x": 2080,
+          "$y": 1870
+        }
+      },
+      "End-abbd8581-60a6-4bc3-b59a-b0dda6b33303": {
+        "$Position": {
+          "$x": 2080,
+          "$y": 2040
+        }
+      },
+      "Option-458a7148-dffd-43ba-932e-9e6a83f5c4a0": {
+        "$Position": {
+          "$x": 1560,
+          "$y": 1955
+        }
+      },
+      "Choice-5a58ae49-fe4e-4a50-b430-633b4a01d5ba": {
+        "$Position": {
+          "$x": 1040,
+          "$y": 1360
+        }
+      },
+      "Node-a0af0105-de43-4f38-90dc-62e139a96de0": {
+        "$Position": {
+          "$x": 520,
+          "$y": 737
+        }
+      },
+      "Say-65c1c7ae-1efc-48b9-bde1-b28e80cd4903": {
+        "$Position": {
+          "$x": 1040,
+          "$y": 2210
+        }
+      },
+      "Say-e4d08016-f79a-425f-9173-16d71ca60002": {
+        "$Position": {
+          "$x": 2080,
+          "$y": 2380
+        }
+      },
+      "Branch-f010bd0c-d94c-4f37-9b47-8b60b04d5dc2": {
+        "$Position": {
+          "$x": 1560,
+          "$y": 2380
+        }
+      },
+      "Say-6a3a1ff9-a3f8-4329-91b2-c165ebcfc59e": {
+        "$Position": {
+          "$x": 2080,
+          "$y": 2550
+        }
+      },
+      "Branch-dab925e9-1a92-4818-8001-017a8a4bf9cd": {
+        "$Position": {
+          "$x": 1560,
+          "$y": 2550
+        }
+      },
+      "If-2316c769-9cdd-484c-93eb-23dd3374500e": {
+        "$Position": {
+          "$x": 1040,
+          "$y": 2465
+        }
+      },
+      "Jump-cad71693-2c27-4c59-a6bd-74e71fece758": {
+        "$Position": {
+          "$x": 1040,
+          "$y": 2720
+        }
+      },
+      "Node-3ad207dc-fa39-4760-a6bd-25d2077e296e": {
+        "$Position": {
+          "$x": 520,
+          "$y": 2465
+        }
+      },
+      "Dialogue-75df9e69-e299-4885-9c3c-fbe890fe07c4": {
+        "$Position": {
+          "$x": 0,
+          "$y": 843
+        },
+        "$Title": "[ROOT] Dialogue"
+      }
+    },
+    "$FloatingNodes": [],
+    "$Links": {},
+    "$Groups": [],
+    "$Comments": [],
+    "$WorkspaceID": "LowTalk - Dialogue"
+  }
 }

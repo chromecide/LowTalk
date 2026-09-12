@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### Examples
+
+- `Lore_Keeper`: a simpler Node Editor example, a Kweebec elder with a hub of three lore topics, one node each,
+  and an option that appears once all three are heard (`visited()`). Shipped in the pack as an Asset Editor
+  reference, as a graph in `tools/nodeeditor/examples/`, and as `examples/lore_keeper.talk`.
+- The Node Editor install script now installs into every Hytale client it finds.
+
 ### Layout: bottom bar, top bar or window
 
 - Conversations now default to a bar along the bottom of the screen with no dimming overlay, so the NPC stays in

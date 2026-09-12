@@ -1,0 +1,45 @@
+# The simplest useful shape of a branching dialogue: a hub node that offers topics, one node per topic that
+# returns to the hub, and a farewell. One touch of state at the end: an option that only appears once every
+# topic has been heard, using visited().
+# The same dialogue as a Node Editor graph: tools/nodeeditor/examples/Lore_Keeper.json.
+
+npc: Kweebec_Elder
+speaker: Elder
+title: The Lore Keeper
+
+== start
+Sit a while, {player}. My roots are old and my memory is long. What would you hear of?
+-> Tell me about the village.
+    <<jump village>>
+-> What are the ruins to the north?
+    <<jump ruins>>
+-> Who fought the old war?
+    <<jump war>>
+-> What should I do now? <<show if visited("village") and visited("ruins") and visited("war")>>
+    <<jump counsel>>
+-> That is enough for today.
+    <<jump farewell>>
+
+== village
+The Kweebec raised these terraces when the river still ran high. Every stone was carried by hand.
+We farm what the slopes allow and trade the rest. The merchant by the well will tell you the prices.
+<<jump start>>
+
+== ruins
+Older than us. Older than the Trork, whatever they claim.
+The walls hum at night. Nobody who went looking for the reason came back to explain it.
+<<jump start>>
+
+== war
+The Trork came down the pass in numbers we had never seen. We held the bridge for nine days.
+On the tenth the river rose and took the bridge, and them with it. Some say the grove asked it to.
+<<jump start>>
+
+== counsel
+You have heard the three tales, so you know what matters here: the river, the ruins, and the pass.
+Keep to the terraces by day. If the walls hum, walk away. And if the Trork come again, find me first.
+<<jump start>>
+
+== farewell
+Go well, {player}. The roots remember those who listen.
+<<end>>
