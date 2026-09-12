@@ -2,13 +2,6 @@
 
 ## Unreleased
 
-### The tool, shaped like the game's tools
-
-- Holding the LowTalk tool shows a legend on the left, built from the game's own legend macros with the player's
-  real key bindings: left click edits an NPC's dialogue or binds a block, right click plays what is bound.
-- The tool's click now falls back to the block under the cursor when no NPC is targeted, so blocks can be bound at
-  all (before, the chain stopped at entities).
-
 ### Clickable blocks
 
 - A dialogue can be bound to a placed block: click it with the LowTalk tool for a small page, or look at it and

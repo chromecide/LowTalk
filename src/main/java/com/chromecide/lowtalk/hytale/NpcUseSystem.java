@@ -39,6 +39,8 @@ public class NpcUseSystem extends EntityEventSystem<EntityStore, UseEntityEvent.
     @Override
     public void handle(int index, @Nonnull ArchetypeChunk<EntityStore> chunk, @Nonnull Store<EntityStore> store,
                        @Nonnull CommandBuffer<EntityStore> commandBuffer, @Nonnull UseEntityEvent.Pre event) {
+        if (event.getInteractionType() != InteractionType.Use) return;
+
         Ref<EntityStore> playerEntity = chunk.getReferenceTo(index);
         PlayerRef player = commandBuffer.getComponent(playerEntity, PlayerRef.getComponentType());
         if (player == null) return;
@@ -47,7 +49,7 @@ public class NpcUseSystem extends EntityEventSystem<EntityStore, UseEntityEvent.
         NpcInfo npc = NpcInfo.of(target, commandBuffer, player, plugin.getStore());
         if (npc == null) return;
 
-        // The LowTalk tool, like the game's editor tools: left click (or use) edits, right click plays.
+        // A creator holding the LowTalk tool edits the NPC's dialogue instead of playing it.
         if (holdingTool(playerEntity, commandBuffer)) {
             event.setCancelled(true);
             if (!player.hasPermission(LowTalkCommand.CREATOR)) {
@@ -55,20 +57,10 @@ public class NpcUseSystem extends EntityEventSystem<EntityStore, UseEntityEvent.
                 return;
             }
             List<Dialogue> bound = plugin.getRegistry().candidates(npc.role(), npc.tags());
-            if (event.getInteractionType() == InteractionType.Secondary) {
-                if (bound.isEmpty()) {
-                    player.sendMessage(LowTalkCommand.msg(plugin, "npcNotBound").param("npc", npc.name()));
-                    return;
-                }
-                World world = store.getExternalData().getWorld();
-                plugin.getSessions().open(bound.get(0), player, playerEntity, store, world, npc);
-                return;
-            }
             if (bound.isEmpty()) NewDialoguePage.open(plugin, player, playerEntity, store, npc);
             else DialogueEditorPage.open(plugin, bound.get(0), player, playerEntity, store, npc);
             return;
         }
-        if (event.getInteractionType() != InteractionType.Use) return;
 
         if (!plugin.getSettings().isUseHook()) return; // roles and interaction JSON open dialogues instead
 
