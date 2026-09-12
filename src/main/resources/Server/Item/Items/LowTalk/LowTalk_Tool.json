@@ -17,7 +17,6 @@
     "Use": "LowTalk_Tool_Use"
   },
   "InteractionConfig": {
-    "DebugOutlines": true,
     "UseDistance": {
       "Adventure": 128,
       "Creative": 128
