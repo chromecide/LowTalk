@@ -101,7 +101,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         CMD_NAME, CMD_ARGS, CMD_PICK, SET, JUMP_NODE, JUMP_GO, INPUT, WAIT,
         BRANCH_COND, BRANCH_BODY, BRANCH_ADD, BRANCH_DEL, BLOCK_BODY, ALT_ADD, ALT_DEL,
         UP, DOWN, DEL, ADD_KIND, ADD, ADD_NODE, RENAME, JUMP, BACK, HEADER, DELETE_NODE,
-        H_BINDINGS, H_NPC_PICK, H_SPEAKER, H_TITLE, H_START, H_ON, H_PORTRAIT, H_SCOPE, H_LAYOUT,
+        H_BINDINGS, H_NPC_PICK, H_SPEAKER, H_TITLE, H_START, H_ON, H_PORTRAIT, H_SCOPE, H_LAYOUT, H_HISTORY,
         SAVE, TEST, DISCARD, CLOSE
     }
 
@@ -282,6 +282,14 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         String l = draft.directive("layout");
         cmd.set(sel + " #Layout.Value", l == null || !com.chromecide.lowtalk.hytale.presentation.DialogueLayout.isValid(l) ? NONE : l.trim().toLowerCase());
         change(evt, sel + " #Layout", Action.H_LAYOUT, null);
+        List<DropdownEntryInfo> histories = new ArrayList<>();
+        histories.add(entry("default (" + plugin.getPresentation().explainHistoryDefault(draft.id()) + ")", NONE, null));
+        histories.add(entry("full transcript", "full", null));
+        histories.add(entry("latest line only", "latest", null));
+        cmd.set(sel + " #History.Entries", histories);
+        String h = draft.directive("history");
+        cmd.set(sel + " #History.Value", h == null || !com.chromecide.lowtalk.hytale.presentation.History.isValid(h) ? NONE : h.trim().toLowerCase());
+        change(evt, sel + " #History", Action.H_HISTORY, null);
     }
 
     private void renderScope(UICommandBuilder cmd, UIEventBuilder evt) {
@@ -683,6 +691,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             case H_START -> { draft.setStartNode(value); return true; }
             case H_ON -> { draft.setDirective("on", NONE.equals(value) ? null : value); return true; }
             case H_LAYOUT -> { draft.setDirective("layout", NONE.equals(value) ? null : value); return false; }
+            case H_HISTORY -> { draft.setDirective("history", NONE.equals(value) ? null : value); return false; }
             case SAVE -> { save(); return true; }
             case TEST -> { test(ref, store); return false; }
             case DISCARD -> {

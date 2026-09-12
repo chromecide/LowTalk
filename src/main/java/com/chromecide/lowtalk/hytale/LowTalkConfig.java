@@ -34,6 +34,8 @@ public class LowTalkConfig {
                     (c, v, e) -> c.layout = v, (c, e) -> c.layout).add()
             .append(new KeyedCodec<>("ForceLayout", Codec.STRING),
                     (c, v, e) -> c.forceLayout = v, (c, e) -> c.forceLayout).add()
+            .append(new KeyedCodec<>("History", Codec.STRING),
+                    (c, v, e) -> c.history = v, (c, e) -> c.history).add()
             .<String[]>append(new KeyedCodec<>("HideHudDuringDialogue", new com.hypixel.hytale.codec.codecs.array.ArrayCodec<>(Codec.STRING, String[]::new)),
                     (c, v, e) -> c.hideHud = v, (c, e) -> c.hideHud).add()
             .build();
@@ -67,6 +69,8 @@ public class LowTalkConfig {
      */
     private String layout = "bottom";
     private String forceLayout = "";
+    /** "full": the whole transcript stays on screen; "latest": only the NPC's current line. */
+    private String history = "full";
     private String[] hideHud = new String[] {"Reticle", "Hotbar"};
 
     private LowTalkConfig() {}
@@ -84,5 +88,6 @@ public class LowTalkConfig {
     public String getHintKey() { return hintKey == null || hintKey.isBlank() ? "server.lowtalk.hint.talk" : hintKey; }
     public String getLayout() { return layout; }
     public String getForceLayout() { return forceLayout; }
+    public String getHistory() { return history; }
     public java.util.List<String> getHideHudDuringDialogue() { return hideHud == null ? java.util.List.of() : java.util.List.of(hideHud); }
 }

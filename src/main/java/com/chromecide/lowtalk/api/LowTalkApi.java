@@ -108,12 +108,25 @@ public final class LowTalkApi {
      * the pack both win over this; the server's ForceLayout wins over everything.
      */
     public void setPackDefaults(@Nonnull String pack, @Nullable String layout, @Nullable List<String> hideHud) {
+        setPackDefaults(pack, layout, hideHud, null);
+    }
+
+    /**
+     * As above, also setting {@code history}: "full" keeps the whole transcript on screen, "latest" shows only the
+     * NPC's current line; null leaves it to the server config.
+     */
+    public void setPackDefaults(@Nonnull String pack, @Nullable String layout, @Nullable List<String> hideHud, @Nullable String history) {
         com.chromecide.lowtalk.hytale.presentation.DialogueLayout l = null;
         if (layout != null && !layout.isBlank()) {
             l = com.chromecide.lowtalk.hytale.presentation.DialogueLayout.parse(layout);
             if (l == null) throw new IllegalArgumentException("unknown layout '" + layout + "'; use one of " + com.chromecide.lowtalk.hytale.presentation.DialogueLayout.keys());
         }
-        plugin.getPresentation().setApiDefaults(pack, new com.chromecide.lowtalk.hytale.presentation.Presentation.Defaults(l, hideHud == null ? null : List.copyOf(hideHud)));
+        com.chromecide.lowtalk.hytale.presentation.History h = null;
+        if (history != null && !history.isBlank()) {
+            h = com.chromecide.lowtalk.hytale.presentation.History.parse(history);
+            if (h == null) throw new IllegalArgumentException("unknown history '" + history + "'; use one of " + com.chromecide.lowtalk.hytale.presentation.History.keys());
+        }
+        plugin.getPresentation().setApiDefaults(pack, new com.chromecide.lowtalk.hytale.presentation.Presentation.Defaults(l, hideHud == null ? null : List.copyOf(hideHud), h));
     }
 
     /** Forget defaults set with {@link #setPackDefaults}. */

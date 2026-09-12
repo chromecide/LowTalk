@@ -80,6 +80,21 @@
           "window"
         ]
       }
+    },
+    {
+      "Id": "History",
+      "Type": "Enum",
+      "Options": {
+        "Label": "History",
+        "Description": "full keeps the whole transcript on screen; latest shows only the NPC's current line.",
+        "Default": "default",
+        "Width": 140,
+        "Values": [
+          "default",
+          "full",
+          "latest"
+        ]
+      }
     }
   ],
   "Outputs": [
@@ -108,6 +123,7 @@
     "Portrait": "Portrait",
     "On": "On",
     "Layout": "Layout",
+    "History": "History",
     "Start": {
       "Node": "Start",
       "Pin": "StartPin"

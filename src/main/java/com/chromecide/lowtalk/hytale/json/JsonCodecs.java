@@ -376,6 +376,8 @@ public final class JsonCodecs {
             .documentation("\"join\" opens this dialogue by itself when a player joins.").add()
             .append(new KeyedCodec<>("Layout", Codec.STRING), (a, v) -> a.layout = v, a -> a.layout)
             .documentation("Where the conversation appears: window, bottom or top. Leave empty for the pack's or the server's default.").add()
+            .append(new KeyedCodec<>("History", Codec.STRING), (a, v) -> a.history = v, a -> a.history)
+            .documentation("How much stays on screen: full (the whole transcript) or latest (only the NPC's current line). Leave empty for the default.").add()
             .<LowTalkJson.StartEntry[]>append(new KeyedCodec<>("Start", new ArrayCodec<>(START, LowTalkJson.StartEntry[]::new)),
                     (a, v) -> a.start = v == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(v)), a -> a.start.toArray(new LowTalkJson.StartEntry[0]))
             .documentation("Where to begin. Empty means the first passage.").add()

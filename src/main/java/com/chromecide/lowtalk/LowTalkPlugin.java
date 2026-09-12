@@ -228,7 +228,12 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
             getLogger().at(Level.WARNING).log("lowtalk.json: unknown ForceLayout '%s' (use %s); not forcing", cfg.getForceLayout(),
                     com.chromecide.lowtalk.hytale.presentation.DialogueLayout.keys());
         }
-        presentation.setServerDefaults(new com.chromecide.lowtalk.hytale.presentation.Presentation.Defaults(def, cfg.getHideHudDuringDialogue()), force);
+        com.chromecide.lowtalk.hytale.presentation.History history = com.chromecide.lowtalk.hytale.presentation.History.parse(cfg.getHistory());
+        if (history == null && cfg.getHistory() != null && !cfg.getHistory().isBlank()) {
+            getLogger().at(Level.WARNING).log("lowtalk.json: unknown History '%s' (use %s); using %s", cfg.getHistory(),
+                    com.chromecide.lowtalk.hytale.presentation.History.keys(), com.chromecide.lowtalk.hytale.presentation.History.DEFAULT.key());
+        }
+        presentation.setServerDefaults(new com.chromecide.lowtalk.hytale.presentation.Presentation.Defaults(def, cfg.getHideHudDuringDialogue(), history), force);
         presentation.setPackFiles(com.chromecide.lowtalk.hytale.presentation.PackSettings.scan(getLogger()));
     }
 

@@ -1,6 +1,7 @@
 package com.chromecide.lowtalk.hytale;
 
 import com.chromecide.lowtalk.hytale.presentation.DialogueLayout;
+import com.chromecide.lowtalk.hytale.presentation.History;
 import com.chromecide.lowtalk.runtime.Step;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
@@ -65,6 +66,7 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
     private final String title;
     private final String portrait;
     private final DialogueLayout layout;
+    private final History historyMode;
     private Step current;
     /** For the current Choose step: slot number -> option index, or -1 for a disabled slot. */
     private final List<Integer> slotToOption = new ArrayList<>();
@@ -77,12 +79,13 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
     private volatile long openedAt = System.currentTimeMillis();
 
     public DialoguePage(@Nonnull PlayerRef playerRef, @Nonnull DialogueSession session, @Nonnull String title, String portrait,
-                        @Nonnull DialogueLayout layout) {
+                        @Nonnull DialogueLayout layout, @Nonnull History historyMode) {
         super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC);
         this.session = session;
         this.title = title;
         this.portrait = portrait == null || portrait.isBlank() ? null : portrait.trim();
         this.layout = layout;
+        this.historyMode = historyMode;
     }
 
     public boolean isOpen() {
@@ -105,6 +108,12 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
     /** Called before the page is opened, and again for each new step. */
     public void show(@Nonnull Step step) {
         this.current = step;
+        if (historyMode == History.LATEST) {
+            // Only what the NPC says now stays on screen: forget earlier lines and start this step's afresh.
+            history.clear();
+            pendingLines.clear();
+            clearOnRender = true;
+        }
         switch (step) {
             case Step.Say say -> queueLine(LINE_NPC, say.speaker(), say.text());
             case Step.Choose choose -> {
@@ -118,10 +127,14 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
         }
     }
 
-    /** The player chose an option or typed an answer; echo it into the transcript. */
+    /** The player chose an option or typed an answer; echo it into the transcript (full history only). */
     public void playerSaid(@Nonnull String text) {
+        if (historyMode == History.LATEST) return;
         queueLine(LINE_PLAYER, playerRef.getUsername(), text);
     }
+
+    /** Set when the next render should empty the transcript first (latest-only history). */
+    private boolean clearOnRender = false;
 
     public void showNarration(@Nonnull String text) {
         if (!open) return;
@@ -162,6 +175,7 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
         // A rebuilt window starts empty on the client; replay what was said so far, then whatever is pending.
         pendingLines.clear();
         pendingLines.addAll(history);
+        clearOnRender = false;
         if (portrait != null) {
             // Verified against the client: a plain path string, relative to Common/UI/Custom/, naming the base file
             // (the client picks its @2x variant itself). PatchStyle objects and "UI/Custom/..." forms do not resolve.
@@ -215,6 +229,11 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
     }
 
     private void render(UICommandBuilder cmd) {
+        if (clearOnRender) {
+            cmd.clear("#Transcript");
+            transcriptCount = 0;
+            clearOnRender = false;
+        }
         slotToOption.clear();
         for (int i = 0; i < OPTION_SLOTS; i++) {
             cmd.set("#Opt" + i + ".Visible", false);

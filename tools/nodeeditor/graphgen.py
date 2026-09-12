@@ -46,10 +46,12 @@ def choice(options):
     return node("Choice", {}, [("Options", options)])
 
 
-def dialogue(npc, speaker, title, starts, nodes, scope="", portrait="", on="", layout=""):
+def dialogue(npc, speaker, title, starts, nodes, scope="", portrait="", on="", layout="", history=""):
     fields = {"Npc": npc, "Speaker": speaker, "Title": title, "Scope": scope, "Portrait": portrait, "On": on}
     if layout:
         fields["Layout"] = layout
+    if history:
+        fields["History"] = history
     return node("Dialogue", fields, [
         ("Start", [stmt("Start", Passage=n, When=w) for n, w in starts]),
         ("Passages", [with_body("Passage", body, Name=name) for name, body in nodes]),

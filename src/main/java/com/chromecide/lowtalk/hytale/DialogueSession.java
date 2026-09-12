@@ -74,7 +74,7 @@ public class DialogueSession implements EffectHost {
         this.conversation = new Conversation(dialogue, context);
         String title = dialogue.title() != null ? dialogue.title() : (dialogue.speaker() != null ? dialogue.speaker() : npcName);
         this.presentation = host.presentation(dialogue);
-        this.page = new DialoguePage(player, this, title, dialogue.otherDirectives().get("portrait"), presentation.layout());
+        this.page = new DialoguePage(player, this, title, dialogue.otherDirectives().get("portrait"), presentation.layout(), presentation.history());
     }
 
     public com.chromecide.lowtalk.hytale.presentation.Presentation getPresentation() { return presentation; }

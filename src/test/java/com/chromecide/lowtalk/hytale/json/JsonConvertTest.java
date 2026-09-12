@@ -22,6 +22,7 @@ class JsonConvertTest {
             speaker: Merchant
             portrait: Portraits/m.png
             layout: top
+            history: latest
 
             == start
             Hello {player}. [Nice|Fine] day.
@@ -71,6 +72,7 @@ class JsonConvertTest {
         assertEquals("Merchant", asset.speaker);
         assertEquals("Portraits/m.png", asset.portrait);
         assertEquals("top", asset.layout);
+        assertEquals("latest", asset.history);
         assertEquals(2, asset.start.size());
         assertEquals("$met", asset.start.get(0).when);
         assertEquals(2, asset.nodes.size());
