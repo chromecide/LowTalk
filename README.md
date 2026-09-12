@@ -51,6 +51,9 @@ Ah, {player}. Back again.
 
 ## Features
 
+- **One tool, one flow.** The LowTalk tool on an NPC, a prop, a block or nothing opens a bind page: what it says
+  now, bind another dialogue, unbind, edit, or create a new dialogue already bound to it. NPC bindings can apply
+  to that one NPC or to every NPC of its role.
 - **Dialogue browser.** The tool on nothing opens every loaded dialogue with what it is attached to, Edit and
   Test each, create new ones that belong to nothing yet, and reload files. Also `/lowtalk browse`.
 - **Talking props.** Spawn any block or item as a prop (the game's Entity Spawn page, `/npc spawn page`), use the
@@ -106,7 +109,7 @@ Ah, {player}. Back again.
 | `/lowtalk testworld build` / `go` | Build or visit the test corridor world |
 | `/lowtalk thaw` | Unfreeze the NPC you're looking at |
 | `/lowtalk testworld leave` | Leave the test corridor: main world, old game mode, world unloaded when empty |
-| `/lowtalk tool` | Get the LowTalk tool: click an NPC with it to edit its dialogue in place (creator) |
+| `/lowtalk tool` | Get the LowTalk tool: use it on an NPC, prop, block or nothing to bind, edit or create dialogues (creator) |
 - `/lowtalk block bind <dialogue> [instead|also]`, `block unbind`, `block list`: dialogues on the block you are
   looking at (creator).
 - `/lowtalk browse`: the dialogue browser, the same page the tool opens when used on nothing (creator).

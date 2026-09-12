@@ -59,9 +59,7 @@ public class NpcUseSystem extends EntityEventSystem<EntityStore, UseEntityEvent.
                 player.sendMessage(LowTalkCommand.msg(plugin, "toolNeedsPermission").param("permission", LowTalkCommand.CREATOR));
                 return;
             }
-            List<Dialogue> bound = plugin.getRegistry().candidates(npc.role(), npc.tags());
-            if (bound.isEmpty()) NewDialoguePage.open(plugin, player, playerEntity, store, npc);
-            else DialogueEditorPage.open(plugin, bound.get(0), player, playerEntity, store, npc);
+            BindNpcPage.open(plugin, player, playerEntity, store, npc);
             return;
         }
 

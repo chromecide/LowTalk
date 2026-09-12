@@ -9,6 +9,16 @@
   interaction before UseEntity, the same order as bare hands. The Entity Tool's NPC outline is part of the
   client's built-in tool and cannot be enabled on a custom item.
 
+### One flow for every target
+
+- The LowTalk tool now opens a bind page for whatever it is used on: an NPC, a prop, a block, or nothing (the
+  browser). Every bind page has Bind, Unbind, Edit (the bound dialogue in the editor) and New (create a dialogue
+  already bound to this target, then edit it).
+- NPCs: the page lists what the NPC says now, with why (only this NPC, or every NPC of its role), and binds a
+  dialogue either to this one NPC (a run-time tag, no file changed, works for dialogues from mod packs) or to
+  every NPC of its role (written to the dialogue's `npc:` line, so the file must be writable). The old behaviour
+  of jumping straight into the editor is gone; Edit is one click away on the page.
+
 ### Dialogue browser
 
 - The LowTalk tool used on nothing (or on a plain block) opens a browser of every loaded dialogue: where it lives,

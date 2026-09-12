@@ -85,6 +85,9 @@ public class BindPropPage extends InteractiveCustomUIPage<BindPropPage.Data> {
         cmd.set("#Hint.Entries", hints);
         cmd.set("#Hint.Value", current == null ? DEFAULT_HINT : (current.hint() == null ? NONE : current.hint()));
         cmd.set("#UnbindButton.Visible", current != null);
+        cmd.set("#EditButton.Visible", current != null && plugin.getRegistry().byId(current.dialogue()) != null);
+        evt.addEventBinding(CustomUIEventBindingType.Activating, "#EditButton", new EventData().append("Action", "EDIT"), false);
+        evt.addEventBinding(CustomUIEventBindingType.Activating, "#NewButton", new EventData().append("Action", "NEW"), false);
         evt.addEventBinding(CustomUIEventBindingType.Activating, "#BindButton",
                 new EventData().append("Action", "BIND").append("@Dialogue", "#Dialogue.Value").append("@Name", "#Name.Value").append("@Hint", "#Hint.Value"), false);
         evt.addEventBinding(CustomUIEventBindingType.Activating, "#UnbindButton", new EventData().append("Action", "UNBIND"), false);
@@ -116,6 +119,25 @@ public class BindPropPage extends InteractiveCustomUIPage<BindPropPage.Data> {
                 close();
                 playerRef.sendMessage(LowTalkCommand.msg(plugin, had ? "propUnbound" : "propNotBound").param("prop", label));
             }
+            case "EDIT" -> {
+                PropBindings.Binding current = bindings.get(propId);
+                com.chromecide.lowtalk.model.Dialogue d = current == null ? null : plugin.getRegistry().byId(current.dialogue());
+                if (d == null) return;
+                store.getExternalData().getWorld().execute(() -> {
+                    if (!ref.isValid()) return;
+                    DialogueEditorPage.open(plugin, d, playerRef, ref, store, PropSupport.speaker(current, d));
+                });
+            }
+            case "NEW" -> store.getExternalData().getWorld().execute(() -> {
+                if (!ref.isValid()) return;
+                NewDialoguePage.openFor(plugin, playerRef, ref, store,
+                        label + " has no dialogue yet. Create one: it is bound to this prop and opens in the editor.", d -> {
+                            bindings.set(propId, d.id(), null, DEFAULT_HINT);
+                            bindings.flush();
+                            Ref<EntityStore> p = store.getExternalData().getRefFromUUID(propId);
+                            if (p != null) PropSupport.addInteractions(p, store, DEFAULT_HINT);
+                        });
+            });
             case "CANCEL" -> close();
             default -> {}
         }

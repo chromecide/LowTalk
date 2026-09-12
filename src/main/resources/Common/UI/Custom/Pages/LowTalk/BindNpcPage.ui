@@ -1,0 +1,96 @@
+$C = "../../Common.ui";
+
+// The LowTalk tool on an NPC: what it says now, and bind another dialogue to this NPC or to its whole role.
+$C.@PageOverlay {
+  LayoutMode: Middle;
+
+  $C.@DecoratedContainer {
+    Anchor: (Width: 700, Height: 460);
+
+    #Title {
+      $C.@Title #PageTitle {
+        @Text = %server.lowtalk.bindnpc.title;
+      }
+    }
+
+    #Content {
+      LayoutMode: Top;
+      Padding: (Full: 16);
+
+      Label #Who {
+        Anchor: (Bottom: 10);
+        Style: (FontSize: 14, TextColor: #96a9be);
+      }
+
+      Label {
+        Anchor: (Height: 18, Bottom: 4);
+        Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true);
+        Text: %server.lowtalk.bindnpc.current;
+      }
+
+      Group #Rows {
+        Anchor: (Height: 150);
+        LayoutMode: TopScrolling;
+        ScrollbarStyle: $C.@DefaultScrollbarStyle;
+        Padding: (Right: 8);
+      }
+
+      Label #Empty {
+        Anchor: (Height: 20, Bottom: 6);
+        Style: (FontSize: 12, TextColor: #ffd37a);
+        Text: %server.lowtalk.bindnpc.none;
+      }
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 38, Top: 8, Bottom: 8);
+
+        Label {
+          Anchor: (Width: 60);
+          Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+          Text: %server.lowtalk.bindnpc.add;
+        }
+
+        DropdownBox #Dialogue {
+          Anchor: (Width: 280, Right: 8, Height: $C.@DropdownBoxHeight);
+          Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 280);
+        }
+
+        DropdownBox #Scope {
+          Anchor: (Width: 200, Right: 8, Height: $C.@DropdownBoxHeight);
+          Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 200);
+        }
+
+        $C.@TextButton #BindButton {
+          @Anchor = (Width: 100);
+          @Text = %server.lowtalk.bindblock.bind;
+        }
+      }
+
+      Label #Status {
+        Anchor: (Height: 34);
+        Style: (FontSize: 12, TextColor: #ffd37a, Wrap: true);
+        Text: "";
+      }
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Top: 6, Height: 34);
+
+        $C.@TextButton #NewButton {
+          @Anchor = (Width: 150, Right: 8);
+          @Text = %server.lowtalk.browse.new;
+        }
+
+        Label #Fill {
+          FlexWeight: 1;
+        }
+
+        $C.@SecondaryTextButton #CancelButton {
+          @Anchor = (Width: 120);
+          @Text = %server.lowtalk.editor.close;
+        }
+      }
+    }
+  }
+}
