@@ -44,6 +44,7 @@ public class NpcUseSystem extends EntityEventSystem<EntityStore, UseEntityEvent.
         if (player == null) return;
 
         Ref<EntityStore> target = event.getTargetEntity();
+        plugin.getLogger().at(java.util.logging.Level.INFO).log("[debug npc use] type=%s tool=%s", event.getInteractionType(), NpcUseSystem.holdingTool(playerEntity, commandBuffer));
         NpcInfo npc = NpcInfo.of(target, commandBuffer, player, plugin.getStore());
         if (npc == null) return;
 
