@@ -239,10 +239,13 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
                 int slot = 0;
                 for (Step.Shown o : choose.options()) {
                     if (slot >= OPTION_SLOTS) break;
+                    // Bar layouts number every visible option, disabled ones included, so the numbers stay contiguous;
+                    // a disabled option is greyed by the button itself rather than by a blank prefix.
                     String prefix = layout.isBar()
-                            ? (o.enabled() ? (slot + 1) + ".  " : "    ")
+                            ? (slot + 1) + ".  "
                             : (o.enabled() ? OPTION_PREFIX : DISABLED_PREFIX);
                     cmd.set("#Opt" + slot + ".Text", prefix + o.text());
+                    cmd.set("#Opt" + slot + ".Disabled", !o.enabled());
                     cmd.set("#Opt" + slot + ".Visible", true);
                     slotToOption.add(o.enabled() ? o.index() : -1);
                     slot++;
