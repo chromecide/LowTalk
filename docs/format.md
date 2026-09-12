@@ -51,12 +51,13 @@ over a dimmed screen. Four levels decide, most specific first:
 `HideHud` names the HUD parts hidden while a dialogue is open and shown again when it closes; the names are the
 game's own: `Hotbar`, `Reticle`, `Chat`, `Compass`, `Health`, `Stamina`, `ObjectivePanel` and so on. It follows the
 same chain without the dialogue level. A server owner who wants one look across every mod sets `ForceLayout` in
+`lowtalk.json`, which wins over all four.
 
 `history:` follows the same four levels as `layout:` (`History` in the pack file, the API and `lowtalk.json`).
 `full`, the default, keeps every line so far on screen, the player's answers included, in a scrolling transcript.
 `latest` shows only what the NPC is saying now, the way most RPG bars do; earlier lines and the player's answers
 are not shown, and the Continue and option buttons stand alone under the current line.
-`lowtalk.json`, which wins over all four.
+
 
 ## Passages
 
