@@ -1,6 +1,6 @@
 $C = "../../Common.ui";
 
-// One player option: its label, where it leads, Go walks into that node, "..." opens its conditions.
+// One player option: its label, where it leads, Go walks into that passage, Conditions opens its guards.
 Group {
   LayoutMode: Left;
   Anchor: (Height: 38, Bottom: 6);
@@ -28,22 +28,22 @@ Group {
   }
 
   $C.@SecondaryTextButton #More {
-    @Anchor = (Width: 44, Right: 8);
-    @Text = "...";
+    @Anchor = (Width: 120, Right: 8);
+    @Text = %server.lowtalk.editor.conditions;
   }
 
   $C.@SecondaryTextButton #Up {
-    @Anchor = (Width: 34, Right: 4);
-    @Text = "^";
+    @Anchor = (Width: 64, Right: 4);
+    @Text = %server.lowtalk.editor.up;
   }
 
   $C.@SecondaryTextButton #Down {
-    @Anchor = (Width: 34, Right: 4);
-    @Text = "v";
+    @Anchor = (Width: 80, Right: 4);
+    @Text = %server.lowtalk.editor.down;
   }
 
   $C.@SecondaryTextButton #Del {
-    @Anchor = (Width: 34);
-    @Text = "x";
+    @Anchor = (Width: 90);
+    @Text = %server.lowtalk.editor.delete;
   }
 }
