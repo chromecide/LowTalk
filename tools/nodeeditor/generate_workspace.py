@@ -73,15 +73,20 @@ def string_list(wid, label, description="", width=350):
     return widget(wid, "List", label, description, None, width, list_type="String")
 
 
-def in_pin(pin_type, pid="In", label=None):
+def in_pin(pin_type, pid="In", label=None, description=None):
     p = {"Id": pid, "Type": pin_type, "Color": COLORS[pin_type], "Multiple": False}
     if label:
         p["Label"] = label
+    if description:
+        p["Description"] = description
     return p
 
 
-def out_pin(pid, pin_type, label, multiple=True):
-    return {"Id": pid, "Type": pin_type, "Color": COLORS[pin_type], "Multiple": multiple, "Label": label}
+def out_pin(pid, pin_type, label, multiple=True, description=None):
+    p = {"Id": pid, "Type": pin_type, "Color": COLORS[pin_type], "Multiple": multiple, "Label": label}
+    if description:
+        p["Description"] = description
+    return p
 
 
 def add(node, category):
@@ -101,7 +106,7 @@ def statement(type_name, title, description, content=(), outputs=(), schema_extr
         "Title": title,
         "Description": description,
         "Color": color,
-        "Inputs": [in_pin(PIN_STMT)],
+        "Inputs": [in_pin(PIN_STMT, description="Connect to the Body pin of a Node, Option, Branch or Alternative. Statements run in the order of their links.")],
         "Content": list(content),
         "Outputs": list(outputs),
         "Schema": schema,
@@ -112,7 +117,7 @@ def statement(type_name, title, description, content=(), outputs=(), schema_extr
 
 
 def body_output(pid="Body", label="Body"):
-    return out_pin(pid, PIN_STMT, label)
+    return out_pin(pid, PIN_STMT, label, description="The statements that run here, in link order: Say, Choice, Set, Jump and so on.")
 
 
 def body_schema(key="Body", pid="Body"):
@@ -136,8 +141,8 @@ add({
         enum("Layout", "Layout", ["default", "bottom", "top", "window"], "Where the conversation appears; default follows the pack or server setting.", width=140),
     ],
     "Outputs": [
-        out_pin("StartPin", PIN_START, "Start rules"),
-        out_pin("NodesPin", PIN_NODE, "Nodes"),
+        out_pin("StartPin", PIN_START, "Start rules", description="Optional. Which node to begin at; the first rule whose When is true wins. Without rules the first node starts."),
+        out_pin("NodesPin", PIN_NODE, "Nodes", description="The named stretches of conversation. Jump statements refer to them by name."),
     ],
     "Schema": {
         "Npc": "Npc", "Speaker": "Speaker", "Title": "Title", "Scope": "Scope", "Portrait": "Portrait", "On": "On", "Layout": "Layout",
@@ -151,7 +156,7 @@ add({
     "Title": "Start rule",
     "Description": "Begin at Node when When holds (or always, if When is empty). Guarded rules are tried before the unguarded one. With no rules the first node is the start.",
     "Color": COLORS[PIN_START],
-    "Inputs": [in_pin(PIN_START)],
+    "Inputs": [in_pin(PIN_START, description="Connect to the dialogue's Start rules pin.")],
     "Content": [small("Node", "Node", "Node to begin at."), small("When", "When", "Only when this is true." + EXPR, width=300)],
     "Outputs": [],
     "Schema": {"Node": "Node", "When": "When"},
@@ -162,7 +167,7 @@ add({
     "Title": "Node",
     "Description": "A named stretch of conversation. Jump and Start refer to it by name.",
     "Color": COLORS[PIN_NODE],
-    "Inputs": [in_pin(PIN_NODE)],
+    "Inputs": [in_pin(PIN_NODE, description="Connect to the dialogue's Nodes pin.")],
     "Content": [small("Name", "Name", "Letters, digits and underscores.", default="start")],
     "Outputs": [body_output()],
     "Schema": {"Name": "Name", **body_schema()},
@@ -170,11 +175,13 @@ add({
 
 # ---- structure statements
 statement("Say", "Say", "A spoken line. Consecutive lines get a Continue button; the last line before options is shown with them.",
-          [small("Speaker", "Speaker", "Who says it. Empty for the dialogue's default speaker."),
-           text("Text", "Text", "What is said." + TEXT)], category="Talk", color="Blue")
+          [small("Speaker", "Speaker (optional)", "Who says it. Leave empty for the dialogue's speaker, normally the NPC's name."),
+           text("Text", "Text", "What is said." + TEXT),
+           small("Button", "Continue button", "Label of the button after this line, e.g. Go on. Leave empty for Continue.", width=160)],
+          category="Talk", color="Blue")
 
 statement("Choice", "Choice", "Options shown together as buttons (at most eight).",
-          outputs=[out_pin("Options", PIN_OPTION, "Options")],
+          outputs=[out_pin("Options", PIN_OPTION, "Options", description="The buttons offered, in link order. Each Option has its own Body.")],
           schema_extra={"Options": {"Node": "Option", "Pin": "Options"}}, category="Talk", color="Aqua")
 
 add({
@@ -182,7 +189,7 @@ add({
     "Title": "Option",
     "Description": "One button. Its Body runs when chosen; if the body does not Jump or End, the options are shown again.",
     "Color": COLORS[PIN_OPTION],
-    "Inputs": [in_pin(PIN_OPTION)],
+    "Inputs": [in_pin(PIN_OPTION, description="Connect to a Choice's Options pin.")],
     "Content": [
         text("Text", "Text", "Button text." + TEXT, height=50),
         small("If", "If", "Hide unless true." + EXPR, width=300),
@@ -194,7 +201,7 @@ add({
 }, "Talk")
 
 statement("If", "If", "if / elseif / else. Branches are tried in order; a last branch with an empty When is the else.",
-          outputs=[out_pin("Branches", PIN_BRANCH, "Branches")],
+          outputs=[out_pin("Branches", PIN_BRANCH, "Branches", description="Tried in link order; the first Branch whose When is true runs. A Branch with an empty When is the else.")],
           schema_extra={"Branches": {"Node": "Branch", "Pin": "Branches"}}, category="Flow", color="Purple")
 
 add({
@@ -202,7 +209,7 @@ add({
     "Title": "Branch",
     "Description": "One branch of an If.",
     "Color": COLORS[PIN_BRANCH],
-    "Inputs": [in_pin(PIN_BRANCH)],
+    "Inputs": [in_pin(PIN_BRANCH, description="Connect to an If's Branches pin.")],
     "Content": [small("When", "When", "Condition; leave empty on the last branch for an else." + EXPR, width=300)],
     "Outputs": [body_output()],
     "Schema": {"When": "When", **body_schema()},
@@ -212,7 +219,7 @@ statement("Once", "Once", "Runs the first time this player reaches it with this 
           outputs=[body_output()], schema_extra=body_schema(), category="Flow", color="Purple")
 
 statement("Random", "Random", "Runs exactly one alternative, chosen at random each time.",
-          outputs=[out_pin("Alternatives", PIN_ALT, "Alternatives")],
+          outputs=[out_pin("Alternatives", PIN_ALT, "Alternatives", description="One is picked at random each time; weights favour some over others.")],
           schema_extra={"Alternatives": {"Node": "Alternative", "Pin": "Alternatives"}}, category="Flow", color="Purple")
 
 add({
@@ -220,7 +227,7 @@ add({
     "Title": "Alternative",
     "Description": "One alternative of a Random block.",
     "Color": COLORS[PIN_ALT],
-    "Inputs": [in_pin(PIN_ALT)],
+    "Inputs": [in_pin(PIN_ALT, description="Connect to a Random's Alternatives pin.")],
     "Content": [],
     "Outputs": [body_output()],
     "Schema": body_schema(),

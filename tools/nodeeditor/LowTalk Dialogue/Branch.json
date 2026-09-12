@@ -8,7 +8,8 @@
       "Id": "In",
       "Type": "Branch",
       "Color": "Purple",
-      "Multiple": false
+      "Multiple": false,
+      "Description": "Connect to an If's Branches pin."
     }
   ],
   "Content": [
@@ -29,7 +30,8 @@
       "Type": "Statement",
       "Color": "Blue",
       "Multiple": true,
-      "Label": "Body"
+      "Label": "Body",
+      "Description": "The statements that run here, in link order: Say, Choice, Set, Jump and so on."
     }
   ],
   "Schema": {

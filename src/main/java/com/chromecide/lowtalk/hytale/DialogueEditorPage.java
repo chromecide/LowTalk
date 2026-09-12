@@ -96,7 +96,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
     }
 
     public enum Action {
-        LINE_TEXT, LINE_SPEAKER,
+        LINE_TEXT, LINE_SPEAKER, LINE_BUTTON,
         OPT_TEXT, OPT_TARGET, OPT_GO, OPT_MORE, OPT_IF, OPT_SHOW, OPT_ONCE, OPT_BODY,
         CMD_NAME, CMD_ARGS, CMD_PICK, SET, JUMP_NODE, JUMP_GO, INPUT, WAIT,
         BRANCH_COND, BRANCH_BODY, BRANCH_ADD, BRANCH_DEL, BLOCK_BODY, ALT_ADD, ALT_DEL,
@@ -296,6 +296,8 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                     cmd.set(sel + " #Text.Value", Printer.text(l.text()));
                     rowChange(evt, sel + " #Speaker", Action.LINE_SPEAKER, row);
                     rowChange(evt, sel + " #Text", Action.LINE_TEXT, row);
+                    cmd.set(sel + " #Button.Value", nz(l.button()));
+                    rowChange(evt, sel + " #Button", Action.LINE_BUTTON, row);
                     row = standard(evt, sel, row, new RowRef(i, -1));
                 }
                 case Statement.Choice c -> {
@@ -545,6 +547,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             // typing into fields changes the draft without redrawing, so the caret stays where it is
             case LINE_TEXT -> { if (r != null) draft.setLineText(scope, r.statement(), value); return false; }
             case LINE_SPEAKER -> { if (r != null) draft.setLineSpeaker(scope, r.statement(), value); return false; }
+            case LINE_BUTTON -> { if (r != null) draft.setLineButton(scope, r.statement(), value); return false; }
             case OPT_TEXT -> { if (r != null) draft.setOptionText(scope, r.statement(), r.sub(), value); return false; }
             case OPT_IF -> { if (r != null) return problem(draft.setOptionGuard(scope, r.statement(), r.sub(), value)); return false; }
             case OPT_SHOW -> { if (r != null) return problem(draft.setOptionShowGuard(scope, r.statement(), r.sub(), value)); return false; }

@@ -22,6 +22,7 @@ lowtalk.editor.discard = Discard
 lowtalk.editor.close = Close
 lowtalk.editor.speaker = speaker
 lowtalk.editor.line = what is said
+lowtalk.editor.lineButton = button (Continue)
 lowtalk.editor.optionText = what the player can say
 lowtalk.editor.go = Go
 lowtalk.editor.header = Dialogue...

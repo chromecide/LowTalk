@@ -16,6 +16,11 @@ Group {
     PlaceholderText: %server.lowtalk.editor.line;
   }
 
+  $C.@TextField #Button {
+    @Anchor = (Width: 110, Right: 6);
+    PlaceholderText: %server.lowtalk.editor.lineButton;
+  }
+
   $C.@SecondaryTextButton #Up {
     @Anchor = (Width: 34, Right: 4);
     @Text = "^";

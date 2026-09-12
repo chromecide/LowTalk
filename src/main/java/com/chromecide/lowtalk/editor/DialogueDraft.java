@@ -319,12 +319,18 @@ public final class DialogueDraft {
 
     public void setLineText(Scope sc, int index, String raw) {
         Statement s = view(sc).get(index);
-        if (s instanceof Statement.Line l) replace(sc, index, new Statement.Line(l.pos(), l.speaker(), parseText(raw, l.pos())));
+        if (s instanceof Statement.Line l) replace(sc, index, new Statement.Line(l.pos(), l.speaker(), parseText(raw, l.pos()), l.button()));
     }
 
     public void setLineSpeaker(Scope sc, int index, @Nullable String speaker) {
         Statement s = view(sc).get(index);
-        if (s instanceof Statement.Line l) replace(sc, index, new Statement.Line(l.pos(), blankToNull(speaker), l.text()));
+        if (s instanceof Statement.Line l) replace(sc, index, new Statement.Line(l.pos(), blankToNull(speaker), l.text(), l.button()));
+    }
+
+    /** The label of the Continue button after a line; blank means the default. */
+    public void setLineButton(Scope sc, int index, @Nullable String button) {
+        Statement s = view(sc).get(index);
+        if (s instanceof Statement.Line l) replace(sc, index, new Statement.Line(l.pos(), l.speaker(), l.text(), blankToNull(button)));
     }
 
     // ---- options

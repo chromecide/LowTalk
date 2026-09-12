@@ -8,7 +8,8 @@
       "Id": "In",
       "Type": "Statement",
       "Color": "Blue",
-      "Multiple": false
+      "Multiple": false,
+      "Description": "Connect to the Body pin of a Node, Option, Branch or Alternative. Statements run in the order of their links."
     }
   ],
   "Content": [
@@ -16,8 +17,8 @@
       "Id": "Speaker",
       "Type": "SmallString",
       "Options": {
-        "Label": "Speaker",
-        "Description": "Who says it. Empty for the dialogue's default speaker.",
+        "Label": "Speaker (optional)",
+        "Description": "Who says it. Leave empty for the dialogue's speaker, normally the NPC's name.",
         "Default": "",
         "Width": 200
       }
@@ -32,12 +33,23 @@
         "Width": 350,
         "Height": 80
       }
+    },
+    {
+      "Id": "Button",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Continue button",
+        "Description": "Label of the button after this line, e.g. Go on. Leave empty for Continue.",
+        "Default": "",
+        "Width": 160
+      }
     }
   ],
   "Outputs": [],
   "Schema": {
     "Type": "Say",
     "Speaker": "Speaker",
-    "Text": "Text"
+    "Text": "Text",
+    "Button": "Button"
   }
 }

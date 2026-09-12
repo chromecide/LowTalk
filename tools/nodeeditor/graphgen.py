@@ -31,8 +31,11 @@ def option(text, body, cond="", show="", once=False):
     return with_body("Option", body, Text=text, If=cond, ShowIf=show, Once=once)
 
 
-def say(text, speaker=""):
-    return stmt("Say", Speaker=speaker, Text=text)
+def say(text, speaker="", button=""):
+    fields = {"Speaker": speaker, "Text": text}
+    if button:
+        fields["Button"] = button
+    return stmt("Say", **fields)
 
 
 def jump(target):

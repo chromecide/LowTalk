@@ -8,7 +8,12 @@ public sealed interface Statement {
     Pos pos();
 
     /** A spoken line. Speaker is null for the default speaker. */
-    record Line(Pos pos, String speaker, Text text) implements Statement {}
+    /** A spoken line. {@code button} is the label of the Continue button after it, null for the default. */
+    record Line(Pos pos, String speaker, Text text, String button) implements Statement {
+        public Line(Pos pos, String speaker, Text text) {
+            this(pos, speaker, text, null);
+        }
+    }
 
     /** One or more consecutive options, shown together as buttons. */
     record Choice(Pos pos, List<Option> options) implements Statement {}
