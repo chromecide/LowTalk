@@ -51,6 +51,9 @@ Ah, {player}. Back again.
 
 ## Features
 
+- **Talking props.** Spawn any block or item as a prop (the game's Entity Spawn page, `/npc spawn page`), use the
+  LowTalk tool on it, pick a dialogue and optionally a name. Using the prop talks. The Entity Tool moves, scales
+  and removes props, and the binding follows the prop.
 - **Clickable blocks.** Bind a dialogue to a placed door, chest, sign, bench or lever with the tool or
   `/lowtalk block bind`; using it talks, instead of or as well as the block's own action.
 - **Bottom bar, top bar or window.** Conversations sit in a bar with the NPC in view by default; options are
@@ -104,6 +107,8 @@ Ah, {player}. Back again.
 | `/lowtalk tool` | Get the LowTalk tool: click an NPC with it to edit its dialogue in place (creator) |
 - `/lowtalk block bind <dialogue> [instead|also]`, `block unbind`, `block list`: dialogues on the block you are
   looking at (creator).
+- `/lowtalk prop list`, `prop unbind <uuid>`: prop bindings, for cleaning up after props that are gone (creator).
+  Binding and unbinding a prop that still exists is done with the tool.
 | `/lowtalk stop` | Leave your current conversation |
 | `/lowtalk help [name]` | The format reference in chat: commands, functions, keywords, or one entry |
 | `/lowtalk info <id>` | Outline of a dialogue: passages, options, variables, unreachable passages |
@@ -127,6 +132,9 @@ without it: options that need a missing command are hidden and conditions on mis
 
 - Block bindings live in `blocks.json` in the plugin folder, never in the world; a block that opened a
   dialogue goes back to its own behaviour.
+- Prop bindings live in `props.json`. A bound prop keeps the game's own interactions component, pointing at an
+  interaction id the server no longer knows: it logs one "Missing root interaction" line the first time someone
+  uses the prop, then treats it as an empty interaction. The prop itself is untouched.
 
 ## Hytale versions
 

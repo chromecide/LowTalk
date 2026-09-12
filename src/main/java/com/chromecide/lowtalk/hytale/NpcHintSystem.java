@@ -36,6 +36,7 @@ import java.util.UUID;
  * NPC has no reason to do and a frozen one never runs. This system does the same two things for every bound NPC near
  * each player, and withdraws the mark when the last nearby player walks away. NPCs whose role has its own
  * interaction instruction (like the shipped LowTalk_Talker) are left alone: they already manage their prompt.
+ * Bound props get the same treatment with the prompt chosen in their binding.
  */
 public final class NpcHintSystem extends EntityTickingSystem<EntityStore> {
     /** How close a player must be before the prompt appears; the client only shows it when they look at the NPC anyway. */
@@ -45,8 +46,9 @@ public final class NpcHintSystem extends EntityTickingSystem<EntityStore> {
     private final LowTalkPlugin plugin;
     private final Query<EntityStore> query = Query.and(Player.getComponentType(), TransformComponent.getComponentType());
     private final Map<UUID, Float> timers = new HashMap<>();
-    /** Player → NPC id → hint text already delivered to that player's client. */
-    private final Map<UUID, Map<UUID, Boolean>> marked = new HashMap<>();
+    /** Player → NPC id → hint text delivered to that player's client, or "" while delivery is still pending. */
+    private final Map<UUID, Map<UUID, String>> marked = new HashMap<>();
+    private static final String PENDING = "";
     /** NPC id → players currently near it, so the component goes when the last one leaves. */
     private final Map<UUID, Set<UUID>> watchers = new HashMap<>();
 
@@ -69,7 +71,8 @@ public final class NpcHintSystem extends EntityTickingSystem<EntityStore> {
     public void tick(float dt, int index, @Nonnull ArchetypeChunk<EntityStore> chunk, @Nonnull Store<EntityStore> store,
                      @Nonnull CommandBuffer<EntityStore> commandBuffer) {
         LowTalkConfig settings = plugin.getSettings();
-        if (!settings.isUseHook() || !settings.isShowHint()) return;
+        if (!settings.isShowHint()) return;
+        boolean npcHints = settings.isUseHook(); // without the use hook, roles open dialogues themselves and prompt themselves
         Ref<EntityStore> playerEntity = chunk.getReferenceTo(index);
         PlayerRef playerRef = store.getComponent(playerEntity, PlayerRef.getComponentType());
         TransformComponent transform = chunk.getComponent(index, TransformComponent.getComponentType());
@@ -81,19 +84,30 @@ public final class NpcHintSystem extends EntityTickingSystem<EntityStore> {
 
         Vector3d pos = transform.getPosition();
         Map<UUID, Ref<EntityStore>> near = new HashMap<>();
+        Map<UUID, String> hints = new HashMap<>();
         for (Ref<EntityStore> ref : new ArrayList<>(TargetUtil.getAllEntitiesInSphere(pos, RANGE, store))) {
             if (!ref.isValid()) continue;
+            if (PropSupport.isProp(ref, store)) {
+                UUID id = PropSupport.idOf(ref, store);
+                PropBindings.Binding binding = id == null ? null : plugin.getPropBindings().get(id);
+                if (binding == null || binding.hint() == null) continue;
+                near.put(id, ref);
+                hints.put(id, binding.hint());
+                continue;
+            }
+            if (!npcHints) continue;
             NPCEntity entity = store.getComponent(ref, NPCEntity.getComponentType());
             if (entity == null || (entity.getRole() != null && entity.getRole().getInteractionInstruction() != null)) continue;
             NpcInfo npc = NpcInfo.of(ref, store, playerRef, plugin.getStore());
             if (npc == null || plugin.getRegistry().candidates(npc.role(), npc.tags()).isEmpty()) continue;
             near.put(npc.id(), ref);
+            hints.put(npc.id(), settings.getHintKey());
         }
-        Map<UUID, Boolean> mine = marked.computeIfAbsent(playerId, k -> new HashMap<>());
+        Map<UUID, String> mine = marked.computeIfAbsent(playerId, k -> new HashMap<>());
         List<Ref<EntityStore>> show = new ArrayList<>();
         List<UUID> showIds = new ArrayList<>();
         for (Map.Entry<UUID, Ref<EntityStore>> e : near.entrySet()) {
-            if (Boolean.TRUE.equals(mine.get(e.getKey()))) continue; // marked and hint delivered
+            if (hints.get(e.getKey()).equals(mine.get(e.getKey()))) continue; // marked and this hint delivered
             show.add(e.getValue());
             showIds.add(e.getKey());
             watchers.computeIfAbsent(e.getKey(), k -> new HashSet<>()).add(playerId);
@@ -108,7 +122,6 @@ public final class NpcHintSystem extends EntityTickingSystem<EntityStore> {
         if (mine.isEmpty()) marked.remove(playerId);
         if (show.isEmpty() && leftIds.isEmpty()) return;
 
-        String hint = settings.getHintKey();
         // Component changes wait for the command buffer, as the game's own systems do while a tick is iterating.
         commandBuffer.run(s -> {
             if (!playerEntity.isValid()) return;
@@ -117,12 +130,13 @@ public final class NpcHintSystem extends EntityTickingSystem<EntityStore> {
                 Ref<EntityStore> npc = show.get(i);
                 if (!npc.isValid()) continue;
                 if (!s.getArchetype(npc).contains(Interactable.getComponentType())) s.ensureComponent(npc, Interactable.getComponentType());
+                String hint = hints.get(showIds.get(i));
                 if (viewer != null && viewer.visible.contains(npc)) {
                     viewer.queueUpdate(npc, new InteractableUpdate(hint));
-                    Map<UUID, Boolean> m = marked.get(playerId);
-                    if (m != null) m.put(showIds.get(i), Boolean.TRUE);
+                    Map<UUID, String> m = marked.get(playerId);
+                    if (m != null) m.put(showIds.get(i), hint);
                 } else {
-                    marked.computeIfAbsent(playerId, k -> new HashMap<>()).putIfAbsent(showIds.get(i), Boolean.FALSE); // retry next pass
+                    marked.computeIfAbsent(playerId, k -> new HashMap<>()).putIfAbsent(showIds.get(i), PENDING); // retry next pass
                 }
             }
             for (UUID id : leftIds) {
@@ -151,8 +165,8 @@ public final class NpcHintSystem extends EntityTickingSystem<EntityStore> {
         Set<UUID> online = new HashSet<>();
         for (PlayerRef p : Universe.get().getPlayers()) online.add(p.getUuid());
         for (Iterator<UUID> it = timers.keySet().iterator(); it.hasNext(); ) if (!online.contains(it.next())) it.remove();
-        for (Iterator<Map.Entry<UUID, Map<UUID, Boolean>>> it = marked.entrySet().iterator(); it.hasNext(); ) {
-            Map.Entry<UUID, Map<UUID, Boolean>> e = it.next();
+        for (Iterator<Map.Entry<UUID, Map<UUID, String>>> it = marked.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<UUID, Map<UUID, String>> e = it.next();
             if (online.contains(e.getKey())) continue;
             for (UUID npc : e.getValue().keySet()) {
                 Set<UUID> w = watchers.get(npc);

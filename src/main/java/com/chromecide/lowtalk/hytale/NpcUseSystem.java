@@ -47,7 +47,10 @@ public class NpcUseSystem extends EntityEventSystem<EntityStore, UseEntityEvent.
 
         Ref<EntityStore> target = event.getTargetEntity();
         NpcInfo npc = NpcInfo.of(target, commandBuffer, player, plugin.getStore());
-        if (npc == null) return;
+        if (npc == null) {
+            handleProp(target, player, playerEntity, store, commandBuffer, event);
+            return;
+        }
 
         // A creator holding the LowTalk tool edits the NPC's dialogue instead of playing it.
         if (holdingTool(playerEntity, commandBuffer)) {
@@ -79,6 +82,34 @@ public class NpcUseSystem extends EntityEventSystem<EntityStore, UseEntityEvent.
         event.setCancelled(true);
         World world = store.getExternalData().getWorld();
         plugin.getSessions().open(chosen, player, playerEntity, store, world, npc);
+    }
+
+    /**
+     * A prop with LowTalk's interactions component: the tool edits its binding, anyone else gets the dialogue.
+     * The event is never cancelled, so the prop's own (no-op) interaction runs and the hand's chain stops there.
+     */
+    private void handleProp(Ref<EntityStore> target, PlayerRef player, Ref<EntityStore> playerEntity, Store<EntityStore> store,
+                            CommandBuffer<EntityStore> commandBuffer, UseEntityEvent.Pre event) {
+        if (!PropSupport.hasOurInteractions(target, commandBuffer)) return;
+        java.util.UUID id = PropSupport.idOf(target, commandBuffer);
+        if (id == null) return;
+        if (holdingTool(playerEntity, commandBuffer)) {
+            if (!player.hasPermission(LowTalkCommand.CREATOR)) {
+                player.sendMessage(LowTalkCommand.msg(plugin, "toolNeedsPermission").param("permission", LowTalkCommand.CREATOR));
+                return;
+            }
+            BindPropPage.open(plugin, player, playerEntity, store, id, ToolTargetInteraction.describe(target, commandBuffer));
+            return;
+        }
+        PropBindings.Binding binding = plugin.getPropBindings().get(id);
+        if (binding == null) return; // component left behind by an old binding; harmless
+        Dialogue d = plugin.getRegistry().byId(binding.dialogue());
+        if (d == null) {
+            plugin.getLogger().at(java.util.logging.Level.WARNING).log("Prop %s is bound to '%s', which is not loaded", id, binding.dialogue());
+            return;
+        }
+        World world = store.getExternalData().getWorld();
+        plugin.getSessions().open(d, player, playerEntity, store, world, PropSupport.speaker(binding, d));
     }
 
     /** The first bound dialogue whose binding mode matches how the player interacted. */

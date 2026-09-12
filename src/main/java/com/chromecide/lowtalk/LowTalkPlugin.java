@@ -34,6 +34,7 @@ import java.util.logging.Level;
  */
 public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
     private com.chromecide.lowtalk.hytale.BlockBindings blockBindings;
+    private com.chromecide.lowtalk.hytale.PropBindings propBindings;
     private final com.chromecide.lowtalk.hytale.presentation.PresentationResolver presentation =
             new com.chromecide.lowtalk.hytale.presentation.PresentationResolver(
                     d -> this.registry == null ? "" : this.registry.packOf(d),
@@ -81,8 +82,10 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
 
         this.getEntityStoreRegistry().registerSystem(new NpcUseSystem(this));
         this.blockBindings = new com.chromecide.lowtalk.hytale.BlockBindings(data.resolve("data"), getLogger());
+        this.propBindings = new com.chromecide.lowtalk.hytale.PropBindings(data.resolve("data"), getLogger());
         this.getEntityStoreRegistry().registerSystem(new com.chromecide.lowtalk.hytale.BlockUseSystem(this));
         this.getEntityStoreRegistry().registerSystem(new NpcGoneSystem(this));
+        this.getEntityStoreRegistry().registerSystem(new com.chromecide.lowtalk.hytale.PropSupport.EnsureInteractions(this));
         this.getEntityStoreRegistry().registerSystem(new NpcHintSystem(this));
         this.getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, e -> sessions.end(e.getPlayerRef().getUuid()));
         this.getCommandRegistry().registerCommand(new LowTalkCommand(this));
@@ -156,6 +159,15 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
             getLogger().at(Level.WARNING).log("Could not register .talk files with the Asset Editor: %s", e.toString());
         }
         try {
+            com.chromecide.lowtalk.hytale.ToolTargetInteraction.install(this);
+            com.hypixel.hytale.server.core.modules.interaction.interaction.config.Interaction.CODEC.register(
+                    com.chromecide.lowtalk.hytale.ToolTargetInteraction.TYPE_ID,
+                    com.chromecide.lowtalk.hytale.ToolTargetInteraction.class,
+                    com.chromecide.lowtalk.hytale.ToolTargetInteraction.CODEC);
+        } catch (RuntimeException e) {
+            getLogger().at(Level.WARNING).log("Could not register the LowTalkTarget interaction: %s", e.toString());
+        }
+        try {
             com.hypixel.hytale.server.core.entity.entities.player.pages.choices.ChoiceInteraction.CODEC.register(
                     com.chromecide.lowtalk.hytale.integrations.LowTalkChoiceInteraction.TYPE_ID,
                     com.chromecide.lowtalk.hytale.integrations.LowTalkChoiceInteraction.class,
@@ -187,6 +199,7 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
         if (sessions != null) sessions.endAll();
         if (store != null) store.flush();
         if (blockBindings != null) blockBindings.flush();
+        if (propBindings != null) propBindings.flush();
     }
 
     /** Reload dialogues; running sessions are ended so nobody is left inside a stale tree. */
@@ -265,6 +278,7 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
     public VariableStore getStore() { return store; }
     public DialogueRegistry getRegistry() { return registry; }
     public com.chromecide.lowtalk.hytale.BlockBindings getBlockBindings() { return blockBindings; }
+    public com.chromecide.lowtalk.hytale.PropBindings getPropBindings() { return propBindings; }
     public FunctionRegistry getFunctions() { return functions; }
     public EffectRegistry getEffects() { return effects; }
     public SessionManager getSessions() { return sessions; }
