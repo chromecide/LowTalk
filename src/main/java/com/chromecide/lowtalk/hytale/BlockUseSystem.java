@@ -39,6 +39,7 @@ public class BlockUseSystem extends EntityEventSystem<EntityStore, UseBlockEvent
         PlayerRef player = commandBuffer.getComponent(playerEntity, PlayerRef.getComponentType());
         if (player == null) return;
         World world = store.getExternalData().getWorld();
+        plugin.getLogger().at(java.util.logging.Level.INFO).log("[debug block use] type=%s tool=%s", event.getInteractionType(), NpcUseSystem.holdingTool(playerEntity, commandBuffer));
         Vector3i pos = event.getTargetBlock();
         String blockId = event.getBlockType() == null ? "?" : String.valueOf(event.getBlockType().getId());
 
