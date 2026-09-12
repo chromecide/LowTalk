@@ -53,6 +53,12 @@ you are submitting, the tests pass, the CLA line is in the pull request, and not
 decompiled sources. Say in the pull request if a tool did most of the typing; it helps the reviewer know where to
 look.
 
+**Images are the exception.** Generative AI is not used for any image in this mod, and a submission that contains
+AI-generated imagery is rejected, whatever the license or the prompt. That covers icons, portraits, textures,
+screenshots edited with generative tools, and anything else shown to a player or a reader. Draw it, photograph
+it, commission it, or leave it out. Procedurally generated textures are fine when the script that draws them is in
+the repository, as the transcript frame is.
+
 ## Reporting bugs
 
 Include the `.talk` file (or a minimal cut-down version), the server log lines

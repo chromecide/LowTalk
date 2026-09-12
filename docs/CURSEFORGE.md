@@ -72,8 +72,9 @@ boot failure `Asset 'Rope' of type Beam doesn't exist` (a Hytale asset load-orde
 
 LowTalk was designed, directed and play-tested by one person; most of the code
 and documentation was written by Claude Code under that direction. There is no AI inside the mod: every line a
-player reads is written by a dialogue author, and the plugin makes no network calls. The repository is public so
-you can see exactly what you are running.
+player reads is written by a dialogue author, and the plugin makes no network calls. No generative AI is used for
+imagery: the mod's art is made by people, and contributions with AI-generated images are rejected. The repository
+is public so you can see exactly what you are running.
 
 **Screenshots** (in `docs/screenshots/`, ready to upload; captions are the suggested CurseForge captions)
 
