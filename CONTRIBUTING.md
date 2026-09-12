@@ -65,6 +65,13 @@ Include the `.talk` file (or a minimal cut-down version), the server log lines
 from `[LowTalk|P]`, and the Hytale version.
 
 
+## Before a release
+
+Boot the built jars on a plain server, not the Gradle dev server. The dev server runs the mod from its source
+folders, so it never sees the packaged asset pack; a mistake in packaging (0.2.0 shipped an unparseable example)
+reaches users while every dev run passes. Drop `build/dist/LowTalk-<version>.jar` into a scratch server's `mods/`
+for each line and wait for "Universe ready!" before tagging.
+
 ## Branches, tags and Hytale patchlines
 
 Hytale has a release line and a pre-release line, and the pre-release becomes the next release. A mod jar carries
