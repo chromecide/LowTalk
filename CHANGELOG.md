@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.2.0 (2026-09-12)
+
+The presentation release: conversations sit in a bar with the NPC in view, each dialogue, pack and server can
+choose the look, the shop comes back to the conversation, and the named parts of a dialogue are now passages.
+JSON files written by 0.1.x keep loading. Reinstall the Node Editor workspace (`tools/nodeeditor/install.sh`):
+its root node, its Jump and Start fields and its Say node changed.
+
 ### History
 
 - `history: latest` shows only what the NPC is saying now, with no transcript and no echo of the player's
