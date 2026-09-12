@@ -26,17 +26,17 @@ Group {
   }
 
   $C.@SecondaryTextButton #Up {
-    @Anchor = (Width: 64, Right: 4);
-    @Text = %server.lowtalk.editor.up;
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "^";
   }
 
   $C.@SecondaryTextButton #Down {
-    @Anchor = (Width: 80, Right: 4);
-    @Text = %server.lowtalk.editor.down;
+    @Anchor = (Width: 34, Right: 4);
+    @Text = "v";
   }
 
   $C.@SecondaryTextButton #Del {
-    @Anchor = (Width: 90);
-    @Text = %server.lowtalk.editor.delete;
+    @Anchor = (Width: 34);
+    @Text = "x";
   }
 }
