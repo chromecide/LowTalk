@@ -21,6 +21,7 @@ class JsonConvertTest {
             start: start
             speaker: Merchant
             portrait: Portraits/m.png
+            layout: top
 
             == start
             Hello {player}. [Nice|Fine] day.
@@ -69,6 +70,7 @@ class JsonConvertTest {
         assertArrayEquals(new String[] {"Kweebec_Merchant"}, asset.npc);
         assertEquals("Merchant", asset.speaker);
         assertEquals("Portraits/m.png", asset.portrait);
+        assertEquals("top", asset.layout);
         assertEquals(2, asset.start.size());
         assertEquals("$met", asset.start.get(0).when);
         assertEquals(2, asset.nodes.size());

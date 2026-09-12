@@ -109,6 +109,22 @@ Group {
     }
   }
 
+  Group {
+    LayoutMode: Left;
+    Anchor: (Height: 38, Bottom: 8);
+
+    Label {
+      Anchor: (Width: 130);
+      Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+      Text: %server.lowtalk.editor.layout;
+    }
+
+    DropdownBox #Layout {
+      Anchor: (Width: 300, Height: $C.@DropdownBoxHeight);
+      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 360);
+    }
+  }
+
   Label #Help {
     Anchor: (Top: 6);
     Style: (FontSize: 12, TextColor: #8fa3b8, Wrap: true);

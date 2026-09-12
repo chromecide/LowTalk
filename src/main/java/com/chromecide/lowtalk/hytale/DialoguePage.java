@@ -1,5 +1,6 @@
 package com.chromecide.lowtalk.hytale;
 
+import com.chromecide.lowtalk.hytale.presentation.DialogueLayout;
 import com.chromecide.lowtalk.runtime.Step;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
@@ -29,7 +30,6 @@ import java.util.List;
  */
 public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
 
-    private static final String LAYOUT = "Pages/LowTalk/DialoguePage.ui";
     private static final String LINE_NPC = "Pages/LowTalk/LineNpc.ui";
     private static final String LINE_PLAYER = "Pages/LowTalk/LinePlayer.ui";
     private static final String LINE_SYSTEM = "Pages/LowTalk/LineSystem.ui";
@@ -38,8 +38,11 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
     private static final int KEY_KP_ENTER = 1073741912;
     private static final String OPTION_PREFIX = "›  ";
     private static final String DISABLED_PREFIX = "   ";
+    /** SDL keycodes: the digit row and the keypad, 1 to 8, for picking options in the bar layouts. */
+    private static final int KEY_1 = 49;
+    private static final int KEY_KP_1 = 1073741913;
 
-    public enum Action { CONTINUE, CHOOSE, OK, KEY, CLOSE }
+    public enum Action { CONTINUE, CHOOSE, OK, KEY, CLOSE, HOTKEY }
 
     public static class Data {
         public static final BuilderCodec<Data> CODEC = BuilderCodec.builder(Data.class, Data::new)
@@ -59,6 +62,7 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
     private final DialogueSession session;
     private final String title;
     private final String portrait;
+    private final DialogueLayout layout;
     private Step current;
     /** For the current Choose step: slot number -> option index, or -1 for a disabled slot. */
     private final List<Integer> slotToOption = new ArrayList<>();
@@ -68,15 +72,21 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
     private volatile boolean open = true;
     private volatile long openedAt = System.currentTimeMillis();
 
-    public DialoguePage(@Nonnull PlayerRef playerRef, @Nonnull DialogueSession session, @Nonnull String title, String portrait) {
+    public DialoguePage(@Nonnull PlayerRef playerRef, @Nonnull DialogueSession session, @Nonnull String title, String portrait,
+                        @Nonnull DialogueLayout layout) {
         super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC);
         this.session = session;
         this.title = title;
         this.portrait = portrait == null || portrait.isBlank() ? null : portrait.trim();
+        this.layout = layout;
     }
 
     public boolean isOpen() {
         return open;
+    }
+
+    public DialogueLayout getLayout() {
+        return layout;
     }
 
     /** A portrait path as the client resolves it: relative to Common/UI/Custom/, base file name without a size suffix. */
@@ -139,7 +149,7 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
 
     @Override
     public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder cmd, @Nonnull UIEventBuilder evt, @Nonnull Store<EntityStore> store) {
-        cmd.append(LAYOUT);
+        cmd.append(layout.uiFile());
         cmd.set("#NpcTitle.Text", title);
         cmd.clear("#Transcript");
         transcriptCount = 0;
@@ -159,6 +169,15 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
         for (int i = 0; i < OPTION_SLOTS; i++) {
             evt.addEventBinding(CustomUIEventBindingType.Activating, "#Opt" + i,
                     new EventData().append("Action", Action.CHOOSE).append("Slot", String.valueOf(i)), false);
+        }
+        if (layout.isBar()) {
+            // Number keys pick options in the bar layouts. Bound on the bar itself and on the option buttons, since
+            // key events reach whichever element the client considers focused.
+            EventData hotkey = new EventData().append("Action", Action.HOTKEY);
+            evt.addEventBinding(CustomUIEventBindingType.KeyDown, "#Bar", hotkey, false);
+            for (int i = 0; i < OPTION_SLOTS; i++) {
+                evt.addEventBinding(CustomUIEventBindingType.KeyDown, "#Opt" + i, hotkey, false);
+            }
         }
         render(cmd);
     }
@@ -187,7 +206,10 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
                 int slot = 0;
                 for (Step.Shown o : choose.options()) {
                     if (slot >= OPTION_SLOTS) break;
-                    cmd.set("#Opt" + slot + ".Text", (o.enabled() ? OPTION_PREFIX : DISABLED_PREFIX) + o.text());
+                    String prefix = layout.isBar()
+                            ? (o.enabled() ? (slot + 1) + ".  " : "    ")
+                            : (o.enabled() ? OPTION_PREFIX : DISABLED_PREFIX);
+                    cmd.set("#Opt" + slot + ".Text", prefix + o.text());
                     cmd.set("#Opt" + slot + ".Visible", true);
                     slotToOption.add(o.enabled() ? o.index() : -1);
                     slot++;
@@ -224,15 +246,14 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
                 } catch (NumberFormatException e) {
                     return;
                 }
-                if (slot < 0 || slot >= slotToOption.size()) return;
-                int optionIndex = slotToOption.get(slot);
-                if (optionIndex < 0) return; // disabled option
-                if (current instanceof Step.Choose ch) {
-                    for (Step.Shown o : ch.options()) {
-                        if (o.index() == optionIndex) session.choiceMade(o.text());
-                    }
-                }
-                session.onChoose(optionIndex);
+                chooseSlot(slot);
+            }
+            case HOTKEY -> {
+                if (!(current instanceof Step.Choose) || data.keycode == null || Boolean.TRUE.equals(data.repeat)) return;
+                int k = data.keycode;
+                int slot = k >= KEY_1 && k < KEY_1 + OPTION_SLOTS ? k - KEY_1
+                        : k >= KEY_KP_1 && k < KEY_KP_1 + OPTION_SLOTS ? k - KEY_KP_1 : -1;
+                if (slot >= 0) chooseSlot(slot);
             }
             case OK -> {
                 if (current instanceof Step.Ask) answer(data.text);
@@ -245,6 +266,18 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
             }
             case CLOSE -> session.onLeave();
         }
+    }
+
+    private void chooseSlot(int slot) {
+        if (slot < 0 || slot >= slotToOption.size()) return;
+        int optionIndex = slotToOption.get(slot);
+        if (optionIndex < 0) return; // disabled option
+        if (current instanceof Step.Choose ch) {
+            for (Step.Shown o : ch.options()) {
+                if (o.index() == optionIndex) session.choiceMade(o.text());
+            }
+        }
+        session.onChoose(optionIndex);
     }
 
     private void answer(String raw) {

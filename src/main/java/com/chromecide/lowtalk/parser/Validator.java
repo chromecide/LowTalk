@@ -101,6 +101,11 @@ public final class Validator {
         if (d.bindings().isEmpty() && !"none".equalsIgnoreCase(d.otherDirectives().get("npc"))) {
             out.add(new Problem(new Pos(d.file(), 1), false, "no npc: binding; this dialogue can only be opened by command (write npc: none if that is intended)"));
         }
+        String layout = d.otherDirectives().get("layout");
+        if (layout != null && !com.chromecide.lowtalk.hytale.presentation.DialogueLayout.isValid(layout)) {
+            out.add(new Problem(new Pos(d.file(), 1), false, "layout: '" + layout + "' is not one of "
+                    + com.chromecide.lowtalk.hytale.presentation.DialogueLayout.keys() + "; the default layout will be used"));
+        }
         for (String b : d.bindings()) {
             if (b == null || b.isBlank() || b.equals("@")) {
                 out.add(new Problem(new Pos(d.file(), 1), true, "an npc: binding is empty; give it a role id like Kweebec_Merchant or a tag like @elder"));

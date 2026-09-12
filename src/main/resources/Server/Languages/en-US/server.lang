@@ -52,6 +52,7 @@ lowtalk.editor.opens = Opens
 lowtalk.editor.portrait = Portrait
 lowtalk.editor.portraitHint = image path (optional)
 lowtalk.editor.memory = Memory
+lowtalk.editor.layout = Layout
 lowtalk.editor.memoryHint = share variables with another dialogue id (optional)
 lowtalk.editor.headerHelp = NPCs: which roles (every NPC of that kind) or @tags (particular NPCs) open this dialogue. Memory: dialogues with the same memory id share their variables.
 lowtalk.newdialog.title = New dialogue

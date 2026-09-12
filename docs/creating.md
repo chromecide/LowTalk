@@ -12,7 +12,8 @@ Editor, a text file can be opened as a graph, and so on.
 | See the whole conversation as a graph and wire it up visually | [The Node Editor](#in-the-node-editor) | the standalone Node Editor |
 | Write it like a script, keep it in git, diff it in pull requests | [A text file](#as-a-text-file) | any text editor, or the Asset Editor's text mode |
 
-Everything below is available in every method: the same commands, conditions, variables and pickers. Where a
+Everything below is available in every method: the same commands, conditions, variables, pickers and the layout
+setting (bottom bar, top bar or window; see [format.md](format.md#layout)). Where a
 method has a limit, it says so.
 
 ## In game, with the LowTalk tool

@@ -23,10 +23,34 @@ Lines before the first node are directives, `key: value`, one per line.
 | `title:` | Shown in the window header. Defaults to the speaker. |
 | `scope:` | Variable namespace shared with other files. Defaults to the file name. |
 | `portrait:` | An image shown beside the text, as a path inside `Common/UI/Custom/` of any loaded asset pack, e.g. `Portraits/elder.png` from your own pack or `Pages/RespawnPageSkull.png` from the game. Name the base file (`RespawnPageSkull.png`, not `...@2x.png`); the client picks the high-resolution variant itself. |
+| `layout:` | Where this conversation appears: `bottom` (a bar along the bottom of the screen, the NPC stays visible), `top` (the same bar at the top) or `window` (a centred window over a dimmed screen). Leave it out to follow the pack's or the server's default; see [Layout](#layout). |
 | `include:` | Pull the nodes of another file into this one, e.g. `include: _shared`. See [Includes](#includes). Repeatable. |
 | `on:` | `on: join` opens this dialogue by itself when a player finishes loading into a world. It runs without an NPC, so `speaker:` names the voice. Gate repeats with a guarded `start:`, a once-block, or an early `<<end>>` (a dialogue that ends before saying anything never opens a window). |
 
 Comments start with `#` and run to the end of the line.
+
+### Layout
+
+A conversation is a bar along the bottom of the screen by default, with the world and the NPC in view, the options
+numbered, and the number keys picking them. `layout: top` moves the bar up; `layout: window` is the centred window
+over a dimmed screen. Four levels decide, most specific first:
+
+1. the dialogue's own `layout:` directive (`Layout` in JSON, the Layout dropdown in the in-game editor);
+2. the asset pack it came from: a `Server/LowTalk/Settings.json` next to the pack's dialogues, so a mod author sets
+   the look of their whole pack once:
+
+   ```json
+   { "Layout": "window", "HideHud": ["Reticle", "Hotbar", "Compass"] }
+   ```
+
+3. defaults the pack's plugin registered through the API (`LowTalkApi.setPackDefaults`, the same two settings);
+4. the server's `lowtalk.json`: `Layout` (default `bottom`) and `HideHudDuringDialogue` (default `Reticle` and
+   `Hotbar`).
+
+`HideHud` names the HUD parts hidden while a dialogue is open and shown again when it closes; the names are the
+game's own: `Hotbar`, `Reticle`, `Chat`, `Compass`, `Health`, `Stamina`, `ObjectivePanel` and so on. It follows the
+same chain without the dialogue level. A server owner who wants one look across every mod sets `ForceLayout` in
+`lowtalk.json`, which wins over all four.
 
 ## Nodes
 

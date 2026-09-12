@@ -64,6 +64,22 @@
         "Default": "",
         "Width": 120
       }
+    },
+    {
+      "Id": "Layout",
+      "Type": "Enum",
+      "Options": {
+        "Label": "Layout",
+        "Description": "Where the conversation appears; default follows the pack or server setting.",
+        "Default": "default",
+        "Width": 140,
+        "Values": [
+          "default",
+          "bottom",
+          "top",
+          "window"
+        ]
+      }
     }
   ],
   "Outputs": [
@@ -89,6 +105,7 @@
     "Scope": "Scope",
     "Portrait": "Portrait",
     "On": "On",
+    "Layout": "Layout",
     "Start": {
       "Node": "Start",
       "Pin": "StartPin"

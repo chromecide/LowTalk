@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Layout: bottom bar, top bar or window
+
+- Conversations now default to a bar along the bottom of the screen with no dimming overlay, so the NPC stays in
+  view. Options are numbered and the number keys (1 to 8, keypad too) pick them. `layout: top` and
+  `layout: window` (the old look) are the alternatives; the directive is `Layout` in JSON, a dropdown in the
+  in-game editor and a field in the Node Editor workspace.
+- Per-pack defaults: `Server/LowTalk/Settings.json` in an asset pack, or `LowTalkApi.setPackDefaults` from a
+  plugin, set the layout and hidden HUD parts for every dialogue in that pack. Precedence: dialogue directive, pack
+  file, API defaults, server config; the server's new `ForceLayout` overrides all of them.
+- The configured HUD parts (`HideHudDuringDialogue`, default reticle and hotbar) are hidden while a dialogue is
+  open and restored when it closes, whichever way it closes.
+
 ### Hytale 0.6.5 notes
 
 Checked 2026-09-11. Eight server classes changed (connection registry and packet handlers, kick and ban

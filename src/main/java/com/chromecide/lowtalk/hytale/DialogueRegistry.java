@@ -57,8 +57,8 @@ public class DialogueRegistry {
         }
     }
 
-    /** One loaded file. */
-    public record Loaded(Path file, String display, Dialogue dialogue) {}
+    /** One loaded dialogue and where it came from; {@code pack} is the asset pack's name, "" for the server's own folder. */
+    public record Loaded(Path file, String display, Dialogue dialogue, String pack) {}
 
     private final Path folder;
     private final HytaleLogger logger;
@@ -232,6 +232,11 @@ public class DialogueRegistry {
      * an id already taken by a .talk file is reported and the asset is skipped.
      */
     public synchronized LoadReport loadAsset(@Nonnull String id, @Nonnull String display, @Nonnull Dialogue d, boolean checkAssets) {
+        return loadAsset(id, display, d, "", checkAssets);
+    }
+
+    /** As above, recording the asset pack the JSON asset belongs to. */
+    public synchronized LoadReport loadAsset(@Nonnull String id, @Nonnull String display, @Nonnull Dialogue d, @Nonnull String pack, boolean checkAssets) {
         assets.remove(id);
         Report acc = new Report();
         acc.files++;
@@ -259,7 +264,7 @@ public class DialogueRegistry {
                 acc.messages.add("error " + display + ": the .talk file " + clash.display() + " already uses the id '" + id + "'");
                 acc.errors++;
             } else {
-                assets.put(id, new Loaded(null, display, d));
+                assets.put(id, new Loaded(null, display, d, pack));
             }
         } else {
             acc.messages.add("skipped " + display + " because of errors");
@@ -324,7 +329,7 @@ public class DialogueRegistry {
                     return;
                 }
             }
-            files.put(abs, new Loaded(abs, display, d));
+            files.put(abs, new Loaded(abs, display, d, src == null ? "" : src.label()));
         } catch (ParseException e) {
             acc.messages.add("error " + e.getMessage());
             acc.errors++;
@@ -418,6 +423,13 @@ public class DialogueRegistry {
             }
         }
         return null;
+    }
+
+    /** The asset pack a loaded dialogue came from, "" for the server's own folder or when unknown. */
+    @Nonnull
+    public String packOf(@Nonnull Dialogue d) {
+        Loaded l = loadedFor(d.id());
+        return l == null || l.pack() == null ? "" : l.pack();
     }
 
     /** The asset pack (source label) a file under a pack's dialogue folder belongs to; the server's own folder is "". */

@@ -133,13 +133,14 @@ add({
         small("Scope", "Scope", "Variable namespace shared with other dialogues that declare the same scope. Defaults to the dialogue id."),
         small("Portrait", "Portrait", "Image beside the text, a path inside Common/UI/Custom of any pack.", width=300),
         small("On", "On", "join opens this dialogue by itself when a player joins.", width=120),
+        enum("Layout", "Layout", ["default", "bottom", "top", "window"], "Where the conversation appears; default follows the pack or server setting.", width=140),
     ],
     "Outputs": [
         out_pin("StartPin", PIN_START, "Start rules"),
         out_pin("NodesPin", PIN_NODE, "Nodes"),
     ],
     "Schema": {
-        "Npc": "Npc", "Speaker": "Speaker", "Title": "Title", "Scope": "Scope", "Portrait": "Portrait", "On": "On",
+        "Npc": "Npc", "Speaker": "Speaker", "Title": "Title", "Scope": "Scope", "Portrait": "Portrait", "On": "On", "Layout": "Layout",
         "Start": {"Node": "Start", "Pin": "StartPin"},
         "Nodes": {"Node": "Node", "Pin": "NodesPin"},
     },
