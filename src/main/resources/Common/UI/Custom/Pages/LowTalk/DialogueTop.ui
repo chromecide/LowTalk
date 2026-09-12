@@ -1,0 +1,10 @@
+$Bar = "DialogueBar.ui";
+
+// Conversation bar along the top of the screen.
+Group #Root {
+  LayoutMode: Top;
+
+  $Bar.@Bar #Bar {
+    Anchor: (Top: 36, Height: 250, Left: 110, Right: 110);
+  }
+}

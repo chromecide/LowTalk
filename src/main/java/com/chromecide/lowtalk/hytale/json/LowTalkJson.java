@@ -22,6 +22,7 @@ public class LowTalkJson implements JsonAssetWithMap<String, DefaultAssetMap<Str
     public String scope;
     public String portrait;
     public String on;
+    public String layout;
     public List<StartEntry> start = new ArrayList<>();
     public List<NodeEntry> nodes = new ArrayList<>();
 

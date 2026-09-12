@@ -1,0 +1,118 @@
+$C = "../../Common.ui";
+$Sounds = "../../Sounds.ui";
+
+// The RPG-style conversation bar. No page overlay, so the world and the NPC stay visible; DialogueBottom.ui and
+// DialogueTop.ui place this bar at either edge. Element ids match DialoguePage.ui so the server drives both alike.
+
+@BarOptionStyle = (
+  Default: (
+    LabelStyle: (FontSize: 16, TextColor: #d6e2f0, HorizontalAlignment: Start, VerticalAlignment: Center)
+  ),
+  Hovered: (
+    LabelStyle: (FontSize: 16, TextColor: #ffffff, RenderBold: true, HorizontalAlignment: Start, VerticalAlignment: Center),
+    Background: #ffffff(0.08)
+  ),
+  Pressed: (
+    LabelStyle: (FontSize: 16, TextColor: #ffd37a, RenderBold: true, HorizontalAlignment: Start, VerticalAlignment: Center),
+    Background: #ffffff(0.12)
+  ),
+  Sounds: $Sounds.@ButtonsLight
+);
+
+@Bar = Group {
+  Anchor: (Height: 250, Left: 110, Right: 110);
+  Background: #070a10(0.82);
+  Padding: (Full: 14);
+  LayoutMode: Left;
+
+  Group #PortraitBox {
+    Anchor: (Width: 120, Right: 16);
+    Visible: false;
+
+    Group #Portrait {
+      Anchor: (Width: 120, Height: 120, Top: 2);
+    }
+  }
+
+  Group #Body {
+    FlexWeight: 1;
+    LayoutMode: Top;
+
+    Group #TitleRow {
+      LayoutMode: Left;
+      Anchor: (Height: 24, Bottom: 12);
+
+      Label #NpcTitle {
+        FlexWeight: 1;
+        Style: (FontSize: 15, RenderBold: true, RenderUppercase: true, TextColor: #ffd37a, VerticalAlignment: Center);
+      }
+
+      $C.@SecondaryTextButton #CloseButton {
+        @Anchor = (Width: 110, Height: 24);
+        @Text = %server.lowtalk.ui.leave;
+      }
+    }
+
+    // The history sits in its own rounded frame (a 9-slice texture shipped with the pack) so it reads apart from
+    // the options below it.
+    Group #TranscriptBox {
+      FlexWeight: 1;
+      Background: (TexturePath: "TranscriptFrame.png", Border: 8);
+      Padding: (Horizontal: 12, Vertical: 8);
+
+      Group #Transcript {
+        FlexWeight: 1;
+        LayoutMode: TopScrolling;
+        ScrollbarStyle: $C.@DefaultScrollbarStyle;
+        Padding: (Right: 8);
+      }
+    }
+
+    Group #Options {
+      LayoutMode: Top;
+      Anchor: (Top: 6);
+
+      TextButton #Opt0 { Anchor: (Bottom: 2, Height: 26); Padding: (Horizontal: 10); Style: @BarOptionStyle; Visible: false; }
+      TextButton #Opt1 { Anchor: (Bottom: 2, Height: 26); Padding: (Horizontal: 10); Style: @BarOptionStyle; Visible: false; }
+      TextButton #Opt2 { Anchor: (Bottom: 2, Height: 26); Padding: (Horizontal: 10); Style: @BarOptionStyle; Visible: false; }
+      TextButton #Opt3 { Anchor: (Bottom: 2, Height: 26); Padding: (Horizontal: 10); Style: @BarOptionStyle; Visible: false; }
+      TextButton #Opt4 { Anchor: (Bottom: 2, Height: 26); Padding: (Horizontal: 10); Style: @BarOptionStyle; Visible: false; }
+      TextButton #Opt5 { Anchor: (Bottom: 2, Height: 26); Padding: (Horizontal: 10); Style: @BarOptionStyle; Visible: false; }
+      TextButton #Opt6 { Anchor: (Bottom: 2, Height: 26); Padding: (Horizontal: 10); Style: @BarOptionStyle; Visible: false; }
+      TextButton #Opt7 { Anchor: (Bottom: 2, Height: 26); Padding: (Horizontal: 10); Style: @BarOptionStyle; Visible: false; }
+    }
+
+    Group #InputRow {
+      LayoutMode: Left;
+      Anchor: (Top: 6, Height: 34);
+      Visible: false;
+
+      $C.@TextField #Input {
+        @Anchor = (Right: 8);
+        FlexWeight: 1;
+      }
+
+      $C.@TextButton #OkButton {
+        @Anchor = (Width: 100);
+        @Text = %server.lowtalk.ui.ok;
+      }
+    }
+
+    Group #ContinueRow {
+      LayoutMode: Right;
+      Anchor: (Top: 6, Height: 30);
+      Visible: false;
+
+      $C.@TextButton #ContinueButton {
+        @Anchor = (Width: 170, Height: 30);
+        @Text = %server.lowtalk.ui.continue;
+      }
+    }
+
+    // The window layout has a Leave row under the options; the bar keeps Leave in the title row instead.
+    Group #CloseRow {
+      Anchor: (Height: 0);
+      Visible: false;
+    }
+  }
+};

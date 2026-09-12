@@ -33,6 +33,10 @@ import java.util.logging.Level;
  * everything that touches Hytale is under {@code hytale}.
  */
 public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
+    private final com.chromecide.lowtalk.hytale.presentation.PresentationResolver presentation =
+            new com.chromecide.lowtalk.hytale.presentation.PresentationResolver(
+                    d -> this.registry == null ? "" : this.registry.packOf(d),
+                    id -> { if (this.registry == null) return ""; DialogueRegistry.Loaded l = this.registry.loadedFor(id); return l == null ? "" : l.pack(); });
 
     private static LowTalkPlugin instance;
 
@@ -164,6 +168,7 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
 
     @Override
     protected void start() {
+        reloadPresentation();
         DialogueRegistry.LoadReport report = registry.reload(false);
         logReport(report);
         getLogger().at(Level.INFO).log("LowTalk ready: %d dialogue(s) from %s", report.loaded(), registry.getFolder());
@@ -183,6 +188,7 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
     /** Reload dialogues; running sessions are ended so nobody is left inside a stale tree. */
     public DialogueRegistry.LoadReport reloadDialogues() {
         sessions.endAll();
+        reloadPresentation();
         DialogueRegistry.LoadReport report = registry.reload();
         logReport(report);
         return report;
@@ -201,6 +207,30 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
 
     @Override
     public LowTalkConfig config() { return config.get(); }
+
+    @Override
+    public com.chromecide.lowtalk.hytale.presentation.Presentation presentation(com.chromecide.lowtalk.model.Dialogue dialogue) {
+        return presentation.resolve(dialogue);
+    }
+
+    public com.chromecide.lowtalk.hytale.presentation.PresentationResolver getPresentation() { return presentation; }
+
+    /** Read the server config's layout keys into the resolver and rescan every pack's Settings.json. */
+    public void reloadPresentation() {
+        LowTalkConfig cfg = config.get();
+        com.chromecide.lowtalk.hytale.presentation.DialogueLayout def = com.chromecide.lowtalk.hytale.presentation.DialogueLayout.parse(cfg.getLayout());
+        if (def == null && cfg.getLayout() != null && !cfg.getLayout().isBlank()) {
+            getLogger().at(Level.WARNING).log("lowtalk.json: unknown Layout '%s' (use %s); using %s", cfg.getLayout(),
+                    com.chromecide.lowtalk.hytale.presentation.DialogueLayout.keys(), com.chromecide.lowtalk.hytale.presentation.DialogueLayout.DEFAULT.key());
+        }
+        com.chromecide.lowtalk.hytale.presentation.DialogueLayout force = com.chromecide.lowtalk.hytale.presentation.DialogueLayout.parse(cfg.getForceLayout());
+        if (force == null && cfg.getForceLayout() != null && !cfg.getForceLayout().isBlank()) {
+            getLogger().at(Level.WARNING).log("lowtalk.json: unknown ForceLayout '%s' (use %s); not forcing", cfg.getForceLayout(),
+                    com.chromecide.lowtalk.hytale.presentation.DialogueLayout.keys());
+        }
+        presentation.setServerDefaults(new com.chromecide.lowtalk.hytale.presentation.Presentation.Defaults(def, cfg.getHideHudDuringDialogue()), force);
+        presentation.setPackFiles(com.chromecide.lowtalk.hytale.presentation.PackSettings.scan(getLogger()));
+    }
 
     @Override
     public EffectRegistry effects() { return effects; }

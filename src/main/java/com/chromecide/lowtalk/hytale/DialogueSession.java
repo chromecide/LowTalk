@@ -31,6 +31,8 @@ public class DialogueSession implements EffectHost {
 
     public interface Host {
         LowTalkConfig config();
+        /** How this dialogue is shown: layout and hidden HUD parts, resolved from directive, pack, API and config. */
+        com.chromecide.lowtalk.hytale.presentation.Presentation presentation(Dialogue dialogue);
         EffectRegistry effects();
         VariableStore store();
         HytaleLogger logger();
@@ -47,6 +49,9 @@ public class DialogueSession implements EffectHost {
     private final HytaleContext context;
     private final Conversation conversation;
     private final DialoguePage page;
+    private final com.chromecide.lowtalk.hytale.presentation.Presentation presentation;
+    /** HUD parts we hid for this conversation, to show again when it ends; null when nothing was hidden. */
+    private java.util.Set<com.hypixel.hytale.protocol.packets.interface_.HudComponent> hiddenHud;
     private boolean ended = false;
     private boolean opened = false;
     private Step firstStep;
@@ -64,7 +69,60 @@ public class DialogueSession implements EffectHost {
         this.context = context;
         this.conversation = new Conversation(dialogue, context);
         String title = dialogue.title() != null ? dialogue.title() : (dialogue.speaker() != null ? dialogue.speaker() : npcName);
-        this.page = new DialoguePage(player, this, title, dialogue.otherDirectives().get("portrait"));
+        this.presentation = host.presentation(dialogue);
+        this.page = new DialoguePage(player, this, title, dialogue.otherDirectives().get("portrait"), presentation.layout());
+    }
+
+    public com.chromecide.lowtalk.hytale.presentation.Presentation getPresentation() { return presentation; }
+
+    /** Hide the configured HUD parts for the length of the conversation. World thread. */
+    private void hideHud() {
+        if (presentation.hideHud().isEmpty() || hiddenHud != null) return;
+        try {
+            Ref<EntityStore> ref = player.getReference();
+            if (ref == null || !ref.isValid()) return;
+            Player p = ref.getStore().getComponent(ref, Player.getComponentType());
+            if (p == null) return;
+            java.util.Set<com.hypixel.hytale.protocol.packets.interface_.HudComponent> toHide = new java.util.LinkedHashSet<>();
+            for (String name : presentation.hideHud()) {
+                com.hypixel.hytale.protocol.packets.interface_.HudComponent c = hudComponent(name);
+                if (c == null) {
+                    log("unknown HUD part '" + name + "' in HideHud; ignored");
+                } else if (p.getHudManager().getVisibleHudComponents().contains(c)) {
+                    toHide.add(c);
+                }
+            }
+            if (toHide.isEmpty()) return;
+            p.getHudManager().hideHudComponents(player, toHide.toArray(new com.hypixel.hytale.protocol.packets.interface_.HudComponent[0]));
+            hiddenHud = toHide;
+        } catch (RuntimeException e) {
+            host.logger().at(java.util.logging.Level.FINE).log("Could not hide HUD parts: %s", e.toString());
+        }
+    }
+
+    /** Show again what {@link #hideHud()} hid. Safe to call more than once and from any end path. */
+    private void restoreHud() {
+        java.util.Set<com.hypixel.hytale.protocol.packets.interface_.HudComponent> hidden = hiddenHud;
+        if (hidden == null) return;
+        hiddenHud = null;
+        try {
+            Ref<EntityStore> ref = player.getReference();
+            if (ref == null || !ref.isValid()) return;
+            Player p = ref.getStore().getComponent(ref, Player.getComponentType());
+            if (p != null) p.getHudManager().showHudComponents(player, hidden);
+        } catch (RuntimeException e) {
+            host.logger().at(java.util.logging.Level.FINE).log("Could not restore HUD parts: %s", e.toString());
+        }
+    }
+
+    @Nullable
+    private static com.hypixel.hytale.protocol.packets.interface_.HudComponent hudComponent(String name) {
+        if (name == null) return null;
+        String n = name.trim();
+        for (com.hypixel.hytale.protocol.packets.interface_.HudComponent c : com.hypixel.hytale.protocol.packets.interface_.HudComponent.values()) {
+            if (c.name().equalsIgnoreCase(n)) return c;
+        }
+        return null;
     }
 
     /**
@@ -134,6 +192,7 @@ public class DialogueSession implements EffectHost {
 
     /** Logging, the NPC hold, listeners and the first pause timer. Call once the page is on its way to the client. */
     public void afterOpen() {
+        hideHud();
         if (opened || ended) return;
         opened = true;
         if (host.config().isLogConversations()) {
@@ -237,6 +296,7 @@ public class DialogueSession implements EffectHost {
         if (!ended) {
             log("ended by dismiss");
             ended = true;
+            restoreHud();
             releaseNpc();
             host.store().flush();
             host.sessionEnded(this);
@@ -258,6 +318,7 @@ public class DialogueSession implements EffectHost {
     public void detach() {
         if (ended) return;
         ended = true;
+        restoreHud(); // the page that replaces ours (the shop) is not a dialogue; give the HUD back now
         releaseNpc();
         host.store().flush();
         host.sessionEnded(this);
@@ -324,6 +385,7 @@ public class DialogueSession implements EffectHost {
         log("finished");
         ended = true;
         page.closeNow();
+        restoreHud();
         releaseNpc();
         host.store().flush();
         host.sessionEnded(this);

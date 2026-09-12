@@ -64,6 +64,26 @@ api.registerCommandPicker("grant_title", "MyTitles");   // one data set per argu
 `ctx` also reaches the game: `ctx.getNpcRef()`, `ctx.getWorld()` and
 `ctx.getEntityStore()` (world thread only; null for a narrator conversation).
 
+## Set the look of your pack's dialogues
+
+Every dialogue in your asset pack can share a layout and a set of hidden HUD parts, without touching the server
+config. Either ship `Server/LowTalk/Settings.json` in the pack:
+
+```json
+{ "Layout": "bottom", "HideHud": ["Reticle", "Hotbar"] }
+```
+
+or set the same two things in code, once, during setup:
+
+```java
+api.setPackDefaults("Chromecide:Companions", "bottom", List.of("Reticle", "Hotbar"));
+```
+
+The pack id is your plugin's `Group:Name`. Pass null for a setting you want to leave to the server config. A
+dialogue's own `layout:` directive and a `Settings.json` in the pack both win over the API call, and the server's
+`ForceLayout` wins over everything. Layouts are `bottom`, `top` and `window`; HUD names are the game's own
+(`Hotbar`, `Reticle`, `Chat`, `Compass`, `Health`, ...).
+
 ## Listen to conversations
 
 ```java

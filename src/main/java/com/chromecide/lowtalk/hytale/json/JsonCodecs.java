@@ -368,6 +368,8 @@ public final class JsonCodecs {
             .documentation("Image beside the text, a path inside Common/UI/Custom of any pack.").add()
             .append(new KeyedCodec<>("On", Codec.STRING), (a, v) -> a.on = v, a -> a.on)
             .documentation("\"join\" opens this dialogue by itself when a player joins.").add()
+            .append(new KeyedCodec<>("Layout", Codec.STRING), (a, v) -> a.layout = v, a -> a.layout)
+            .documentation("Where the conversation appears: window, bottom or top. Leave empty for the pack's or the server's default.").add()
             .<LowTalkJson.StartEntry[]>append(new KeyedCodec<>("Start", new ArrayCodec<>(START, LowTalkJson.StartEntry[]::new)),
                     (a, v) -> a.start = v == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(v)), a -> a.start.toArray(new LowTalkJson.StartEntry[0]))
             .documentation("Where to begin. Empty means the first node.").add()

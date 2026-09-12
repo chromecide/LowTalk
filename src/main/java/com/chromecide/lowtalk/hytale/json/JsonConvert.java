@@ -52,6 +52,7 @@ public final class JsonConvert {
         Map<String, String> other = new LinkedHashMap<>();
         if (!blank(a.portrait)) other.put("portrait", a.portrait);
         if (!blank(a.on)) other.put("on", a.on);
+        if (!blank(a.layout) && !"default".equalsIgnoreCase(a.layout.trim())) other.put("layout", a.layout.trim());
         if (none) other.put("npc", "none"); // so the validator does not ask for a binding
         String scope = blank(a.scope) ? id : a.scope;
         return new Dialogue(display, id, bindings, List.copyOf(starts), blank(a.speaker) ? null : a.speaker,
@@ -218,6 +219,7 @@ public final class JsonConvert {
         a.scope = d.scope() == null || d.scope().equals(d.id()) ? null : d.scope();
         a.portrait = d.otherDirectives().get("portrait");
         a.on = d.otherDirectives().get("on");
+        a.layout = d.otherDirectives().get("layout");
         for (Dialogue.Start s : d.starts()) {
             boolean defaultStart = s.condition() == null && d.starts().size() == 1 && s.node().equals(d.nodes().keySet().iterator().next());
             if (defaultStart) continue;

@@ -101,7 +101,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         CMD_NAME, CMD_ARGS, CMD_PICK, SET, JUMP_NODE, JUMP_GO, INPUT, WAIT,
         BRANCH_COND, BRANCH_BODY, BRANCH_ADD, BRANCH_DEL, BLOCK_BODY, ALT_ADD, ALT_DEL,
         UP, DOWN, DEL, ADD_KIND, ADD, ADD_NODE, RENAME, JUMP, BACK, HEADER, DELETE_NODE,
-        H_BINDINGS, H_NPC_PICK, H_SPEAKER, H_TITLE, H_START, H_ON, H_PORTRAIT, H_SCOPE,
+        H_BINDINGS, H_NPC_PICK, H_SPEAKER, H_TITLE, H_START, H_ON, H_PORTRAIT, H_SCOPE, H_LAYOUT,
         SAVE, TEST, DISCARD, CLOSE
     }
 
@@ -273,6 +273,15 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         change(evt, sel + " #Portrait", Action.H_PORTRAIT, null);
         cmd.set(sel + " #Scope.Value", draft.scope() == null || draft.scope().equals(draft.id()) ? "" : draft.scope());
         change(evt, sel + " #Scope", Action.H_SCOPE, null);
+        List<DropdownEntryInfo> layouts = new ArrayList<>();
+        layouts.add(entry("default (" + plugin.getPresentation().explainLayoutDefault(draft.id()) + ")", NONE, null));
+        layouts.add(entry("bottom bar (NPC stays visible)", "bottom", null));
+        layouts.add(entry("top bar", "top", null));
+        layouts.add(entry("window (centred, dimmed screen)", "window", null));
+        cmd.set(sel + " #Layout.Entries", layouts);
+        String l = draft.directive("layout");
+        cmd.set(sel + " #Layout.Value", l == null || !com.chromecide.lowtalk.hytale.presentation.DialogueLayout.isValid(l) ? NONE : l.trim().toLowerCase());
+        change(evt, sel + " #Layout", Action.H_LAYOUT, null);
     }
 
     private void renderScope(UICommandBuilder cmd, UIEventBuilder evt) {
@@ -670,6 +679,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             }
             case H_START -> { draft.setStartNode(value); return true; }
             case H_ON -> { draft.setDirective("on", NONE.equals(value) ? null : value); return true; }
+            case H_LAYOUT -> { draft.setDirective("layout", NONE.equals(value) ? null : value); return false; }
             case SAVE -> { save(); return true; }
             case TEST -> { test(ref, store); return false; }
             case DISCARD -> {

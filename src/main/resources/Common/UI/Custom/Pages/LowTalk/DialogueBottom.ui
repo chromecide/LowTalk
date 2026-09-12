@@ -1,0 +1,10 @@
+$Bar = "DialogueBar.ui";
+
+// Conversation bar along the bottom of the screen. The world stays visible; there is no dimming overlay.
+Group #Root {
+  LayoutMode: Bottom;
+
+  $Bar.@Bar #Bar {
+    Anchor: (Bottom: 36, Height: 250, Left: 110, Right: 110);
+  }
+}

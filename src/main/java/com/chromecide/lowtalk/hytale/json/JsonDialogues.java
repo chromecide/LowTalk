@@ -238,7 +238,9 @@ public final class JsonDialogues {
             DialogueRegistry.LoadReport report;
             try {
                 Dialogue d = JsonConvert.toModel(asset, display);
-                report = plugin.getRegistry().loadAsset(id, display, d, !event.isInitial());
+                java.nio.file.Path file = plugin.getRegistry().findAssetFile(display);
+                String pack = file == null ? "" : plugin.getRegistry().packNameFor(file);
+                report = plugin.getRegistry().loadAsset(id, display, d, pack, !event.isInitial());
             } catch (ParseException e) {
                 plugin.getRegistry().removeAsset(id);
                 report = new DialogueRegistry.LoadReport(1, 0, 1, 0, java.util.List.of("error " + e.getMessage()));

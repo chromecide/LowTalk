@@ -97,6 +97,30 @@ public final class LowTalkApi {
         com.chromecide.lowtalk.hytale.json.JsonDialogues.registerDataSet(plugin, id, names);
     }
 
+    // ---- presentation
+
+    /**
+     * Default look for every dialogue in an asset pack, the code equivalent of that pack's
+     * {@code Server/LowTalk/Settings.json}. {@code pack} is the pack's id as the server names it, normally your
+     * plugin's {@code Group:Name}. {@code layout} is "window", "bottom" or "top", or null to leave it to the server
+     * config; {@code hideHud} lists HUD parts hidden while a dialogue is open (Reticle, Hotbar, Compass, Chat, ...),
+     * or null to leave that to the server config. A dialogue's own {@code layout:} directive and a Settings.json in
+     * the pack both win over this; the server's ForceLayout wins over everything.
+     */
+    public void setPackDefaults(@Nonnull String pack, @Nullable String layout, @Nullable List<String> hideHud) {
+        com.chromecide.lowtalk.hytale.presentation.DialogueLayout l = null;
+        if (layout != null && !layout.isBlank()) {
+            l = com.chromecide.lowtalk.hytale.presentation.DialogueLayout.parse(layout);
+            if (l == null) throw new IllegalArgumentException("unknown layout '" + layout + "'; use one of " + com.chromecide.lowtalk.hytale.presentation.DialogueLayout.keys());
+        }
+        plugin.getPresentation().setApiDefaults(pack, new com.chromecide.lowtalk.hytale.presentation.Presentation.Defaults(l, hideHud == null ? null : List.copyOf(hideHud)));
+    }
+
+    /** Forget defaults set with {@link #setPackDefaults}. */
+    public void clearPackDefaults(@Nonnull String pack) {
+        plugin.getPresentation().setApiDefaults(pack, null);
+    }
+
     public void addListener(@Nonnull DialogueListener listener) {
         plugin.getListeners().add(listener);
     }

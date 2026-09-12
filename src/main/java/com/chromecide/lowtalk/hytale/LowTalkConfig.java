@@ -30,6 +30,12 @@ public class LowTalkConfig {
                     (c, v, e) -> c.showHint = v, (c, e) -> c.showHint).add()
             .append(new KeyedCodec<>("HintKey", Codec.STRING),
                     (c, v, e) -> c.hintKey = v, (c, e) -> c.hintKey).add()
+            .append(new KeyedCodec<>("Layout", Codec.STRING),
+                    (c, v, e) -> c.layout = v, (c, e) -> c.layout).add()
+            .append(new KeyedCodec<>("ForceLayout", Codec.STRING),
+                    (c, v, e) -> c.forceLayout = v, (c, e) -> c.forceLayout).add()
+            .<String[]>append(new KeyedCodec<>("HideHudDuringDialogue", new com.hypixel.hytale.codec.codecs.array.ArrayCodec<>(Codec.STRING, String[]::new)),
+                    (c, v, e) -> c.hideHud = v, (c, e) -> c.hideHud).add()
             .build();
 
     /** How a binding opens: "crouch" = crouch and use; "replace" = plain use, native interaction suppressed. */
@@ -53,6 +59,15 @@ public class LowTalkConfig {
     /** Show the game's interaction prompt on bound NPCs; HintKey is the translation key of its text. */
     private boolean showHint = true;
     private String hintKey = "server.lowtalk.hint.talk";
+    /**
+     * Where dialogues appear unless a pack, a plugin or the dialogue itself says otherwise: "bottom" (a bar, the
+     * NPC stays visible), "top", or "window" (centred over a dimmed screen). ForceLayout, when set, wins over all
+     * of them. HideHudDuringDialogue names the HUD parts hidden while a dialogue is open (Reticle, Hotbar, Compass,
+     * Chat, ...); an empty list hides nothing.
+     */
+    private String layout = "bottom";
+    private String forceLayout = "";
+    private String[] hideHud = new String[] {"Reticle", "Hotbar"};
 
     private LowTalkConfig() {}
 
@@ -67,4 +82,7 @@ public class LowTalkConfig {
     public boolean isUseHook() { return useHook; }
     public boolean isShowHint() { return showHint; }
     public String getHintKey() { return hintKey == null || hintKey.isBlank() ? "server.lowtalk.hint.talk" : hintKey; }
+    public String getLayout() { return layout; }
+    public String getForceLayout() { return forceLayout; }
+    public java.util.List<String> getHideHudDuringDialogue() { return hideHud == null ? java.util.List.of() : java.util.List.of(hideHud); }
 }

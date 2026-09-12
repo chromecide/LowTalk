@@ -51,6 +51,8 @@ Ah, {player}. Back again.
 
 ## Features
 
+- **Bottom bar, top bar or window.** Conversations sit in a bar with the NPC in view by default; options are
+  numbered and the number keys pick them. Each dialogue, each mod's pack and the server can choose the layout.
 - Branching dialogue: options with conditions, if/elseif/else, hubs, jumps, once-blocks, random variation,
   text input, timed pauses, `{interpolation}` and `[a|b]` variation in text.
 - Memory: per-NPC variables (`$met`), per-player variables that follow the player between NPCs
@@ -162,6 +164,13 @@ log line appears before the error.
 - `ShowHint` (default true): bound NPCs show the game's interaction prompt,
   "Press [key] to talk"; `HintKey` names the translation key of that text
   (default `server.lowtalk.hint.talk`).
+- `Layout` (default `bottom`): where conversations appear unless a pack, a
+  plugin or the dialogue says otherwise: `bottom` or `top` (a bar, the NPC
+  stays visible, number keys pick options) or `window` (centred, dimmed
+  screen). `ForceLayout` (default empty) overrides every mod and dialogue.
+  `HideHudDuringDialogue` (default `Reticle`, `Hotbar`) lists the HUD parts
+  hidden while a dialogue is open. Mod authors set their own defaults in their
+  pack's `Server/LowTalk/Settings.json`; see [docs/format.md](docs/format.md#layout).
 - `HoldNpcDuringDialogue` (default true): freeze and face the NPC while talking.
 - `ClearSkyWeather` (default `Default_Flat`): what `<<weather clear>>` shows in
   worlds that have no natural weather.
