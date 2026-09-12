@@ -4,8 +4,9 @@
 
 ### Tool targeting
 
-- The LowTalk tool now outlines whatever it is pointing at and reaches 128 blocks, the same `InteractionConfig`
-  the game's own editor tools use. Nothing else about the tool changed: the interact key still opens the editor.
+- The LowTalk tool now reaches 128 blocks, the same distance the game's own editor tools use. The Entity Tool's
+  NPC outline is part of the client's built-in tool and cannot be enabled on a custom item. Nothing else about the
+  tool changed: the interact key still opens the editor.
 
 ### Clickable blocks
 
