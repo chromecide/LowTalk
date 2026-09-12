@@ -19,7 +19,7 @@ $Sounds = "../../Sounds.ui";
   Sounds: $Sounds.@ButtonsLight
 );
 
-@Bar = Group #Bar {
+@Bar = Group {
   Anchor: (Height: 250, Left: 110, Right: 110);
   Background: #070a10(0.82);
   Padding: (Full: 14);
@@ -40,7 +40,7 @@ $Sounds = "../../Sounds.ui";
 
     Group #TitleRow {
       LayoutMode: Left;
-      Anchor: (Height: 24, Bottom: 6);
+      Anchor: (Height: 24, Bottom: 12);
 
       Label #NpcTitle {
         FlexWeight: 1;
@@ -53,11 +53,19 @@ $Sounds = "../../Sounds.ui";
       }
     }
 
-    Group #Transcript {
+    // The history sits in its own rounded frame (a 9-slice texture shipped with the pack) so it reads apart from
+    // the options below it.
+    Group #TranscriptBox {
       FlexWeight: 1;
-      LayoutMode: TopScrolling;
-      ScrollbarStyle: $C.@DefaultScrollbarStyle;
-      Padding: (Right: 8);
+      Background: (TexturePath: "TranscriptFrame.png", Border: 8);
+      Padding: (Horizontal: 12, Vertical: 8);
+
+      Group #Transcript {
+        FlexWeight: 1;
+        LayoutMode: TopScrolling;
+        ScrollbarStyle: $C.@DefaultScrollbarStyle;
+        Padding: (Right: 8);
+      }
     }
 
     Group #Options {

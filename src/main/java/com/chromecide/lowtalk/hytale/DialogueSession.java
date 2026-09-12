@@ -318,6 +318,7 @@ public class DialogueSession implements EffectHost {
     public void detach() {
         if (ended) return;
         ended = true;
+        restoreHud(); // the page that replaces ours (the shop) is not a dialogue; give the HUD back now
         releaseNpc();
         host.store().flush();
         host.sessionEnded(this);

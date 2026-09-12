@@ -10,6 +10,8 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
+import com.hypixel.hytale.server.core.ui.Anchor;
+import com.hypixel.hytale.server.core.ui.Value;
 import com.hypixel.hytale.server.core.ui.builder.EventData;
 import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
 import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
@@ -170,15 +172,9 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
             evt.addEventBinding(CustomUIEventBindingType.Activating, "#Opt" + i,
                     new EventData().append("Action", Action.CHOOSE).append("Slot", String.valueOf(i)), false);
         }
-        if (layout.isBar()) {
-            // Number keys pick options in the bar layouts. Bound on the bar itself and on the option buttons, since
-            // key events reach whichever element the client considers focused.
-            EventData hotkey = new EventData().append("Action", Action.HOTKEY);
-            evt.addEventBinding(CustomUIEventBindingType.KeyDown, "#Bar", hotkey, false);
-            for (int i = 0; i < OPTION_SLOTS; i++) {
-                evt.addEventBinding(CustomUIEventBindingType.KeyDown, "#Opt" + i, hotkey, false);
-            }
-        }
+        // Number keys for options: the client only delivers KeyDown for text fields ("Target element in CustomUI
+        // event binding has no compatible KeyDown event" for a Group or a TextButton), so the bar layouts number
+        // their options as a visual cue only. The HOTKEY action stays wired for the day a focusable element exists.
         render(cmd);
     }
 
@@ -188,6 +184,27 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
         UICommandBuilder cmd = new UICommandBuilder();
         render(cmd);
         sendUpdate(cmd, null, false);
+    }
+
+    /** Bar layout geometry: the bar grows with the step so the transcript always keeps room for a few lines. */
+    private static final int BAR_EDGE = 36;
+    private static final int BAR_SIDE = 110;
+    private static final int BAR_FIXED = 28 + 36;      // padding, title row and its gap
+    private static final int BAR_TRANSCRIPT = 104;     // about four lines of text
+    private static final int BAR_OPTION = 28;
+    private static final int BAR_INPUT = 40;
+    private static final int BAR_CONTINUE = 36;
+
+    private void sizeBar(UICommandBuilder cmd, int optionRows, boolean input, boolean cont) {
+        if (!layout.isBar()) return;
+        int height = BAR_FIXED + BAR_TRANSCRIPT + optionRows * BAR_OPTION + (input ? BAR_INPUT : 0) + (cont ? BAR_CONTINUE : 0);
+        Anchor a = new Anchor();
+        a.setHeight(Value.of(height));
+        a.setLeft(Value.of(BAR_SIDE));
+        a.setRight(Value.of(BAR_SIDE));
+        if (layout == DialogueLayout.TOP) a.setTop(Value.of(BAR_EDGE));
+        else a.setBottom(Value.of(BAR_EDGE));
+        cmd.setObject("#Bar.Anchor", a);
     }
 
     private void render(UICommandBuilder cmd) {
@@ -201,8 +218,12 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
         flushLines(cmd);
 
         switch (current) {
-            case Step.Say say -> cmd.set("#ContinueRow.Visible", !say.last());
+            case Step.Say say -> {
+                cmd.set("#ContinueRow.Visible", !say.last());
+                sizeBar(cmd, 0, false, !say.last());
+            }
             case Step.Choose choose -> {
+                sizeBar(cmd, Math.min(choose.options().size(), OPTION_SLOTS), false, false);
                 int slot = 0;
                 for (Step.Shown o : choose.options()) {
                     if (slot >= OPTION_SLOTS) break;
@@ -218,9 +239,10 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
             case Step.Ask ask -> {
                 cmd.set("#Input.Value", "");
                 cmd.set("#InputRow.Visible", true);
+                sizeBar(cmd, 0, true, false);
             }
-            case Step.Wait wait -> {} // only Leave while the pause runs
-            case Step.Finish f -> {}
+            case Step.Wait wait -> sizeBar(cmd, 0, false, false); // only Leave while the pause runs
+            case Step.Finish f -> sizeBar(cmd, 0, false, false);
         }
     }
 

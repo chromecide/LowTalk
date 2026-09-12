@@ -4,7 +4,7 @@ $Bar = "DialogueBar.ui";
 Group #Root {
   LayoutMode: Top;
 
-  $Bar.@Bar {
+  $Bar.@Bar #Bar {
     Anchor: (Top: 36, Height: 250, Left: 110, Right: 110);
   }
 }
