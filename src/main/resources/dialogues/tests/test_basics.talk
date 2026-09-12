@@ -5,23 +5,23 @@ speaker: Tester
 
 == start
 TEST 1: Basics. This line and the choices below should appear together, with no Continue button.
--> A. Two lines in a row (expect a Continue button between them)
+-> Two lines in a row (expect a Continue button between them)
     First line. You should see a Continue button now.
     Second line. After this you should be back at the station menu.
--> B. Hidden option (this option is only visible after you pick C)  <<if $saw_c>>
-    Correct: you saw this because you picked C earlier.
--> C. Reveal option B
-    Option B should now be visible in the menu.
+-> Hidden option (only visible after you pick 'Reveal the hidden option')  <<if $saw_c>>
+    Correct: you saw this because you revealed it earlier.
+-> Reveal the hidden option
+    The hidden option should now be visible in the menu.
     <<set $saw_c = true>>
--> D. Disabled option: should be greyed and do nothing when clicked <<show if false>>
+-> Disabled option: should be greyed and do nothing when clicked <<show if false>>
     You should never see this text.
--> E. Jump to another node
+-> Jump to another passage
     <<jump elsewhere>>
--> F. Leave (this should close the window after one line)
+-> Leave (this should close the window after one line)
     Farewell. A single Leave button should be showing, no Continue.
     <<end>>
 
 == elsewhere
-You jumped to a second node. Expected: this line, then one choice back.
+You jumped to a second passage. Expected: this line, then one choice back.
 -> Back to the menu
     <<jump start>>
