@@ -1,5 +1,5 @@
 {
-  "$NodeId": "Dialogue-27f1a218-6c9b-40b1-b111-94cb9e04ae14",
+  "$NodeId": "Dialogue-eb69e1bb-a31f-472f-a976-9acb590ebc2f",
   "Npc": [
     "Kweebec_Elder"
   ],
@@ -10,93 +10,93 @@
   "On": "",
   "Start": [
     {
-      "$NodeId": "Start-1ceb16d3-6d5f-4979-81cd-57ae1db605ae",
-      "Node": "start",
+      "$NodeId": "Start-864e2cdb-8e1a-4611-9f7e-cea545618960",
+      "Passage": "start",
       "When": ""
     }
   ],
-  "Nodes": [
+  "Passages": [
     {
-      "$NodeId": "Node-0c417ec8-1d8c-4fa4-8dd1-5576e3492a83",
+      "$NodeId": "Passage-f3cad49b-ef95-4119-8abc-105cc90564b4",
       "Name": "start",
       "Body": [
         {
-          "$NodeId": "Say-4ce426b6-fede-460b-81df-ed5f297e4ffc",
+          "$NodeId": "Say-8bb4545d-1f4c-4b31-b37f-e72ebe84fc4a",
           "Type": "Say",
           "Speaker": "",
           "Text": "Sit a while, {player}. My roots are old and my memory is long. What would you hear of?"
         },
         {
-          "$NodeId": "Choice-fcd34577-355d-47c1-9752-59943632559a",
+          "$NodeId": "Choice-89920bd4-a714-4e12-88b8-6ce4b1015533",
           "Type": "Choice",
           "Options": [
             {
-              "$NodeId": "Option-c8413b31-539f-4f1e-ae51-b1bab4438ad5",
+              "$NodeId": "Option-8015adc7-a47e-4c8e-bb35-312118fbdfc8",
               "Text": "Tell me about the village.",
               "If": "",
               "ShowIf": "",
               "Once": false,
               "Body": [
                 {
-                  "$NodeId": "Jump-515b629f-0e96-4c77-8c3b-a7fba27afe29",
+                  "$NodeId": "Jump-788d59d5-d6fd-4ce4-aadf-46af37c3d841",
                   "Type": "Jump",
-                  "Node": "village"
+                  "Passage": "village"
                 }
               ]
             },
             {
-              "$NodeId": "Option-3ab6c29d-54ad-4643-9e58-2a4b3db7c6b0",
+              "$NodeId": "Option-a783b686-9a54-4f32-bfe0-dcfdee8290ff",
               "Text": "What are the ruins to the north?",
               "If": "",
               "ShowIf": "",
               "Once": false,
               "Body": [
                 {
-                  "$NodeId": "Jump-4b9a92ec-ac68-4d31-855a-27e8e2891c66",
+                  "$NodeId": "Jump-c2d8c5bc-61ed-4328-bc53-215f47379c2e",
                   "Type": "Jump",
-                  "Node": "ruins"
+                  "Passage": "ruins"
                 }
               ]
             },
             {
-              "$NodeId": "Option-3421f4bc-df00-42fc-88eb-34404cee7c05",
+              "$NodeId": "Option-211a005c-9fd2-4602-bcae-f88449bafc45",
               "Text": "Who fought the old war?",
               "If": "",
               "ShowIf": "",
               "Once": false,
               "Body": [
                 {
-                  "$NodeId": "Jump-6148787d-546b-456e-be28-79d2c85a2dc7",
+                  "$NodeId": "Jump-036a8fab-271f-40d9-a442-8630d9c549d7",
                   "Type": "Jump",
-                  "Node": "war"
+                  "Passage": "war"
                 }
               ]
             },
             {
-              "$NodeId": "Option-0cf173aa-fef8-4d08-bdb7-1ea26e9607ab",
+              "$NodeId": "Option-132c9dc2-6400-4bb3-bc39-1afa1b0c570a",
               "Text": "What should I do now?",
               "If": "",
               "ShowIf": "visited(\"village\") and visited(\"ruins\") and visited(\"war\")",
               "Once": false,
               "Body": [
                 {
-                  "$NodeId": "Jump-a4cdb8ba-9b10-400a-b638-f62289850547",
+                  "$NodeId": "Jump-827bb7e7-3df4-4ce9-8a76-7b918053b739",
                   "Type": "Jump",
-                  "Node": "counsel"
+                  "Passage": "counsel"
                 }
               ]
             },
             {
-              "$NodeId": "Option-c48360f5-1df7-4d6a-9990-d5886159ce6c",
+              "$NodeId": "Option-dbd9752a-5e97-47d4-b19c-b9906e9c39ff",
               "Text": "That is enough for today.",
               "If": "",
               "ShowIf": "",
               "Once": false,
               "Body": [
                 {
-                  "$NodeId": "Jump-15477936-bf19-4b2f-a861-04ee1c4aecab",
+                  "$NodeId": "Jump-3e728517-25da-44bf-8ff3-ee280de9919e",
                   "Type": "Jump",
-                  "Node": "farewell"
+                  "Passage": "farewell"
                 }
               ]
             }
@@ -105,110 +105,110 @@
       ]
     },
     {
-      "$NodeId": "Node-da98130c-dfcd-4952-b2ef-60160d9fdbab",
+      "$NodeId": "Passage-15cb291f-b6d7-4b9b-8203-3edf4f37aa22",
       "Name": "village",
       "Body": [
         {
-          "$NodeId": "Say-d550e0c5-7800-48cb-bcac-134bbc59ae53",
+          "$NodeId": "Say-61ed16f2-1e33-4a86-9cc4-8a40c7d95b32",
           "Type": "Say",
           "Speaker": "",
           "Text": "The Kweebec raised these terraces when the river still ran high. Every stone was carried by hand."
         },
         {
-          "$NodeId": "Say-fef76709-61cb-49fc-8819-92c41ce4d127",
+          "$NodeId": "Say-80eea73c-dc6d-4349-8990-07f6e7f72a1c",
           "Type": "Say",
           "Speaker": "",
           "Text": "We farm what the slopes allow and trade the rest. The merchant by the well will tell you the prices."
         },
         {
-          "$NodeId": "Jump-e60cbb87-9cb0-47cb-812e-5b4641ecb4db",
+          "$NodeId": "Jump-38a54c91-6ecd-4e73-b9ed-447431599eab",
           "Type": "Jump",
-          "Node": "start"
+          "Passage": "start"
         }
       ]
     },
     {
-      "$NodeId": "Node-5eb0855d-c498-48b7-9766-ebf570d6d34f",
+      "$NodeId": "Passage-e6405bd3-4c39-4afa-a7d7-265d67c6b780",
       "Name": "ruins",
       "Body": [
         {
-          "$NodeId": "Say-402cedc2-2bbd-4015-a239-aeaaef0fd39a",
+          "$NodeId": "Say-2ceb79fc-5a24-4bab-90ae-88828ca91d3a",
           "Type": "Say",
           "Speaker": "",
           "Text": "Older than us. Older than the Trork, whatever they claim."
         },
         {
-          "$NodeId": "Say-99a0836c-e7ff-4fea-b55f-8e8a840aa2e4",
+          "$NodeId": "Say-5cf77f91-1d94-4986-9d3e-65f8aa3de2dc",
           "Type": "Say",
           "Speaker": "",
           "Text": "The walls hum at night. Nobody who went looking for the reason came back to explain it."
         },
         {
-          "$NodeId": "Jump-0949b4a8-37b0-4636-afc6-38280672906d",
+          "$NodeId": "Jump-858f8116-ba0f-44b1-8382-267dda47adb0",
           "Type": "Jump",
-          "Node": "start"
+          "Passage": "start"
         }
       ]
     },
     {
-      "$NodeId": "Node-0c326fd4-cbc9-4bd2-b597-0b3b96b5b33d",
+      "$NodeId": "Passage-4f03c260-b2ee-4d1d-a248-b2e39154f8fc",
       "Name": "war",
       "Body": [
         {
-          "$NodeId": "Say-9e865b5a-b3ce-4d45-8a2b-a02efeec349c",
+          "$NodeId": "Say-4ec1396c-8081-4a8c-89dd-ab57bdfefcc3",
           "Type": "Say",
           "Speaker": "",
           "Text": "The Trork came down the pass in numbers we had never seen. We held the bridge for nine days.",
           "Button": "And then?"
         },
         {
-          "$NodeId": "Say-dac78d29-03ca-4d9e-97df-0d3e1b0fa813",
+          "$NodeId": "Say-7b1a08c7-59b5-4ef8-aa6c-c3ed8424431a",
           "Type": "Say",
           "Speaker": "",
           "Text": "On the tenth the river rose and took the bridge, and them with it. Some say the grove asked it to."
         },
         {
-          "$NodeId": "Jump-047a8e09-4816-4d01-b0fa-4f3f51f0b3ed",
+          "$NodeId": "Jump-e15866b5-4e87-4e31-9ad6-3016b2a9d2cd",
           "Type": "Jump",
-          "Node": "start"
+          "Passage": "start"
         }
       ]
     },
     {
-      "$NodeId": "Node-064644a3-daa1-4bfb-af80-46a09240362b",
+      "$NodeId": "Passage-21316a3b-a9bd-4122-a1cd-b722c387828b",
       "Name": "counsel",
       "Body": [
         {
-          "$NodeId": "Say-6d8e2bcc-c6b6-4354-b4b3-4e737e546b5a",
+          "$NodeId": "Say-f061ce50-4877-4e2b-b877-9269fdfbc91e",
           "Type": "Say",
           "Speaker": "",
           "Text": "You have heard the three tales, so you know what matters here: the river, the ruins, and the pass."
         },
         {
-          "$NodeId": "Say-d6d2de51-d7b5-4a4f-a3e5-3599371c1a7e",
+          "$NodeId": "Say-0701ead8-bd02-4bc5-b113-08c4c9dd3c4a",
           "Type": "Say",
           "Speaker": "",
           "Text": "Keep to the terraces by day. If the walls hum, walk away. And if the Trork come again, find me first."
         },
         {
-          "$NodeId": "Jump-5f0d167a-cb36-4b58-b293-0e9ef7c61559",
+          "$NodeId": "Jump-3b5d2aba-916f-460a-befc-9e6f3773845b",
           "Type": "Jump",
-          "Node": "start"
+          "Passage": "start"
         }
       ]
     },
     {
-      "$NodeId": "Node-28aaf236-b535-435b-b3f1-7aec761ff3fb",
+      "$NodeId": "Passage-02ab19ee-daa0-4d87-8514-db8f9488db50",
       "Name": "farewell",
       "Body": [
         {
-          "$NodeId": "Say-b43853db-d66b-445c-b909-4bdbe4cd3d82",
+          "$NodeId": "Say-41bb0e41-f8e4-47bf-87bd-86b0afd31dcb",
           "Type": "Say",
           "Speaker": "",
           "Text": "Go well, {player}. The roots remember those who listen."
         },
         {
-          "$NodeId": "End-4b3c0693-76c0-4808-878a-cc02700dd6d8",
+          "$NodeId": "End-05e89f89-a3d5-49e8-ba55-d03d8cbf6784",
           "Type": "End"
         }
       ]
@@ -216,205 +216,205 @@
   ],
   "$NodeEditorMetadata": {
     "$Nodes": {
-      "Start-1ceb16d3-6d5f-4979-81cd-57ae1db605ae": {
+      "Start-864e2cdb-8e1a-4611-9f7e-cea545618960": {
         "$Position": {
           "$x": 520,
           "$y": 0
         }
       },
-      "Say-4ce426b6-fede-460b-81df-ed5f297e4ffc": {
+      "Say-8bb4545d-1f4c-4b31-b37f-e72ebe84fc4a": {
         "$Position": {
           "$x": 1040,
           "$y": 170
         }
       },
-      "Jump-515b629f-0e96-4c77-8c3b-a7fba27afe29": {
+      "Jump-788d59d5-d6fd-4ce4-aadf-46af37c3d841": {
         "$Position": {
           "$x": 2080,
           "$y": 340
         }
       },
-      "Option-c8413b31-539f-4f1e-ae51-b1bab4438ad5": {
+      "Option-8015adc7-a47e-4c8e-bb35-312118fbdfc8": {
         "$Position": {
           "$x": 1560,
           "$y": 340
         }
       },
-      "Jump-4b9a92ec-ac68-4d31-855a-27e8e2891c66": {
+      "Jump-c2d8c5bc-61ed-4328-bc53-215f47379c2e": {
         "$Position": {
           "$x": 2080,
           "$y": 510
         }
       },
-      "Option-3ab6c29d-54ad-4643-9e58-2a4b3db7c6b0": {
+      "Option-a783b686-9a54-4f32-bfe0-dcfdee8290ff": {
         "$Position": {
           "$x": 1560,
           "$y": 510
         }
       },
-      "Jump-6148787d-546b-456e-be28-79d2c85a2dc7": {
+      "Jump-036a8fab-271f-40d9-a442-8630d9c549d7": {
         "$Position": {
           "$x": 2080,
           "$y": 680
         }
       },
-      "Option-3421f4bc-df00-42fc-88eb-34404cee7c05": {
+      "Option-211a005c-9fd2-4602-bcae-f88449bafc45": {
         "$Position": {
           "$x": 1560,
           "$y": 680
         }
       },
-      "Jump-a4cdb8ba-9b10-400a-b638-f62289850547": {
+      "Jump-827bb7e7-3df4-4ce9-8a76-7b918053b739": {
         "$Position": {
           "$x": 2080,
           "$y": 850
         }
       },
-      "Option-0cf173aa-fef8-4d08-bdb7-1ea26e9607ab": {
+      "Option-132c9dc2-6400-4bb3-bc39-1afa1b0c570a": {
         "$Position": {
           "$x": 1560,
           "$y": 850
         }
       },
-      "Jump-15477936-bf19-4b2f-a861-04ee1c4aecab": {
+      "Jump-3e728517-25da-44bf-8ff3-ee280de9919e": {
         "$Position": {
           "$x": 2080,
           "$y": 1020
         }
       },
-      "Option-c48360f5-1df7-4d6a-9990-d5886159ce6c": {
+      "Option-dbd9752a-5e97-47d4-b19c-b9906e9c39ff": {
         "$Position": {
           "$x": 1560,
           "$y": 1020
         }
       },
-      "Choice-fcd34577-355d-47c1-9752-59943632559a": {
+      "Choice-89920bd4-a714-4e12-88b8-6ce4b1015533": {
         "$Position": {
           "$x": 1040,
           "$y": 680
         }
       },
-      "Node-0c417ec8-1d8c-4fa4-8dd1-5576e3492a83": {
+      "Passage-f3cad49b-ef95-4119-8abc-105cc90564b4": {
         "$Position": {
           "$x": 520,
           "$y": 425
         }
       },
-      "Say-d550e0c5-7800-48cb-bcac-134bbc59ae53": {
+      "Say-61ed16f2-1e33-4a86-9cc4-8a40c7d95b32": {
         "$Position": {
           "$x": 1040,
           "$y": 1190
         }
       },
-      "Say-fef76709-61cb-49fc-8819-92c41ce4d127": {
+      "Say-80eea73c-dc6d-4349-8990-07f6e7f72a1c": {
         "$Position": {
           "$x": 1040,
           "$y": 1360
         }
       },
-      "Jump-e60cbb87-9cb0-47cb-812e-5b4641ecb4db": {
+      "Jump-38a54c91-6ecd-4e73-b9ed-447431599eab": {
         "$Position": {
           "$x": 1040,
           "$y": 1530
         }
       },
-      "Node-da98130c-dfcd-4952-b2ef-60160d9fdbab": {
+      "Passage-15cb291f-b6d7-4b9b-8203-3edf4f37aa22": {
         "$Position": {
           "$x": 520,
           "$y": 1360
         }
       },
-      "Say-402cedc2-2bbd-4015-a239-aeaaef0fd39a": {
+      "Say-2ceb79fc-5a24-4bab-90ae-88828ca91d3a": {
         "$Position": {
           "$x": 1040,
           "$y": 1700
         }
       },
-      "Say-99a0836c-e7ff-4fea-b55f-8e8a840aa2e4": {
+      "Say-5cf77f91-1d94-4986-9d3e-65f8aa3de2dc": {
         "$Position": {
           "$x": 1040,
           "$y": 1870
         }
       },
-      "Jump-0949b4a8-37b0-4636-afc6-38280672906d": {
+      "Jump-858f8116-ba0f-44b1-8382-267dda47adb0": {
         "$Position": {
           "$x": 1040,
           "$y": 2040
         }
       },
-      "Node-5eb0855d-c498-48b7-9766-ebf570d6d34f": {
+      "Passage-e6405bd3-4c39-4afa-a7d7-265d67c6b780": {
         "$Position": {
           "$x": 520,
           "$y": 1870
         }
       },
-      "Say-9e865b5a-b3ce-4d45-8a2b-a02efeec349c": {
+      "Say-4ec1396c-8081-4a8c-89dd-ab57bdfefcc3": {
         "$Position": {
           "$x": 1040,
           "$y": 2210
         }
       },
-      "Say-dac78d29-03ca-4d9e-97df-0d3e1b0fa813": {
+      "Say-7b1a08c7-59b5-4ef8-aa6c-c3ed8424431a": {
         "$Position": {
           "$x": 1040,
           "$y": 2380
         }
       },
-      "Jump-047a8e09-4816-4d01-b0fa-4f3f51f0b3ed": {
+      "Jump-e15866b5-4e87-4e31-9ad6-3016b2a9d2cd": {
         "$Position": {
           "$x": 1040,
           "$y": 2550
         }
       },
-      "Node-0c326fd4-cbc9-4bd2-b597-0b3b96b5b33d": {
+      "Passage-4f03c260-b2ee-4d1d-a248-b2e39154f8fc": {
         "$Position": {
           "$x": 520,
           "$y": 2380
         }
       },
-      "Say-6d8e2bcc-c6b6-4354-b4b3-4e737e546b5a": {
+      "Say-f061ce50-4877-4e2b-b877-9269fdfbc91e": {
         "$Position": {
           "$x": 1040,
           "$y": 2720
         }
       },
-      "Say-d6d2de51-d7b5-4a4f-a3e5-3599371c1a7e": {
+      "Say-0701ead8-bd02-4bc5-b113-08c4c9dd3c4a": {
         "$Position": {
           "$x": 1040,
           "$y": 2890
         }
       },
-      "Jump-5f0d167a-cb36-4b58-b293-0e9ef7c61559": {
+      "Jump-3b5d2aba-916f-460a-befc-9e6f3773845b": {
         "$Position": {
           "$x": 1040,
           "$y": 3060
         }
       },
-      "Node-064644a3-daa1-4bfb-af80-46a09240362b": {
+      "Passage-21316a3b-a9bd-4122-a1cd-b722c387828b": {
         "$Position": {
           "$x": 520,
           "$y": 2890
         }
       },
-      "Say-b43853db-d66b-445c-b909-4bdbe4cd3d82": {
+      "Say-41bb0e41-f8e4-47bf-87bd-86b0afd31dcb": {
         "$Position": {
           "$x": 1040,
           "$y": 3230
         }
       },
-      "End-4b3c0693-76c0-4808-878a-cc02700dd6d8": {
+      "End-05e89f89-a3d5-49e8-ba55-d03d8cbf6784": {
         "$Position": {
           "$x": 1040,
           "$y": 3400
         }
       },
-      "Node-28aaf236-b535-435b-b3f1-7aec761ff3fb": {
+      "Passage-02ab19ee-daa0-4d87-8514-db8f9488db50": {
         "$Position": {
           "$x": 520,
           "$y": 3315
         }
       },
-      "Dialogue-27f1a218-6c9b-40b1-b111-94cb9e04ae14": {
+      "Dialogue-eb69e1bb-a31f-472f-a976-9acb590ebc2f": {
         "$Position": {
           "$x": 0,
           "$y": 1749

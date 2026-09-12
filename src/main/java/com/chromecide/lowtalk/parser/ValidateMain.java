@@ -54,7 +54,7 @@ public final class ValidateMain {
                     if (p.error()) errors++;
                     else warnings++;
                 }
-                System.out.println((problems.isEmpty() ? "ok      " : "checked ") + f + "  (" + d.nodes().size() + " nodes, " + d.bindings().size() + " bindings)");
+                System.out.println((problems.isEmpty() ? "ok      " : "checked ") + f + "  (" + d.nodes().size() + " passages, " + d.bindings().size() + " bindings)");
             } catch (ParseException e) {
                 System.out.println("error " + e.getMessage());
                 errors++;

@@ -72,7 +72,7 @@ public final class Reference {
         fn("npc", "", "This NPC's name.");
         fn("has", "\"Item_Id\", count", "True if the player holds at least count of the item (count defaults to 1).");
         fn("count", "\"Item_Id\"", "How many of the item the player holds.");
-        fn("visited", "\"node\"", "True if the player has seen that node of this dialogue.");
+        fn("visited", "\"passage\"", "True if the player has seen that passage of this dialogue.");
         fn("objective", "\"Objective_Id\"", "\"none\", \"active\" or \"complete\".");
         fn("objective_line", "\"Line_Id\"", "True if the player can start that objective line now.");
         fn("attitude", "", "This NPC's attitude toward the player, as a string.");
@@ -93,18 +93,18 @@ public final class Reference {
 
         // ---- keywords (structure, not commands)
         kw("npc:", "npc: Role_Id  or  npc: @tag  or  npc: none", "Header: which NPCs use this dialogue. Repeatable. none = opened only by roles, interactions, triggers or commands.");
-        kw("start:", "start: node [when expr]", "Header: where to begin; guarded starts are tried first.");
+        kw("start:", "start: passage [when expr]", "Header: where to begin; guarded starts are tried first.");
         kw("speaker:", "speaker: Name", "Header: default speaker for bare lines.");
         kw("title:", "title: Text", "Header: window title.");
-        kw("include:", "include: _shared", "Header: pull in nodes from a neighbouring file.");
+        kw("include:", "include: _shared", "Header: pull in passages from a neighbouring file.");
         kw("on:", "on: join", "Header: open by itself when a player joins.");
-        kw("==", "== node_name", "Start a node.");
+        kw("==", "== node_name", "Start a passage.");
         kw("->", "-> Option text <<if expr>> <<once>>", "An option; indented lines below it run when chosen.");
         kw("if", "<<if expr>> ... <<elseif expr>> ... <<else>> ... <<endif>>", "Conditional block.");
         kw("once", "<<once>> ... <<endonce>>", "Runs once per player; on an option, hides it after it is picked.");
         kw("random", "<<random>> ... <<or>> ... <<endrandom>>", "Runs one alternative at random.");
         kw("set", "<<set $var = expr>>", "Store a value. Scopes: $x (this NPC), $player.x, $npc.x, $world.x, $tmp.x.");
-        kw("jump", "<<jump node>>", "Continue at another node.");
+        kw("jump", "<<jump passage>>", "Continue at another passage.");
         kw("end", "<<end>>", "Close the window.");
         kw("input", "<<input $var \"Prompt\">>", "Ask the player for text.");
         kw("wait", "<<wait seconds>>", "Pause before the next line, no Continue button.");

@@ -101,7 +101,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
             for (String id : reg.ids()) {
                 Dialogue d = reg.byId(id);
                 context.sendMessage(info(plugin, id + "  ->  " + (d.bindings().isEmpty() ? "(command only)" : String.join(", ", d.bindings()))
-                        + "  [" + d.nodes().size() + " nodes]"));
+                        + "  [" + d.nodes().size() + " passages]"));
             }
         }
     }

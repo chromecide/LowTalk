@@ -90,7 +90,7 @@ public final class Validator {
 
         for (Dialogue.Start s : d.starts()) {
             if (!d.nodes().containsKey(s.node())) {
-                out.add(new Problem(s.pos(), true, "start node '" + s.node() + "' does not exist"));
+                out.add(new Problem(s.pos(), true, "start passage '" + s.node() + "' does not exist"));
             }
             if (s.condition() != null) checkExpr(s.condition(), s.pos(), out);
         }
@@ -129,7 +129,7 @@ public final class Validator {
         for (Node n : d.nodeList()) collectJumps(n.body(), reachable);
         for (Node n : d.nodeList()) {
             if (!reachable.contains(n.name())) {
-                out.add(new Problem(n.pos(), false, "node '" + n.name() + "' is never reached by a start: or a jump"));
+                out.add(new Problem(n.pos(), false, "passage '" + n.name() + "' is never reached by a start: or a jump"));
             }
         }
     }
@@ -269,7 +269,7 @@ public final class Validator {
                 }
                 case Statement.Jump j -> {
                     if (!d.nodes().containsKey(j.node())) {
-                        out.add(new Problem(j.pos(), true, "jump to unknown node '" + j.node() + "'" + Suggest.hint(j.node(), d.nodes().keySet())));
+                        out.add(new Problem(j.pos(), true, "jump to unknown passage '" + j.node() + "'" + Suggest.hint(j.node(), d.nodes().keySet())));
                     }
                     if (!last) {
                         out.add(new Problem(j.pos(), false, "statements after <<jump>> are never reached"));

@@ -5,7 +5,7 @@ Editor's form or in the Node Editor without knowing any of this syntax; see [cre
 concept here has a field or a row in those editors, and the expressions and text are typed the same way.
 
 A dialogue is a plain text file with the extension `.talk`, encoded as UTF-8.
-It is made of a short header and one or more nodes. Indentation is two spaces
+It is made of a short header and one or more passages. Indentation is two spaces
 and is significant only inside options and conditionals.
 
 The format is deliberately close to Yarn Spinner, which many writers already
@@ -13,18 +13,18 @@ know, but it is not Yarn and does not try to be.
 
 ## Header
 
-Lines before the first node are directives, `key: value`, one per line.
+Lines before the first passage are directives, `key: value`, one per line.
 
 | Directive | Meaning |
 |-----------|---------|
 | `npc:` | Which NPCs use this dialogue. A role id (`Kweebec_Merchant`) binds every NPC of that role. A tag (`@elder`) binds NPCs tagged in-game with `/lowtalk tag elder`. Repeatable. `npc: none` says the dialogue is opened by a role action, interaction, trigger or command on purpose. |
-| `start:` | The node to begin at. Defaults to the first node. May be repeated with a guard: `start: returning when $met` is tried before an unguarded `start:`. |
+| `start:` | The passage to begin at. Defaults to the first passage. May be repeated with a guard: `start: returning when $met` is tried before an unguarded `start:`. |
 | `speaker:` | Default speaker name for bare lines. Defaults to the NPC's in-game name. |
 | `title:` | Shown in the window header. Defaults to the speaker. |
 | `scope:` | Variable namespace shared with other files. Defaults to the file name. |
 | `portrait:` | An image shown beside the text, as a path inside `Common/UI/Custom/` of any loaded asset pack, e.g. `Portraits/elder.png` from your own pack or `Pages/RespawnPageSkull.png` from the game. Name the base file (`RespawnPageSkull.png`, not `...@2x.png`); the client picks the high-resolution variant itself. |
 | `layout:` | Where this conversation appears: `bottom` (a bar along the bottom of the screen, the NPC stays visible), `top` (the same bar at the top) or `window` (a centred window over a dimmed screen). Leave it out to follow the pack's or the server's default; see [Layout](#layout). |
-| `include:` | Pull the nodes of another file into this one, e.g. `include: _shared`. See [Includes](#includes). Repeatable. |
+| `include:` | Pull the passages of another file into this one, e.g. `include: _shared`. See [Includes](#includes). Repeatable. |
 | `on:` | `on: join` opens this dialogue by itself when a player finishes loading into a world. It runs without an NPC, so `speaker:` names the voice. Gate repeats with a guarded `start:`, a once-block, or an early `<<end>>` (a dialogue that ends before saying anything never opens a window). |
 
 Comments start with `#` and run to the end of the line.
@@ -52,14 +52,14 @@ game's own: `Hotbar`, `Reticle`, `Chat`, `Compass`, `Health`, `Stamina`, `Object
 same chain without the dialogue level. A server owner who wants one look across every mod sets `ForceLayout` in
 `lowtalk.json`, which wins over all four.
 
-## Nodes
+## Passages
 
 ```
 == node_name
 ...body...
 ```
 
-A node runs from `==` to the next `==` or the end of the file. Names are
+A passage runs from `==` to the next `==` or the end of the file. Names are
 letters, digits, and underscores. The body is a sequence of statements.
 
 ## Statements
@@ -120,7 +120,7 @@ once-blocks); the modifiers can be combined in any order:
 ```
 
 A choice can show at most eight options at once. If an option's body does not
-`jump` or `end`, the node's options are shown again, which makes hubs easy.
+`jump` or `end`, the passage's options are shown again, which makes hubs easy.
 
 **Conditional.**
 
@@ -161,7 +161,7 @@ time. Any statements are allowed inside, not just lines.
 | Command | Effect |
 |---------|--------|
 | `<<set $var = expr>>` | Store a value. |
-| `<<jump node>>` | Continue at another node. |
+| `<<jump passage>>` | Continue at another passage. |
 | `<<end>>` | Close the window. |
 | `<<give Item_Id [count]>>` | Put items in the player's inventory. |
 | `<<take Item_Id [count]>>` | Remove items. Fails the option if the player lacks them; guard with `has()`. |
@@ -207,7 +207,7 @@ Plugins can register additional commands.
 Two NPCs of the same role each keep their own `$name` variables about a
 player, so meeting one merchant does not make every merchant act as if it
 knows you. Use `$player.name` for anything that should carry over. Visited
-nodes and once-blocks are also tracked per player and NPC.
+passages and once-blocks are also tracked per player and NPC.
 
 All persistent scopes are additionally namespaced by the dialogue's `scope:`
 (default: the file name), so two files only share variables if they declare
@@ -225,13 +225,13 @@ Used in `if`, `elseif`, option guards, `set`, and `start when`.
 - Functions:
   - `has("Item_Id", count = 1)` player holds at least that many
   - `count("Item_Id")` how many the player holds
-  - `visited("node")` player has seen a node in this dialogue
+  - `visited("passage")` player has seen a passage in this dialogue
   - `objective("Objective_Id")` returns `"none"`, `"active"`, or `"complete"`
   - `objective_line("Line_Id")` true if the player can start that objective line now
   - `weather()` the weather id this player currently sees
   - `t("key")` a string from the server's language files in the player's language, so a dialogue can reuse the game's own translations or ship its own in `Server/Languages/<lang>/*.lang`
   - `attitude()` this NPC's attitude toward the player as a string
-  - `perm("node.name")` player has a permission
+  - `perm("passage.name")` player has a permission
   - `hour()` in-game hour, 0 to 23
   - `random(n)` integer from 0 to n-1
   - `chance(p)` true with probability p, 0 to 1
@@ -247,9 +247,9 @@ Plugins can register additional functions.
 
 ## Includes
 
-`include: name` merges the nodes of `name.talk`, found next to the including
+`include: name` merges the passages of `name.talk`, found next to the including
 file, into this dialogue, so several NPCs can share a farewell, a rumour mill,
-or a shop pitch. Nodes defined in the including file win over included ones.
+or a shop pitch. Passages defined in the including file win over included ones.
 Included files may include others; loops are reported as errors.
 
 Name shared files with a leading underscore, such as `_shared.talk`. Files
@@ -283,13 +283,13 @@ and undo. Expressions and text are the same strings as in `.talk`.
 {
   "Npc": ["Kweebec_Merchant"],
   "Speaker": "Merchant",
-  "Nodes": [
+  "Passages": [
     { "Name": "start",
       "Body": [
         { "Type": "Say", "Text": "[Well met|Hello], {player}." },
         { "Type": "Choice", "Options": [
           { "Text": "Trade", "If": "has(\"Food_Bread\")", "Once": true,
-            "Body": [ { "Type": "Take", "Item": "Food_Bread" }, { "Type": "Jump", "Node": "start" } ] },
+            "Body": [ { "Type": "Take", "Item": "Food_Bread" }, { "Type": "Jump", "Passage": "start" } ] },
           { "Text": "Goodbye", "Body": [ { "Type": "End" } ] }
         ] }
       ] }
@@ -318,11 +318,11 @@ format warning (harmless, but noisy).
 ## Quests that are completed by talking
 
 LowTalk adds a task type to the game's objectives. A quest can require the
-player to reach a node of a dialogue, with no scripting inside the dialogue:
+player to reach a passage of a dialogue, with no scripting inside the dialogue:
 
 ```json
 { "TaskSets": [ { "Tasks": [
-    { "Type": "LowTalkNode", "Dialogue": "miller", "Node": "thanks", "Count": 1 } ] } ],
+    { "Type": "LowTalkNode", "Dialogue": "miller", "Passage": "thanks", "Count": 1 } ] } ],
   "Completions": [ { "Type": "GiveItems", "DropList": "Some_Drop_List" } ] }
 ```
 
@@ -330,7 +330,7 @@ Put it in `Server/Objective/Objectives/Objective_Name.json` of a pack, name
 the tracker text in a language file as `objectives.Objective_Name.title`,
 `.desc` and `.taskSet.0.task.0`, and start it with `<<objective
 Objective_Name>>` or any other way the game starts objectives. When a
-conversation reaches the node, the task advances and the tracker updates.
+conversation reaches the passage, the task advances and the tracker updates.
 Objectives started from a dialogue use the NPC as their marker, so tasks that
 need a place to point at use the NPC's position.
 

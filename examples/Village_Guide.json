@@ -3,16 +3,16 @@
   "Speaker": "Guide",
   "Title": "The Valley Guide",
   "Start": [
-    { "Node": "returning", "When": "$met" },
-    { "Node": "start" }
+    { "Passage": "returning", "When": "$met" },
+    { "Passage": "start" }
   ],
-  "Nodes": [
+  "Passages": [
     {
       "Name": "start",
       "Body": [
         { "Type": "Say", "Text": "[Well met|Good day], {player}. New to the valley?" },
         { "Type": "Set", "Var": "$met", "Value": "true" },
-        { "Type": "Jump", "Node": "hub" }
+        { "Type": "Jump", "Passage": "hub" }
       ]
     },
     {
@@ -26,7 +26,7 @@
             { "Body": [ { "Type": "Say", "Text": "Still looking for work? Ask me." } ] }
           ]
         },
-        { "Type": "Jump", "Node": "hub" }
+        { "Type": "Jump", "Passage": "hub" }
       ]
     },
     {

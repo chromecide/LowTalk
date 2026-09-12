@@ -1,7 +1,7 @@
 {
   "Id": "Jump",
   "Title": "Jump",
-  "Description": "Continue at another node.",
+  "Description": "Continue at another passage.",
   "Color": "Purple",
   "Inputs": [
     {
@@ -9,16 +9,16 @@
       "Type": "Statement",
       "Color": "Blue",
       "Multiple": false,
-      "Description": "Connect to the Body pin of a Node, Option, Branch or Alternative. Statements run in the order of their links."
+      "Description": "Connect to the Body pin of a Passage, Option, Branch or Alternative. Statements run in the order of their links."
     }
   ],
   "Content": [
     {
-      "Id": "Node",
+      "Id": "Passage",
       "Type": "SmallString",
       "Options": {
-        "Label": "Node",
-        "Description": "Name of the node.",
+        "Label": "Passage",
+        "Description": "Name of the passage.",
         "Default": "",
         "Width": 200
       }
@@ -27,6 +27,6 @@
   "Outputs": [],
   "Schema": {
     "Type": "Jump",
-    "Node": "Node"
+    "Passage": "Passage"
   }
 }

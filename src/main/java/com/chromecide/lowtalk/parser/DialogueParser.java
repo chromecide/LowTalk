@@ -143,7 +143,7 @@ public final class DialogueParser {
             if (NODE_HEADER.matcher(l.text()).matches()) break;
             Matcher m = DIRECTIVE.matcher(l.text());
             if (!m.matches()) {
-                throw new ParseException(pos(l), "expected a 'key: value' directive or a '== node' header, got: " + l.text());
+                throw new ParseException(pos(l), "expected a 'key: value' directive or a '== passage' header, got: " + l.text());
             }
             String key = m.group(1);
             String value = m.group(2).trim();
@@ -178,14 +178,14 @@ public final class DialogueParser {
             }
             String name = m.group(1);
             if (nodes.containsKey(name)) {
-                throw new ParseException(pos(header), "node '" + name + "' is defined twice (first at " + nodes.get(name).pos() + ")");
+                throw new ParseException(pos(header), "passage '" + name + "' is defined twice (first at " + nodes.get(name).pos() + ")");
             }
             idx++;
             List<Statement> body = parseBlock(0, null);
             nodes.put(name, new Node(pos(header), name, body));
         }
         if (nodes.isEmpty()) {
-            throw new ParseException(new Pos(file, 1), "dialogue has no nodes");
+            throw new ParseException(new Pos(file, 1), "dialogue has no passages");
         }
 
         String id = file;
@@ -203,12 +203,12 @@ public final class DialogueParser {
         int when = indexOfWord(value, "when");
         if (when < 0) {
             String node = value.trim();
-            if (node.isEmpty()) throw new ParseException(pos, "start: needs a node name");
+            if (node.isEmpty()) throw new ParseException(pos, "start: needs a passage name");
             return new Dialogue.Start(pos, node, null);
         }
         String node = value.substring(0, when).trim();
         String cond = value.substring(when + 4).trim();
-        if (node.isEmpty() || cond.isEmpty()) throw new ParseException(pos, "start: expects 'node when condition'");
+        if (node.isEmpty() || cond.isEmpty()) throw new ParseException(pos, "start: expects 'passage when condition'");
         return new Dialogue.Start(pos, node, ExprParser.parse(cond, pos));
     }
 

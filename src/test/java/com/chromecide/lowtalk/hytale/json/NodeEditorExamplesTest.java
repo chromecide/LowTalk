@@ -31,7 +31,7 @@ class NodeEditorExamplesTest {
 
     private static List<String> nodeNames(JsonObject doc) {
         List<String> out = new ArrayList<>();
-        for (JsonElement n : doc.getAsJsonArray("Nodes")) out.add(n.getAsJsonObject().get("Name").getAsString());
+        for (JsonElement n : doc.getAsJsonArray("Passages")) out.add(n.getAsJsonObject().get("Name").getAsString());
         return out;
     }
 
@@ -44,7 +44,7 @@ class NodeEditorExamplesTest {
                 assertNotNull(meta, f + " has no $NodeEditorMetadata");
                 assertEquals("LowTalk - Dialogue", meta.get("$WorkspaceID").getAsString(), f.toString());
                 assertTrue(meta.getAsJsonObject("$Nodes").size() > 5, f + " has no laid-out nodes");
-                assertTrue(doc.getAsJsonArray("Nodes").size() >= 2, f + " should have at least two nodes");
+                assertTrue(doc.getAsJsonArray("Passages").size() >= 2, f + " should have at least two nodes");
             }
         }
     }
@@ -54,7 +54,7 @@ class NodeEditorExamplesTest {
         JsonObject doc = read("Lore_Keeper.json");
         assertEquals(List.of("Kweebec_Elder"), List.of(doc.getAsJsonArray("Npc").get(0).getAsString()));
         assertEquals(List.of("start", "village", "ruins", "war", "counsel", "farewell"), nodeNames(doc));
-        for (JsonElement n : doc.getAsJsonArray("Nodes")) {
+        for (JsonElement n : doc.getAsJsonArray("Passages")) {
             JsonObject node = n.getAsJsonObject();
             JsonArray body = node.getAsJsonArray("Body");
             JsonObject last = body.get(body.size() - 1).getAsJsonObject();
@@ -64,11 +64,11 @@ class NodeEditorExamplesTest {
                 case "farewell" -> assertEquals("End", last.get("Type").getAsString());
                 default -> {
                     assertEquals("Jump", last.get("Type").getAsString(), name + " should end with a jump");
-                    assertEquals("start", last.get("Node").getAsString(), name + " should return to the hub");
+                    assertEquals("start", last.get("Passage").getAsString(), name + " should return to the hub");
                 }
             }
         }
-        JsonArray options = doc.getAsJsonArray("Nodes").get(0).getAsJsonObject().getAsJsonArray("Body").get(1).getAsJsonObject().getAsJsonArray("Options");
+        JsonArray options = doc.getAsJsonArray("Passages").get(0).getAsJsonObject().getAsJsonArray("Body").get(1).getAsJsonObject().getAsJsonArray("Options");
         assertEquals(5, options.size());
         String show = options.get(3).getAsJsonObject().get("ShowIf").getAsString();
         assertTrue(show.contains("visited(\"village\")") && show.contains("visited(\"war\")"), show);
@@ -88,7 +88,7 @@ class NodeEditorExamplesTest {
             if (s instanceof Statement.Choice c) for (Option o : c.options()) textOptions.add(com.chromecide.lowtalk.parser.Printer.text(o.text()));
         }
         List<String> graphOptions = new ArrayList<>();
-        JsonArray options = doc.getAsJsonArray("Nodes").get(0).getAsJsonObject().getAsJsonArray("Body").get(1).getAsJsonObject().getAsJsonArray("Options");
+        JsonArray options = doc.getAsJsonArray("Passages").get(0).getAsJsonObject().getAsJsonArray("Body").get(1).getAsJsonObject().getAsJsonArray("Options");
         for (JsonElement o : options) graphOptions.add(o.getAsJsonObject().get("Text").getAsString());
         assertEquals(graphOptions, textOptions);
     }

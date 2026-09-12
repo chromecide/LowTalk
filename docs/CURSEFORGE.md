@@ -92,14 +92,14 @@ you can see exactly what you are running.
 ![The fortune teller repeats the typed name back and offers four options](screenshots/dialogue-remembers-name.png)
 *The answer becomes a variable that follows the player between NPCs: "So. Blueberry Muffins. Every merchant in these lands will know it by nightfall."*
 
-![The in-game editor on a node: a line, a set-variable row and a jump, each an editable field](screenshots/ingame-editor-node.png)
-*The in-game editor: click an NPC with the LowTalk tool and its conversation opens as fields. This node greets the player, remembers the meeting and jumps to the hub.*
+![The in-game editor on a passage: a line, a set-variable row and a jump, each an editable field](screenshots/ingame-editor-passage.png)
+*The in-game editor: click an NPC with the LowTalk tool and its conversation opens as fields. This passage greets the player, remembers the meeting and jumps to the hub.*
 
-![The in-game editor on the hub node: four options, each with a target dropdown](screenshots/ingame-editor-options.png)
-*Options in the in-game editor. Each has a target: another node, the end, back to the options, or a new node; Go walks into it.*
+![The in-game editor on the hub passage: four options, each with a target dropdown](screenshots/ingame-editor-options.png)
+*Options in the in-game editor. Each has a target: another passage, the end, back to the options, or a new passage; Go walks into it.*
 
 ![The Node Editor showing a whole dialogue as a wired graph](screenshots/node-editor-graph.png)
-*The same kind of dialogue drawn in Hytale's Node Editor with the LowTalk workspace: nodes, options, branches and commands wired up.*
+*The same kind of dialogue drawn in Hytale's Node Editor with the LowTalk workspace: passages, options, branches and commands wired up.*
 
 ![The Asset Editor's form view of a dialogue: an option with its condition, once flag and body](screenshots/asset-editor-form.png)
 *The Asset Editor's form: a dialogue as fields. This option is shown only until the errand is taken, once, and its body hands over bread.*

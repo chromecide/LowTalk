@@ -38,8 +38,8 @@ class ValidatorTest {
     @Test
     void unknownJumpAndStartAreErrors() {
         List<Validator.Problem> ps = check("npc: X\nstart: nowhere\n== a\n<<jump missing>>\n");
-        assertTrue(hasError(ps, "start node 'nowhere'"));
-        assertTrue(hasError(ps, "unknown node 'missing'"));
+        assertTrue(hasError(ps, "start passage 'nowhere'"));
+        assertTrue(hasError(ps, "unknown passage 'missing'"));
     }
 
     @Test

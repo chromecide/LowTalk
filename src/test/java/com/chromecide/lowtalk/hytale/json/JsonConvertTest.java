@@ -126,7 +126,7 @@ class JsonConvertTest {
         n.body.add(j); // no Node
         asset.nodes.add(n);
         ParseException e = assertThrows(ParseException.class, () -> JsonConvert.toModel(asset, "bad.json"));
-        assertTrue(e.getMessage().contains("Jump has no Node"), e.getMessage());
+        assertTrue(e.getMessage().contains("Jump has no Passage"), e.getMessage());
         assertTrue(e.getMessage().contains("start"), e.getMessage());
 
         LowTalkJson empty = new LowTalkJson("empty");

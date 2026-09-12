@@ -121,9 +121,12 @@ public final class JsonCodecs {
             });
 
     public static final BuilderCodec<JsonStatement.Jump> JUMP = statement(JsonStatement.Jump.class, JsonStatement.Jump::new,
-            "Continue at another node.", b ->
-                    b.append(new KeyedCodec<>("Node", Codec.STRING), (j, v) -> j.node = v, j -> j.node).addValidator(Validators.nonNull())
-                            .documentation("Name of the node to continue at.").add());
+            "Continue at another passage.", b -> {
+                b.append(new KeyedCodec<>("Passage", Codec.STRING), (j, v) -> j.node = v, j -> j.node)
+                        .documentation("Name of the passage to continue at.").add();
+                // Files written before the rename say Node; read it, never write it.
+                b.append(new KeyedCodec<>("Node", Codec.STRING), (j, v) -> { if (j.node == null || j.node.isEmpty()) j.node = v; }, j -> null).add();
+            });
 
     public static final BuilderCodec<JsonStatement.End> END = statement(JsonStatement.End.class, JsonStatement.End::new,
             "Close the window.", b -> {});
@@ -339,18 +342,19 @@ public final class JsonCodecs {
     // ---- the asset
 
     public static final BuilderCodec<LowTalkJson.StartEntry> START = statement(LowTalkJson.StartEntry.class, LowTalkJson.StartEntry::new,
-            "A start rule: begin at Node, if When holds (or unconditionally).", b -> {
-                b.append(new KeyedCodec<>("Node", Codec.STRING), (s, v) -> s.node = v, s -> s.node).addValidator(Validators.nonNull())
-                        .documentation("Node to begin at.").add();
+            "A start rule: begin at Passage, if When holds (or unconditionally).", b -> {
+                b.append(new KeyedCodec<>("Passage", Codec.STRING), (s, v) -> s.node = v, s -> s.node)
+                        .documentation("Passage to begin at.").add();
+                b.append(new KeyedCodec<>("Node", Codec.STRING), (s, v) -> { if (s.node == null || s.node.isEmpty()) s.node = v; }, s -> null).add();
                 b.append(new KeyedCodec<>("When", Codec.STRING), (s, v) -> s.when = v, s -> s.when)
                         .documentation("Only when this is true; guarded starts are tried before the unguarded one." + EXPR_DOC).add();
             });
 
     public static final BuilderCodec<LowTalkJson.NodeEntry> NODE = statement(LowTalkJson.NodeEntry.class, LowTalkJson.NodeEntry::new,
-            "A named node: a stretch of conversation that Jump and Start refer to by name.", b -> {
+            "A named passage: a stretch of conversation that Jump and Start refer to by name.", b -> {
                 b.append(new KeyedCodec<>("Name", Codec.STRING), (n, v) -> n.name = v, n -> n.name).addValidator(Validators.nonNull())
                         .documentation("Letters, digits and underscores.").add();
-                body(b, "Body", (n, v) -> n.body = v, n -> n.body, "The node's statements, in order.");
+                body(b, "Body", (n, v) -> n.body = v, n -> n.body, "The passage's statements, in order.");
             });
 
     public static final AssetBuilderCodec<String, LowTalkJson> DIALOGUE = AssetBuilderCodec.builder(
@@ -374,10 +378,13 @@ public final class JsonCodecs {
             .documentation("Where the conversation appears: window, bottom or top. Leave empty for the pack's or the server's default.").add()
             .<LowTalkJson.StartEntry[]>append(new KeyedCodec<>("Start", new ArrayCodec<>(START, LowTalkJson.StartEntry[]::new)),
                     (a, v) -> a.start = v == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(v)), a -> a.start.toArray(new LowTalkJson.StartEntry[0]))
-            .documentation("Where to begin. Empty means the first node.").add()
-            .<LowTalkJson.NodeEntry[]>append(new KeyedCodec<>("Nodes", new ArrayCodec<>(NODE, LowTalkJson.NodeEntry[]::new)),
+            .documentation("Where to begin. Empty means the first passage.").add()
+            .<LowTalkJson.NodeEntry[]>append(new KeyedCodec<>("Passages", new ArrayCodec<>(NODE, LowTalkJson.NodeEntry[]::new)),
                     (a, v) -> a.nodes = v == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(v)), a -> a.nodes.toArray(new LowTalkJson.NodeEntry[0]))
-            .addValidator(Validators.nonNull()).documentation("The nodes. The first is the default start.").add()
+            .documentation("The passages: named stretches of conversation. The first is the default start.").add()
+            // Files written before the rename say Nodes; read it, never write it.
+            .<LowTalkJson.NodeEntry[]>append(new KeyedCodec<>("Nodes", new ArrayCodec<>(NODE, LowTalkJson.NodeEntry[]::new)),
+                    (a, v) -> { if (a.nodes.isEmpty() && v != null) a.nodes = new ArrayList<>(Arrays.asList(v)); }, a -> null).add()
             .build();
 
     private static boolean registered = false;

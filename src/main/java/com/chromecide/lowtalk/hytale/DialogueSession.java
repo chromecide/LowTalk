@@ -272,7 +272,7 @@ public class DialogueSession implements EffectHost {
         notify(l -> l.onNode(context, node));
         try {
             int advanced = com.chromecide.lowtalk.hytale.objectives.ObjectiveNodes.nodeReached(LowTalkPlugin.get(), player, dialogue.id(), node);
-            if (advanced > 0) log("advanced " + advanced + " objective task(s) at node " + node);
+            if (advanced > 0) log("advanced " + advanced + " objective task(s) at passage " + node);
         } catch (RuntimeException e) {
             host.logger().at(Level.WARNING).log("Objective task check failed at %s/%s: %s", dialogue.id(), node, e.toString());
         }

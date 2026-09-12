@@ -1,6 +1,6 @@
 {
-  "Id": "Node",
-  "Title": "Node",
+  "Id": "Passage",
+  "Title": "Passage",
   "Description": "A named stretch of conversation. Jump and Start refer to it by name.",
   "Color": "Olive",
   "Inputs": [
@@ -9,7 +9,7 @@
       "Type": "DialogueNode",
       "Color": "Olive",
       "Multiple": false,
-      "Description": "Connect to the dialogue's Nodes pin."
+      "Description": "Connect to the dialogue's Passages pin."
     }
   ],
   "Content": [

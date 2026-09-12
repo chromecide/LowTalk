@@ -39,7 +39,7 @@ def say(text, speaker="", button=""):
 
 
 def jump(target):
-    return stmt("Jump", Node=target)
+    return stmt("Jump", Passage=target)
 
 
 def choice(options):
@@ -51,8 +51,8 @@ def dialogue(npc, speaker, title, starts, nodes, scope="", portrait="", on="", l
     if layout:
         fields["Layout"] = layout
     return node("Dialogue", fields, [
-        ("Start", [stmt("Start", Node=n, When=w) for n, w in starts]),
-        ("Nodes", [with_body("Node", body, Name=name) for name, body in nodes]),
+        ("Start", [stmt("Start", Passage=n, When=w) for n, w in starts]),
+        ("Passages", [with_body("Passage", body, Name=name) for name, body in nodes]),
     ])
 
 
@@ -76,7 +76,7 @@ def write_graph(root, out_paths):
     def emit(n, is_root=False):
         nid = f"{n['kind']}-{uuid.uuid4()}"
         out = {"$NodeId": nid}
-        if n["kind"] not in ("Dialogue", "Start", "Node", "Option", "Branch", "Alternative"):
+        if n["kind"] not in ("Dialogue", "Start", "Passage", "Option", "Branch", "Alternative"):
             out["Type"] = n["kind"]
         out.update(n["fields"])
         for key, kids in n["children"]:

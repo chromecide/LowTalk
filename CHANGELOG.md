@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Passages (was: nodes)
+
+- The named stretches of conversation are now called passages everywhere: the Node Editor type is `Passage`, JSON
+  uses `Passages` on the dialogue and `Passage` on Jump, Start and the `LowTalkNode` objective task, the in-game
+  editor says passage, and so do the docs and error messages. Old files keep loading: `Nodes` and `Node` are still
+  read, never written. `.talk` files are untouched (`== name`, `<<jump name>>`, `visited("name")`), and the
+  objective task keeps its `LowTalkNode` type id.
+
 ### Lines
 
 - A line can name its Continue button: `text => Go on` in `.talk`, a `Button` field on Say in JSON, the form and

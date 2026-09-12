@@ -14,11 +14,11 @@
   ],
   "Content": [
     {
-      "Id": "Node",
+      "Id": "Passage",
       "Type": "SmallString",
       "Options": {
-        "Label": "Node",
-        "Description": "Node to begin at.",
+        "Label": "Passage",
+        "Description": "Passage to begin at.",
         "Default": "",
         "Width": 200
       }
@@ -36,7 +36,7 @@
   ],
   "Outputs": [],
   "Schema": {
-    "Node": "Node",
+    "Passage": "Passage",
     "When": "When"
   }
 }

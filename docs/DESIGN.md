@@ -5,8 +5,8 @@
 1. **Dialogue is the product.** Not a quest engine with a dialogue tab.
    Writers should be able to make an NPC feel like a person: conditional
    greetings, memory of earlier choices, moods, hubs, secrets.
-2. **One model, many doors.** A dialogue is a small tree of nodes, lines,
-   options and commands. The text format, the Asset Editor's form, the Node
+2. **One model, many doors.** A dialogue is a small tree of passages, lines,
+   options and commands. The text format, the Asset Editor's form, the Passage
    Editor graph and the in-game editor are four ways to make the same tree,
    and none of them is the "real" one. Creators pick the door that suits
    them and can walk through another later.
@@ -48,8 +48,8 @@ gap LowTalk aims at.
 ```
 com.chromecide.lowtalk
   parser/     text -> AST. No Hytale imports. Fully unit tested.
-  model/      AST types: Dialogue, Node, Line, Option, Conditional, Command, Expr.
-  runtime/    Interpreter: walks a node for one player, evaluates expressions,
+  model/      AST types: Dialogue, Passage, Line, Option, Conditional, Command, Expr.
+  runtime/    Interpreter: walks a passage for one player, evaluates expressions,
               produces "what to show next" and a list of effects to apply.
               No Hytale imports; effects and functions are interfaces.
   store/      Variable persistence: per player, per NPC, world. JSON files.
@@ -69,7 +69,7 @@ future editor or a command-line tool.
 ### Runtime model
 
 A **Conversation** is one player talking to one NPC through one dialogue. It
-holds a cursor (node, statement index, pending options) and a temporary
+holds a cursor (passage, statement index, pending options) and a temporary
 variable scope. The interpreter advances the cursor until it reaches something
 the player must see: a line, a set of options, an input box, or the end.
 
@@ -81,7 +81,7 @@ Every advance yields a **Step**:
 - `Finish` close the window
 
 and a list of **Effects** to apply before showing it. Effects are simple
-records (`Give(item, n)`, `SetAttitude(a)`, `Jump(node)`, ...) that the
+records (`Give(item, n)`, `SetAttitude(a)`, `Jump(passage)`, ...) that the
 Hytale layer executes on the world thread.
 
 Expressions are evaluated against a **Context** that exposes variables and
@@ -94,7 +94,7 @@ Variables are the only state. Three JSON files per world under the plugin's
 data folder:
 
 - `players/<uuid>/<npc uuid>.json` what one NPC knows about one player:
-  bare `$variables`, visited nodes, once keys
+  bare `$variables`, visited passages, once keys
 - `players/<uuid>.json` `$player.` variables that follow the player everywhere
 - `npcs/<uuid>.json` `$npc.` variables and the NPC's tags
 - `world.json` `$world.` variables
@@ -148,7 +148,7 @@ Four ways in, one model out. The runtime never knows which was used.
 
 - **In game.** The dialogue window itself in an editable mode, opened by a
   tool item on the NPC. It edits a draft of the model one scope at a time
-  (a node, an option's body, a branch), and saves by printing the model back
+  (a passage, an option's body, a branch), and saves by printing the model back
   to the file it came from. Everything is built from the game's custom-UI
   page mechanism; pickers reuse the same data sets the Asset Editor uses.
 - **Asset Editor.** `.talk` is registered as a text asset type and the JSON
@@ -162,7 +162,7 @@ Four ways in, one model out. The runtime never knows which was used.
 
 See [format.md](format.md). Design notes on the choices:
 
-- **Yarn-like, not Yarn.** Yarn Spinner's shape (`==` nodes, `->` options,
+- **Yarn-like, not Yarn.** Yarn Spinner's shape (`==` passages, `->` options,
   `<<commands>>`) is familiar and reads well. We keep the shape and drop the
   parts that need a full language: no functions defined in dialogue, no
   arbitrary code, a small fixed expression grammar.

@@ -93,7 +93,7 @@ public final class Conversation {
 
     /** Start in a named node instead of the start directive (the in-game editor's Test button). */
     public Result startAt(@Nonnull String node) {
-        if (!dialogue.nodes().containsKey(node)) throw new RuntimeError("no node named " + node);
+        if (!dialogue.nodes().containsKey(node)) throw new RuntimeError("no passage named " + node);
         jumpTo(node, dialogue.starts().get(0).pos());
         return advance();
     }
@@ -138,7 +138,7 @@ public final class Conversation {
 
     private void jumpTo(String node, Pos from) {
         Node n = dialogue.node(node);
-        if (n == null) throw new RuntimeError(from, "jump to unknown node '" + node + "'");
+        if (n == null) throw new RuntimeError(from, "jump to unknown passage '" + node + "'");
         stack.clear();
         stack.push(new Frame(n.body()));
         currentNode = node;
