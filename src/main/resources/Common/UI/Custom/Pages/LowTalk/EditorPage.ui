@@ -1,11 +1,12 @@
 $C = "../../Common.ui";
 
 // The dialogue window in edit mode: the same conversation, with every line, option and command editable in place.
+// The editor fills the screen, with a margin all round, so long passages get the room they need.
 $C.@PageOverlay {
-  LayoutMode: Middle;
+  LayoutMode: Full;
 
   $C.@DecoratedContainer {
-    Anchor: (Width: 1040, Height: 700);
+    Anchor: (Full: 24);
 
     #Title {
       $C.@Title #PageTitle {
