@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Tool targeting
+
+- The LowTalk tool now outlines whatever it is pointing at and reaches 128 blocks, the same `InteractionConfig`
+  the game's own editor tools use. Nothing else about the tool changed: the interact key still opens the editor.
+
 ### Clickable blocks
 
 - A dialogue can be bound to a placed block: click it with the LowTalk tool for a small page, or look at it and

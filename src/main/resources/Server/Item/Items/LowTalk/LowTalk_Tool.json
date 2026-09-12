@@ -17,9 +17,10 @@
     "Use": "LowTalk_Tool_Use"
   },
   "InteractionConfig": {
+    "DebugOutlines": true,
     "UseDistance": {
-      "Adventure": 8,
-      "Creative": 8
+      "Adventure": 128,
+      "Creative": 128
     },
     "AllEntities": true
   },
