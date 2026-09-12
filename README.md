@@ -51,6 +51,8 @@ Ah, {player}. Back again.
 
 ## Features
 
+- **Clickable blocks.** Bind a dialogue to a placed door, chest, sign, bench or lever with the tool or
+  `/lowtalk block bind`; using it talks, instead of or as well as the block's own action.
 - **Bottom bar, top bar or window.** Conversations sit in a bar with the NPC in view by default; options are
   numbered and the number keys pick them. Each dialogue, each mod's pack and the server can choose the layout.
 - Branching dialogue: options with conditions, if/elseif/else, hubs, jumps, once-blocks, random variation,
@@ -100,6 +102,8 @@ Ah, {player}. Back again.
 | `/lowtalk thaw` | Unfreeze the NPC you're looking at |
 | `/lowtalk testworld leave` | Leave the test corridor: main world, old game mode, world unloaded when empty |
 | `/lowtalk tool` | Get the LowTalk tool: click an NPC with it to edit its dialogue in place (creator) |
+- `/lowtalk block bind <dialogue> [instead|also]`, `block unbind`, `block list`: dialogues on the block you are
+  looking at (creator).
 | `/lowtalk stop` | Leave your current conversation |
 | `/lowtalk help [name]` | The format reference in chat: commands, functions, keywords, or one entry |
 | `/lowtalk info <id>` | Outline of a dialogue: passages, options, variables, unreachable passages |
@@ -120,6 +124,9 @@ role and lost rather than crashing the chunk. Dialogue memory, tags and bindings
 plugin's `data` folder and can be deleted with the plugin. Mods built on LowTalk may have their own step; Companions,
 for example, asks you to run `/companions dismissall` first. Dialogues that used another mod's commands keep working
 without it: options that need a missing command are hidden and conditions on missing functions read as false.
+
+- Block bindings live in `blocks.json` in the plugin folder, never in the world; a block that opened a
+  dialogue goes back to its own behaviour.
 
 ## Hytale versions
 

@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Clickable blocks
+
+- A dialogue can be bound to a placed block: click it with the LowTalk tool for a small page, or look at it and
+  run `/lowtalk block bind <dialogue> [instead|also]`. Using the block opens the dialogue with no NPC; `instead`
+  suppresses the block's own action, `also` keeps it (levers, buttons, doors). Only block types with a Use
+  interaction can be bound, since the server reports no use for other blocks. Bindings are stored in the plugin's
+  `blocks.json`, not in the world.
+
 ## 0.2.1 (2026-09-12)
 
 Hotfix. **0.2.0 does not boot**: its shipped `Example_Lore_Keeper.json` was left malformed by the packaging step

@@ -354,6 +354,14 @@ dialogue without touching Java or `.talk` bindings:
   dialogue through the stock `OpenCustomUI` interaction:
   `{ "Type": "OpenCustomUI", "Page": { "Type": "LowTalk", "Dialogue": "elder_intro" } }`.
   If the player is looking at an NPC it becomes the speaker.
+- **Placed blocks.** Click a block with the LowTalk tool (or look at it and run
+  `/lowtalk block bind <dialogue> [instead|also]`) and using that block opens the dialogue, with no NPC.
+  `instead` (the default) suppresses the block's own action, so a bound chest talks rather than opens; `also`
+  keeps it, which is right for levers, buttons and doors. Only blocks the game lets you use can be bound (doors,
+  chests, signs, benches, levers: the types with a Use interaction), because the server never hears a plain block
+  being touched; for a statue or a wall, use a trigger volume. Bindings are kept in LowTalk's own data folder
+  (`blocks.json`), never in the world, so removing the mod leaves every block as it was. `/lowtalk block unbind`
+  and `/lowtalk block list` manage them from chat.
 - **Choice pages.** A shop or other choice page can lead into a dialogue with
   `"Interactions": [ { "Type": "LowTalkDialogue", "Dialogue": "haggle" } ]`,
   and an entry can be gated by what was said:
