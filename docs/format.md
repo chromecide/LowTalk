@@ -165,7 +165,7 @@ time. Any statements are allowed inside, not just lines.
 | `<<end>>` | Close the window. |
 | `<<give Item_Id [count]>>` | Put items in the player's inventory. |
 | `<<take Item_Id [count]>>` | Remove items. Fails the option if the player lacks them; guard with `has()`. |
-| `<<shop>>` | Open this NPC's native barter shop. |
+| `<<shop>>` | Open this NPC's native barter shop, or `<<shop Shop_Id>>` for a named one. The shop's Back button (or Escape) returns to the conversation, which continues with whatever follows the command; put nothing after it and the conversation ends when the shop opens. |
 | `<<attitude friendly>>` | Set this NPC's attitude toward the player: ignore, hostile, neutral, friendly, revered. |
 | `<<objective Objective_Id>>`, `<<objective cancel Id>>`, `<<objective line Line_Id>>`, `<<objective task Task_Id>>` | Start a native objective; abandon one; start an objective line (a chain of objectives); or advance a "talk to this NPC" task of an active objective, which plays the task's animation and may open the game's own completion dialog. |
 | `<<anim Id>>`, `<<anim Id Slot>>`, `<<sound Id>>` | Play an animation on the NPC (slot Emote by default; Status is what the game uses for its own greetings) or a sound at the NPC. |

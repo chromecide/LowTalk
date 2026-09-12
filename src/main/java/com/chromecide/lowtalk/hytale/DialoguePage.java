@@ -70,6 +70,8 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
     private final List<Integer> slotToOption = new ArrayList<>();
     /** Transcript entries waiting to be appended on the next render. */
     private final List<String[]> pendingLines = new ArrayList<>();
+    /** Everything shown so far, so the transcript survives the window being rebuilt (after a shop, say). */
+    private final List<String[]> history = new ArrayList<>();
     private int transcriptCount = 0;
     private volatile boolean open = true;
     private volatile long openedAt = System.currentTimeMillis();
@@ -130,7 +132,9 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
     }
 
     private void queueLine(String layout, String speaker, String text) {
-        pendingLines.add(new String[] {layout, speaker == null ? "" : speaker, text == null ? "" : text});
+        String[] line = {layout, speaker == null ? "" : speaker, text == null ? "" : text};
+        pendingLines.add(line);
+        history.add(line);
     }
 
     private void flushLines(UICommandBuilder cmd) {
@@ -155,6 +159,9 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
         cmd.set("#NpcTitle.Text", title);
         cmd.clear("#Transcript");
         transcriptCount = 0;
+        // A rebuilt window starts empty on the client; replay what was said so far, then whatever is pending.
+        pendingLines.clear();
+        pendingLines.addAll(history);
         if (portrait != null) {
             // Verified against the client: a plain path string, relative to Common/UI/Custom/, naming the base file
             // (the client picks its @2x variant itself). PatchStyle objects and "UI/Custom/..." forms do not resolve.

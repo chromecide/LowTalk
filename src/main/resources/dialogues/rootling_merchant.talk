@@ -21,6 +21,9 @@ Well met, traveler. I'm the Rootling Merchant, and this is my humble stall.
 -> What do you sell?
     A little of everything, and most of it useful.
     <<shop>>
+    # The shop's Back button returns here; nothing after <<shop>> would end the conversation instead.
+    Anything else?
+    <<jump hub>>
 -> I'm hungry and have no coin. <<if not $got_bread>>
     <<jump charity>>
 -> Where can I find the temple? <<if not $told_temple>>
