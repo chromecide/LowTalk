@@ -1,5 +1,5 @@
 {
-  "$Comment": "Creative tool: click an NPC with it to open its dialogue in edit mode. Same shape as the game's editor tools, without a client-side BuilderTool id.",
+  "$Comment": "Creative tool, shaped like the game's editor tools: a legend HUD while held, left click edits or binds, right click plays. Not a client-side BuilderTool id, so the interactions are ordinary UseEntity/UseBlock chains.",
   "TranslationProperties": {
     "Name": "server.items.LowTalk_Tool.name",
     "Description": "server.items.LowTalk_Tool.description"
@@ -12,9 +12,9 @@
   "MaxStack": 1,
   "PlayerAnimationsId": "Item",
   "Interactions": {
-    "Primary": "LowTalk_Tool_Use",
-    "Secondary": "LowTalk_Tool_Use",
-    "Use": "LowTalk_Tool_Use"
+    "Primary": "LowTalk_Tool_Edit",
+    "Secondary": "LowTalk_Tool_Play",
+    "Use": "LowTalk_Tool_Edit"
   },
   "InteractionConfig": {
     "UseDistance": {
@@ -26,5 +26,11 @@
   "Model": "Items/Block_Spawner_Block.blockymodel",
   "Texture": "Items/Block_Spawner_Block_Large_Texture.png",
   "Scale": 0.6,
-  "Quality": "Tool"
+  "Quality": "Tool",
+  "HudUI": [
+    {
+      "Path": "Hud/LowTalk/ToolLegend.ui",
+      "Type": "Legend"
+    }
+  ]
 }
