@@ -9,6 +9,19 @@
   interaction before UseEntity, the same order as bare hands. The Entity Tool's NPC outline is part of the
   client's built-in tool and cannot be enabled on a custom item.
 
+### Dialogue browser
+
+- The LowTalk tool used on nothing (or on a plain block) opens a browser of every loaded dialogue: where it lives,
+  what it is attached to (NPC roles and @tags, on join, prop, block) or "not attached to anything", with Edit and
+  Test for each, a filter, a switch for the test-corridor dialogues, New dialogue and Reload files. Also
+  `/lowtalk browse`. New dialogues made here start with `npc: none`, ready to be bound to a prop, block, trigger
+  or role.
+- The new-dialogue page's "Save in" list now offers only the server's dialogues folder and asset packs that are
+  plain folders on disk (not the base game, core mods, archives, or LowTalk itself).
+- Fixed: "Test here" in the editor, and now the browser's Edit, Test and New, opened a page whose buttons did
+  nothing. Pages now replace each other directly instead of closing first, which left the game waiting for a
+  close acknowledgement and dropping every event.
+
 ### Talking props
 
 - Any block or item spawned as a prop (Entity Spawn page, `/npc spawn page`) can carry a dialogue: use the LowTalk

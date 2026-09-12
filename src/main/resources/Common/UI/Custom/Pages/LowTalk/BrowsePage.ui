@@ -1,0 +1,96 @@
+$C = "../../Common.ui";
+
+// The LowTalk tool used on nothing: every loaded dialogue, with what it is attached to, Edit and Test.
+$C.@PageOverlay {
+  LayoutMode: Full;
+
+  $C.@DecoratedContainer {
+    Anchor: (Full: 24);
+
+    #Title {
+      $C.@Title #PageTitle {
+        @Text = %server.lowtalk.browse.title;
+      }
+    }
+
+    #Content {
+      LayoutMode: Top;
+      Padding: (Full: 14);
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 38, Bottom: 8);
+
+        Label {
+          Anchor: (Width: 70);
+          Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+          Text: %server.lowtalk.browse.show;
+        }
+
+        DropdownBox #Filter {
+          Anchor: (Width: 360, Height: $C.@DropdownBoxHeight);
+          Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 360);
+        }
+
+        $C.@CheckBoxWithLabel #ShowTests {
+          @Text = %server.lowtalk.browse.showTests;
+          @Checked = false;
+          Anchor: (Width: 260, Left: 20);
+        }
+
+        Label #Fill {
+          FlexWeight: 1;
+        }
+
+        Label #Legend {
+          Anchor: (Width: 560);
+          Style: (FontSize: 12, TextColor: #8fa3b8, VerticalAlignment: Center, HorizontalAlignment: End);
+          Text: %server.lowtalk.browse.legend;
+        }
+      }
+
+      Group #Rows {
+        FlexWeight: 1;
+        LayoutMode: TopScrolling;
+        ScrollbarStyle: $C.@DefaultScrollbarStyle;
+        Padding: (Right: 8);
+      }
+
+      Label #Empty {
+        Anchor: (Height: 24, Top: 4);
+        Style: (FontSize: 13, TextColor: #8fa3b8);
+        Text: %server.lowtalk.browse.empty;
+      }
+
+      Label #Status {
+        Anchor: (Height: 22, Top: 4);
+        Style: (FontSize: 12, TextColor: #ffd37a, Wrap: true);
+        Text: "";
+      }
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Top: 8, Height: 38);
+
+        $C.@TextButton #NewButton {
+          @Anchor = (Width: 160, Right: 8);
+          @Text = %server.lowtalk.browse.new;
+        }
+
+        $C.@SecondaryTextButton #ReloadButton {
+          @Anchor = (Width: 140, Right: 8);
+          @Text = %server.lowtalk.browse.reload;
+        }
+
+        Label #Fill2 {
+          FlexWeight: 1;
+        }
+
+        $C.@SecondaryTextButton #CloseButton {
+          @Anchor = (Width: 120);
+          @Text = %server.lowtalk.editor.close;
+        }
+      }
+    }
+  }
+}

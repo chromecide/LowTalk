@@ -52,6 +52,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         this.addSubCommand(new Tool(plugin));
         this.addSubCommand(new BlockCommand(plugin));
         this.addSubCommand(new PropCommand(plugin));
+        this.addSubCommand(new Browse(plugin));
     }
 
     /** Tab completion and did-you-mean for dialogue ids; the id argument of open, info, test and convert. */
@@ -429,6 +430,23 @@ public class LowTalkCommand extends AbstractCommandCollection {
                                @Nonnull PlayerRef player, @Nonnull World world) {
             context.sendMessage(msg(plugin, "blockBindings").param("count", plugin.getBlockBindings().size()));
             for (String line : plugin.getBlockBindings().describeAll()) context.sendMessage(info(plugin, line));
+        }
+    }
+
+    /** The dialogue browser, the same page the tool opens when used on nothing. */
+    static class Browse extends AbstractPlayerCommand {
+        private final LowTalkPlugin plugin;
+
+        Browse(LowTalkPlugin plugin) {
+            super("browse", "Browse, edit and test every loaded dialogue");
+            this.plugin = plugin;
+            this.requirePermission(CREATOR);
+        }
+
+        @Override
+        protected void execute(@Nonnull CommandContext context, @Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> ref,
+                               @Nonnull PlayerRef player, @Nonnull World world) {
+            com.chromecide.lowtalk.hytale.BrowsePage.open(plugin, player, ref, store);
         }
     }
 

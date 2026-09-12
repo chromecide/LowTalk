@@ -385,13 +385,25 @@ public class DialogueRegistry {
 
     // ---- lookups
 
-    /** Places a new dialogue file can go: the server's own folder ("") and every asset pack, whether or not it has the folder yet. */
+    /**
+     * Places a new dialogue file can go: the server's own folder ("") and every asset pack a creator can actually
+     * write to, meaning a plain folder on disk that is not the base game, not a core mod, not an archive, and not
+     * LowTalk itself. On a plain server that is usually just the folder; a pack author working in a folder pack
+     * under mods/ sees their pack as well.
+     */
+    /** LowTalk's own asset pack, never a place for creator files. */
+    public static final String OWN_PACK = "Chromecide:LowTalk";
+
     public java.util.LinkedHashMap<String, Path> creationTargets() {
         java.util.LinkedHashMap<String, Path> out = new java.util.LinkedHashMap<>();
         out.put("", folder);
         try {
             for (AssetPack pack : AssetModule.get().getAssetPacks()) {
                 try {
+                    if (pack.isImmutable() || pack.isCoreMod()) continue;
+                    if (pack.getFileSystem() != null && pack.getFileSystem() != java.nio.file.FileSystems.getDefault()) continue;
+                    if (OWN_PACK.equalsIgnoreCase(pack.getName())) continue;
+                    if (!Files.isDirectory(pack.getRoot())) continue;
                     out.putIfAbsent(pack.getName(), pack.getRoot().resolve(PACK_DIR).toAbsolutePath().normalize());
                 } catch (RuntimeException ignored) {
                     // packs inside archives cannot take new files

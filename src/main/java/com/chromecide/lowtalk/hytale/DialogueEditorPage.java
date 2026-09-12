@@ -792,12 +792,13 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         }
         String startAt = scope.node();
         World world = store.getExternalData().getWorld();
-        close();
+        // The dialogue window replaces this page directly. Closing first would make the game wait for the client's
+        // acknowledgement of the close, and it drops every event from the next page until that arrives.
         world.execute(() -> {
             if (!ref.isValid()) return;
             NpcInfo npc = new NpcInfo(null, npcId, d.bindings().isEmpty() ? null : d.bindings().get(0), npcName, java.util.Set.of());
             DialogueSession s = plugin.getSessions().openAt(d, startAt, playerRef, ref, store, world, npc);
-            if (s == null) playerRef.sendMessage(LowTalkCommand.msg(plugin, "endedAtOnce").param("passage", startAt));
+            if (s == null) { close(); playerRef.sendMessage(LowTalkCommand.msg(plugin, "endedAtOnce").param("passage", startAt)); }
         });
     }
 }

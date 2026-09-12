@@ -1,0 +1,38 @@
+$C = "../../Common.ui";
+
+// One dialogue in the browser: id, where it lives, what it is attached to, Edit and Test.
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 38, Bottom: 6);
+
+  Label #Id {
+    Anchor: (Width: 260, Right: 8);
+    Style: (FontSize: 14, TextColor: #ffffff, VerticalAlignment: Center);
+  }
+
+  Label #Source {
+    Anchor: (Width: 320, Right: 8);
+    Style: (FontSize: 12, TextColor: #8fa3b8, VerticalAlignment: Center);
+  }
+
+  Label #Attached {
+    FlexWeight: 1;
+    Style: (FontSize: 12, TextColor: #96a9be, VerticalAlignment: Center);
+  }
+
+  Label #NotAttached {
+    FlexWeight: 1;
+    Style: (FontSize: 12, TextColor: #ffd37a, VerticalAlignment: Center);
+    Text: %server.lowtalk.browse.notAttached;
+  }
+
+  $C.@SecondaryTextButton #TestButton {
+    @Anchor = (Width: 90, Right: 6);
+    @Text = %server.lowtalk.browse.test;
+  }
+
+  $C.@TextButton #EditButton {
+    @Anchor = (Width: 90);
+    @Text = %server.lowtalk.browse.edit;
+  }
+}
