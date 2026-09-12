@@ -102,7 +102,7 @@ Ah, {player}. Back again.
 | `/lowtalk tool` | Get the LowTalk tool: click an NPC with it to edit its dialogue in place (creator) |
 | `/lowtalk stop` | Leave your current conversation |
 | `/lowtalk help [name]` | The format reference in chat: commands, functions, keywords, or one entry |
-| `/lowtalk info <id>` | Outline of a dialogue: nodes, options, variables, unreachable nodes |
+| `/lowtalk info <id>` | Outline of a dialogue: passages, options, variables, unreachable passages |
 | `/lowtalk convert json\|talk <id> <pack>` | Write a dialogue in the other format into an asset pack (`server` = plugin folder for talk) |
 
 Permissions: `lowtalk.creator` covers authoring (`list`, `open`, `tags`, `vars`,

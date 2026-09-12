@@ -88,7 +88,7 @@ class CreatorAidsTest {
         assertEquals(Set.of("orphan"), o.unreachableNodes());
         assertEquals(Set.of("give"), o.commandsUsed());
         List<String> lines = o.lines();
-        assertTrue(lines.get(0).startsWith("t: 2 node(s), bound to Kweebec_Merchant"), lines.get(0));
+        assertTrue(lines.get(0).startsWith("t: 2 passage(s), bound to Kweebec_Merchant"), lines.get(0));
         assertTrue(lines.stream().anyMatch(l -> l.startsWith("Never reached: orphan")));
     }
 }

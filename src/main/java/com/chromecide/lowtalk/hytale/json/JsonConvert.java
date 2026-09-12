@@ -36,16 +36,16 @@ public final class JsonConvert {
         int index = 0;
         for (LowTalkJson.NodeEntry n : a.nodes) {
             index++;
-            Pos p = new Pos(display + " node " + (n.name == null ? "#" + index : n.name), 0);
-            if (n.name == null || n.name.isBlank()) throw new ParseException(p, "a node has no Name");
-            if (nodes.containsKey(n.name)) throw new ParseException(p, "node '" + n.name + "' is defined twice");
+            Pos p = new Pos(display + " passage " + (n.name == null ? "#" + index : n.name), 0);
+            if (n.name == null || n.name.isBlank()) throw new ParseException(p, "a passage has no Name");
+            if (nodes.containsKey(n.name)) throw new ParseException(p, "passage '" + n.name + "' is defined twice");
             nodes.put(n.name, new Node(p, n.name, statements(n.body, p)));
         }
-        if (nodes.isEmpty()) throw new ParseException(new Pos(display, 0), "dialogue has no nodes");
+        if (nodes.isEmpty()) throw new ParseException(new Pos(display, 0), "dialogue has no passages");
         List<Dialogue.Start> starts = new ArrayList<>();
         for (LowTalkJson.StartEntry s : a.start) {
             Pos p = new Pos(display + " start", 0);
-            if (s.node == null || s.node.isBlank()) throw new ParseException(p, "a Start entry has no Node");
+            if (s.node == null || s.node.isBlank()) throw new ParseException(p, "a Start entry has no Passage");
             starts.add(new Dialogue.Start(p, s.node, blank(s.when) ? null : ExprParser.parse(s.when, p)));
         }
         if (starts.isEmpty()) starts.add(new Dialogue.Start(new Pos(display, 0), nodes.keySet().iterator().next(), null));
@@ -107,7 +107,7 @@ public final class JsonConvert {
             }
             case JsonStatement.Set set -> new Statement.Set(p, ExprParser.parseVar(set.var, p), ExprParser.parse(set.value, p));
             case JsonStatement.Jump j -> {
-                if (blank(j.node)) throw new ParseException(p, "a Jump has no Node");
+                if (blank(j.node)) throw new ParseException(p, "a Jump has no Passage");
                 yield new Statement.Jump(p, j.node.trim());
             }
             case JsonStatement.End e -> new Statement.End(p);

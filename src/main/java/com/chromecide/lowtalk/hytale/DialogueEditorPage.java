@@ -178,7 +178,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         kinds.add(entry("Random block (one of several)", Kind.RANDOM.name(), null));
         kinds.add(entry("Ask the player to type something", Kind.INPUT.name(), null));
         kinds.add(entry("Wait a few seconds", Kind.WAIT.name(), null));
-        kinds.add(entry("Jump to a node", Kind.JUMP.name(), null));
+        kinds.add(entry("Jump to a passage", Kind.JUMP.name(), null));
         kinds.add(entry("End the conversation", Kind.END.name(), null));
         cmd.set("#AddKind.Entries", kinds);
         cmd.set("#AddKind.Value", addKind);
@@ -218,7 +218,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         cmd.set("#NodeName.Value", scope.node());
         List<DropdownEntryInfo> nodeEntries = new ArrayList<>();
         for (String n : draft.nodeNames()) nodeEntries.add(entry(n, n, null));
-        nodeEntries.add(entry("+ new node", DialogueDraft.TARGET_NEW, null));
+        nodeEntries.add(entry("+ new passage", DialogueDraft.TARGET_NEW, null));
         cmd.set("#NodeJump.Entries", nodeEntries);
         cmd.set("#NodeJump.Value", scope.node());
         cmd.set("#Crumbs.Text", crumbText());
@@ -482,9 +482,9 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
     private List<DropdownEntryInfo> targetEntries(Option opt) {
         List<DropdownEntryInfo> entries = new ArrayList<>();
         entries.add(entry("(end)", DialogueDraft.TARGET_END, "closes the window"));
-        entries.add(entry("(back to these options)", DialogueDraft.TARGET_CONTINUE, "shows this node's options again"));
+        entries.add(entry("(back to these options)", DialogueDraft.TARGET_CONTINUE, "shows this passage's options again"));
         for (String n : draft.nodeNames()) entries.add(entry("-> " + n, n, null));
-        entries.add(entry("+ new node", DialogueDraft.TARGET_NEW, null));
+        entries.add(entry("+ new passage", DialogueDraft.TARGET_NEW, null));
         if (DialogueDraft.TARGET_CUSTOM.equals(DialogueDraft.optionTarget(opt))) {
             entries.add(entry("(custom)", DialogueDraft.TARGET_CUSTOM, summary(opt.body())));
         }
@@ -574,7 +574,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 String target = DialogueDraft.optionTarget(opt);
                 if (draft.hasNode(target)) go(Scope.node(target));
                 else if (DialogueDraft.TARGET_CUSTOM.equals(target)) go(scope.into(r.statement(), r.sub()));
-                else status = DialogueDraft.TARGET_END.equals(target) ? "That option ends the conversation." : "That option shows this node's options again.";
+                else status = DialogueDraft.TARGET_END.equals(target) ? "That option ends the conversation." : "That option shows this passage's options again.";
                 return true;
             }
             case OPT_MORE -> {
@@ -625,7 +625,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             }
             case ADD_KIND -> { if (!value.isEmpty()) addKind = value; return false; }
             case ADD -> {
-                if (header) { status = "Go back to a node to add to it."; return true; }
+                if (header) { status = "Go back to a passage to add to it."; return true; }
                 String kindName = value.isEmpty() ? addKind : value;
                 Kind kind;
                 try {
@@ -637,7 +637,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 if (kind == Kind.OPTION) {
                     int count = 0;
                     for (Statement s : draft.view(scope)) if (s instanceof Statement.Choice c) count += c.options().size();
-                    if (count >= DialoguePage.OPTION_SLOTS) { status = "A node can show at most " + DialoguePage.OPTION_SLOTS + " options."; return true; }
+                    if (count >= DialoguePage.OPTION_SLOTS) { status = "A passage can show at most " + DialoguePage.OPTION_SLOTS + " options."; return true; }
                 }
                 draft.add(scope, kind);
                 status = "";
@@ -648,7 +648,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 String to = value.trim();
                 if (to.equals(scope.node())) return false;
                 if (draft.renameNode(scope.node(), to)) { scope = new Scope(to, scope.path()); status = ""; }
-                else status = "Node names use letters, digits, _ and -, and must be unique.";
+                else status = "Passage names use letters, digits, _ and -, and must be unique.";
                 return true;
             }
             case JUMP -> {
@@ -667,10 +667,10 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             case HEADER -> { header = !header; return true; }
             case DELETE_NODE -> {
                 String victim = scope.node();
-                if (!draft.deleteNode(victim)) { status = "The last node cannot be deleted."; return true; }
+                if (!draft.deleteNode(victim)) { status = "The last passage cannot be deleted."; return true; }
                 scope = crumbs.isEmpty() ? Scope.node(draft.startNode()) : crumbs.remove(crumbs.size() - 1);
                 if (!draft.exists(scope)) scope = Scope.node(draft.startNode());
-                status = "Deleted node " + victim + "; options that led there now end the conversation.";
+                status = "Deleted passage " + victim + "; options that led there now end the conversation.";
                 return true;
             }
             case H_NPC_PICK -> {
@@ -788,7 +788,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             if (!ref.isValid()) return;
             NpcInfo npc = new NpcInfo(null, npcId, d.bindings().isEmpty() ? null : d.bindings().get(0), npcName, java.util.Set.of());
             DialogueSession s = plugin.getSessions().openAt(d, startAt, playerRef, ref, store, world, npc);
-            if (s == null) playerRef.sendMessage(com.hypixel.hytale.server.core.Message.raw("LowTalk: the dialogue ended at once from node " + startAt + "."));
+            if (s == null) playerRef.sendMessage(com.hypixel.hytale.server.core.Message.raw("LowTalk: the dialogue ended at once from passage " + startAt + "."));
         });
     }
 }

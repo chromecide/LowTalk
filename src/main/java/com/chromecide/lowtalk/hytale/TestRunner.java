@@ -101,7 +101,7 @@ public final class TestRunner implements EffectHost {
                         r = conv.next();
                     }
                     case Step.Finish f -> {
-                        out.accept("(finished at node " + conv.getCurrentNode() + ")");
+                        out.accept("(finished at passage " + conv.getCurrentNode() + ")");
                         return true;
                     }
                 }

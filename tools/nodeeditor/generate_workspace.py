@@ -106,7 +106,7 @@ def statement(type_name, title, description, content=(), outputs=(), schema_extr
         "Title": title,
         "Description": description,
         "Color": color,
-        "Inputs": [in_pin(PIN_STMT, description="Connect to the Body pin of a Node, Option, Branch or Alternative. Statements run in the order of their links.")],
+        "Inputs": [in_pin(PIN_STMT, description="Connect to the Body pin of a Passage, Option, Branch or Alternative. Statements run in the order of their links.")],
         "Content": list(content),
         "Outputs": list(outputs),
         "Schema": schema,
@@ -142,12 +142,12 @@ add({
     ],
     "Outputs": [
         out_pin("StartPin", PIN_START, "Start rules", description="Optional. Which node to begin at; the first rule whose When is true wins. Without rules the first node starts."),
-        out_pin("NodesPin", PIN_NODE, "Nodes", description="The named stretches of conversation. Jump statements refer to them by name."),
+        out_pin("PassagesPin", PIN_NODE, "Passages", description="The named stretches of conversation. Jump statements and start rules refer to them by name."),
     ],
     "Schema": {
         "Npc": "Npc", "Speaker": "Speaker", "Title": "Title", "Scope": "Scope", "Portrait": "Portrait", "On": "On", "Layout": "Layout",
         "Start": {"Node": "Start", "Pin": "StartPin"},
-        "Nodes": {"Node": "Node", "Pin": "NodesPin"},
+        "Passages": {"Node": "Passage", "Pin": "PassagesPin"},
     },
 }, "Structure")
 
@@ -157,17 +157,17 @@ add({
     "Description": "Begin at Node when When holds (or always, if When is empty). Guarded rules are tried before the unguarded one. With no rules the first node is the start.",
     "Color": COLORS[PIN_START],
     "Inputs": [in_pin(PIN_START, description="Connect to the dialogue's Start rules pin.")],
-    "Content": [small("Node", "Node", "Node to begin at."), small("When", "When", "Only when this is true." + EXPR, width=300)],
+    "Content": [small("Passage", "Passage", "Passage to begin at."), small("When", "When", "Only when this is true." + EXPR, width=300)],
     "Outputs": [],
-    "Schema": {"Node": "Node", "When": "When"},
+    "Schema": {"Passage": "Passage", "When": "When"},
 }, "Structure")
 
 add({
-    "Id": "Node",
-    "Title": "Node",
+    "Id": "Passage",
+    "Title": "Passage",
     "Description": "A named stretch of conversation. Jump and Start refer to it by name.",
     "Color": COLORS[PIN_NODE],
-    "Inputs": [in_pin(PIN_NODE, description="Connect to the dialogue's Nodes pin.")],
+    "Inputs": [in_pin(PIN_NODE, description="Connect to the dialogue's Passages pin.")],
     "Content": [small("Name", "Name", "Letters, digits and underscores.", default="start")],
     "Outputs": [body_output()],
     "Schema": {"Name": "Name", **body_schema()},
@@ -236,7 +236,7 @@ add({
 statement("Set", "Set variable", "Store a value in a variable.",
           [small("Var", "Variable", "$x (this player with this NPC), $player.x, $npc.x, $world.x or $tmp.x.", default="$met"),
            small("Value", "Value", "The value." + EXPR, default="true", width=300)], category="Flow", color="Purple")
-statement("Jump", "Jump", "Continue at another node.", [small("Node", "Node", "Name of the node.")], category="Flow", color="Purple")
+statement("Jump", "Jump", "Continue at another passage.", [small("Passage", "Passage", "Name of the passage.")], category="Flow", color="Purple")
 statement("End", "End", "Close the window.", category="Flow", color="Purple")
 statement("Input", "Text input", "Ask the player to type something and store it.",
           [small("Var", "Variable", "Where to store the text.", default="$tmp.answer"),

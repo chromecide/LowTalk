@@ -154,7 +154,7 @@ public final class DialogueDraft {
     /** The statements in a scope, as a copy. */
     public List<Statement> view(Scope sc) {
         List<Statement> cur = nodes.get(sc.node());
-        if (cur == null) throw new IllegalArgumentException("no node " + sc.node());
+        if (cur == null) throw new IllegalArgumentException("no passage " + sc.node());
         for (Step st : sc.path()) cur = child(cur.get(st.statement()), st.sub());
         return new ArrayList<>(cur);
     }
@@ -173,7 +173,7 @@ public final class DialogueDraft {
     /** Replace the statements of a scope, rebuilding the enclosing records. */
     public void edit(Scope sc, UnaryOperator<List<Statement>> f) {
         List<Statement> root = nodes.get(sc.node());
-        if (root == null) throw new IllegalArgumentException("no node " + sc.node());
+        if (root == null) throw new IllegalArgumentException("no passage " + sc.node());
         nodes.put(sc.node(), new ArrayList<>(rebuild(root, sc.path(), 0, f)));
         dirty = true;
     }

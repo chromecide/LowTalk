@@ -100,7 +100,7 @@ public record Outline(
     /** A few chat-sized lines. */
     public List<String> lines() {
         List<String> out = new ArrayList<>();
-        out.add(id + ": " + optionsPerNode.size() + " node(s), " + (bindings.isEmpty() ? "no npc: binding (command only)" : "bound to " + String.join(", ", bindings)));
+        out.add(id + ": " + optionsPerNode.size() + " passage(s), " + (bindings.isEmpty() ? "no npc: binding (command only)" : "bound to " + String.join(", ", bindings)));
         StringBuilder nodes = new StringBuilder();
         int shown = 0;
         for (Map.Entry<String, Integer> e : optionsPerNode.entrySet()) {
@@ -113,7 +113,7 @@ public record Outline(
             if (e.getValue() > 0) nodes.append(" (").append(e.getValue()).append(" options)");
             shown++;
         }
-        out.add("Nodes: " + nodes);
+        out.add("Passages: " + nodes);
         if (!variablesWritten.isEmpty()) out.add("Sets: " + String.join(", ", variablesWritten));
         Set<String> onlyRead = new LinkedHashSet<>(variablesRead);
         onlyRead.removeAll(variablesWritten);

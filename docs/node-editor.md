@@ -41,8 +41,8 @@ Two dialogues ship as laid-out graphs in `tools/nodeeditor/examples/`. Copy one
 into a pack's `Server/LowTalk/Dialogues/` and open it in the Node Editor to see
 how the pieces wire together, or run `/lowtalk open <name>` in game to play it.
 
-- `Lore_Keeper.json` is the one to start with: a Kweebec elder with a hub node
-  that offers three topics, one node per topic that jumps back to the hub, and
+- `Lore_Keeper.json` is the one to start with: a Kweebec elder with a hub passage
+  that offers three topics, one passage per topic that jumps back to the hub, and
   a farewell. Say, Choice, Option, Jump and End are all it uses, plus one
   touch of state: a "What should I do now?" option that only appears once all
   three topics have been heard, through `visited()`. The same dialogue is in
@@ -52,7 +52,7 @@ how the pieces wire together, or run `/lowtalk open <name>` in game to play it.
   out an errand with an item and a notification, and greets you differently
   once met. `tools/nodeeditor/make_demo.py` regenerates it.
 
-Both generators share `graphgen.py`, which lays the nodes out on the canvas.
+Both generators share `graphgen.py`, which lays the passages out on the canvas.
 
 ## Using it
 
@@ -61,12 +61,12 @@ Both generators share `graphgen.py`, which lays the nodes out on the canvas.
 2. On the start screen (0.7.0-pre.2 and later; older builds go straight to
    File > New) create a new file and choose the `LowTalk - Dialogue`
    workspace. The editor reopens on the workspace you used last. The root
-   node is the dialogue: its NPCs, default speaker, title and start rules.
-3. Add `Node` nodes for each named stretch of conversation and wire them to
-   the root's Nodes pin. Each Node has a Body pin; connect statements to it in
+   passage is the dialogue: its NPCs, default speaker, title and start rules.
+3. Add `Node` passages for each named stretch of conversation and wire them to
+   the root's Passages pin. Each Passage has a Body pin; connect statements to it in
    order: Say, Choice, If, Set, Jump, Give and so on.
-4. A `Choice` takes `Option` nodes, each with its own Body. `If` takes
-   `Branch` nodes; `Random` takes `Alternative` nodes.
+4. A `Choice` takes `Option` passages, each with its own Body. `If` takes
+   `Branch` passages; `Random` takes `Alternative` passages.
 5. Save into your asset pack as `Server/LowTalk/Dialogues/Some_Name.json`.
    The file name is the dialogue id. The server loads it on save, or on
    `/lowtalk reload`, and the Asset Editor's form can open the same file.
@@ -75,6 +75,6 @@ Expressions and text are typed the same way as in `.talk` files:
 `{player}`, `{$gold}`, `has("Food_Bread")`, `[Hi|Hello]`. Fields left empty
 are treated as absent.
 
-The node canvas positions are stored in the file under `$NodeEditorMetadata`
+The passage canvas positions are stored in the file under `$NodeEditorMetadata`
 and are ignored by the server, so a graph-edited file and a form-edited file
 are the same asset.

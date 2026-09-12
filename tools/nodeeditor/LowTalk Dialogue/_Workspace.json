@@ -12,7 +12,7 @@
     "Structure": [
       "Dialogue",
       "Start",
-      "Node"
+      "Passage"
     ],
     "Talk": [
       "Say",

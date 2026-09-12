@@ -21,14 +21,14 @@ start_body = [
     node("Choice", {}, [("Options", [
         with_body("Option", [
             stmt("Say", Speaker="", Text="The Rootlings farm the terraces; the ruins to the north are best left alone."),
-            stmt("Jump", Node="start"),
+            stmt("Jump", Passage="start"),
         ], Text="Tell me about this place.", If="", ShowIf="", Once=False),
         with_body("Option", [
             stmt("Say", Speaker="", Text="Take this bread to the miller. Tell him the guide sent you."),
             stmt("Give", Item="Food_Bread", Count=1),
             stmt("Set", Var="$player.errand", Value="true"),
             stmt("Notify", Text="New errand: bread for the miller", Detail="", Style="success"),
-            stmt("Jump", Node="start"),
+            stmt("Jump", Passage="start"),
         ], Text="Any work for me?", If="not $player.errand", ShowIf="", Once=True),
         with_body("Option", [
             stmt("Say", Speaker="", Text="Safe travels."),
@@ -43,7 +43,7 @@ returning_body = [
         with_body("Branch", [stmt("Say", Speaker="", Text="How is the errand going? The miller is waiting.")], When="$player.errand"),
         with_body("Branch", [stmt("Say", Speaker="", Text="Still looking for work? Ask me.")], When=""),
     ])]),
-    stmt("Jump", Node="start"),
+    stmt("Jump", Passage="start"),
 ]
 
 dialogue = node("Dialogue", {
@@ -54,8 +54,8 @@ dialogue = node("Dialogue", {
     "Portrait": "",
     "On": "",
 }, [
-    ("Start", [stmt("Start", Node="returning", When="$met"), stmt("Start", Node="start", When="")]),
-    ("Nodes", [with_body("Node", start_body, Name="start"), with_body("Node", returning_body, Name="returning")]),
+    ("Start", [stmt("Start", Passage="returning", When="$met"), stmt("Start", Passage="start", When="")]),
+    ("Passages", [with_body("Passage", start_body, Name="start"), with_body("Passage", returning_body, Name="returning")]),
 ])
 
 

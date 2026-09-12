@@ -12,25 +12,27 @@ import com.hypixel.hytale.codec.validation.Validators;
 import javax.annotation.Nonnull;
 
 /**
- * An objective task that completes when the player reaches a node of a dialogue, so quest JSON can say "talk to
+ * An objective task that completes when the player reaches a passage of a dialogue, so quest JSON can say "talk to
  * the miller until he thanks you" without any scripting in the dialogue itself:
- * <pre>{ "Type": "LowTalkNode", "Dialogue": "miller", "Node": "thanks", "Count": 1 }</pre>
+ * <pre>{ "Type": "LowTalkNode", "Dialogue": "miller", "Passage": "thanks", "Count": 1 }</pre>
  */
 public class LowTalkNodeTaskAsset extends CountObjectiveTaskAsset {
     public static final String TYPE_ID = "LowTalkNode";
 
     @Nonnull
     public static final BuilderCodec<LowTalkNodeTaskAsset> CODEC = BuilderCodec.builder(LowTalkNodeTaskAsset.class, LowTalkNodeTaskAsset::new, CountObjectiveTaskAsset.CODEC)
-            .documentation("Completes when the player reaches a node of a LowTalk dialogue; Count is how many times.")
+            .documentation("Completes when the player reaches a passage of a LowTalk dialogue; Count is how many times.")
             .append(new KeyedCodec<>("Dialogue", Codec.STRING), (a, v) -> a.dialogue = v, a -> a.dialogue)
             .addValidator(Validators.nonNull())
             .metadata(new UIEditor(new UIEditor.TextField(JsonDialogues.DATASET_DIALOGUES)))
             .documentation("The dialogue id.")
             .add()
-            .append(new KeyedCodec<>("Node", Codec.STRING), (a, v) -> a.node = v, a -> a.node)
-            .addValidator(Validators.nonNull())
+            .append(new KeyedCodec<>("Passage", Codec.STRING), (a, v) -> a.node = v, a -> a.node)
             .metadata(new UIEditor(new UIEditor.TextField(JsonDialogues.DATASET_NODES)))
-            .documentation("The node the player must reach, e.g. start, or the node an option jumps to.")
+            .documentation("The passage the player must reach, e.g. start, or the passage an option jumps to.")
+            .add()
+            // Objectives written before the rename say Node; read it, never write it.
+            .append(new KeyedCodec<>("Node", Codec.STRING), (a, v) -> { if (a.node == null || a.node.isEmpty()) a.node = v; }, a -> null)
             .add()
             .build();
 

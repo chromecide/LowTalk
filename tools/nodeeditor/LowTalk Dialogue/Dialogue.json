@@ -92,12 +92,12 @@
       "Description": "Optional. Which node to begin at; the first rule whose When is true wins. Without rules the first node starts."
     },
     {
-      "Id": "NodesPin",
+      "Id": "PassagesPin",
       "Type": "DialogueNode",
       "Color": "Olive",
       "Multiple": true,
-      "Label": "Nodes",
-      "Description": "The named stretches of conversation. Jump statements refer to them by name."
+      "Label": "Passages",
+      "Description": "The named stretches of conversation. Jump statements and start rules refer to them by name."
     }
   ],
   "Schema": {
@@ -112,9 +112,9 @@
       "Node": "Start",
       "Pin": "StartPin"
     },
-    "Nodes": {
-      "Node": "Node",
-      "Pin": "NodesPin"
+    "Passages": {
+      "Node": "Passage",
+      "Pin": "PassagesPin"
     }
   }
 }

@@ -9,7 +9,7 @@
       "Type": "Statement",
       "Color": "Blue",
       "Multiple": false,
-      "Description": "Connect to the Body pin of a Node, Option, Branch or Alternative. Statements run in the order of their links."
+      "Description": "Connect to the Body pin of a Passage, Option, Branch or Alternative. Statements run in the order of their links."
     }
   ],
   "Content": [],
