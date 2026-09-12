@@ -23,10 +23,17 @@ again; it is safe to repeat.
 sh tools/nodeeditor/install.sh
 ```
 
-On macOS this copies the folder into
-`Hytale.app/Contents/Resources/NodeEditor/Workspaces/` of the release client.
-On other systems, or for the pre-release client, pass the path to that
-client's `NodeEditor/Workspaces` folder as the argument.
+With no argument the script installs into every Hytale client it finds,
+release and pre-release (`Hytale.app/Contents/Resources/NodeEditor/Workspaces/`
+on macOS). Pass a `NodeEditor/Workspaces` folder as the argument to target one
+client, or a client somewhere else.
+
+There is no other way in. The editor scans exactly one folder, inside the
+install; it has no user-level workspace folder, no preference for extra
+paths, and asset packs cannot carry workspaces (checked against the 0.7.0-pre.2
+editor). Files it saves carry a `$WorkspaceID`, so a LowTalk JSON file opens
+in the right workspace without being asked, as long as the workspace is
+installed.
 
 ## A demo graph
 
