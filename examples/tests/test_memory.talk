@@ -22,7 +22,7 @@ TEST 2: Memory. Welcome BACK. Expected: you only see this after finishing a firs
 
 == menu
 Player-wide counter: you have opened this station's dialogue {$player.visits} time(s) across both NPCs.
--> Check visited(): have I seen the "elsewhere" node? (expect no the first time, yes after visiting it)
+-> Check visited(): have I seen the "elsewhere" passage? (expect no the first time, yes after visiting it)
     <<if visited("elsewhere")>>
       Yes, you have visited "elsewhere" with this NPC.
     <<else>>
