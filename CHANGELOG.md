@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Translations
+
+- Every fixed message LowTalk shows, in the dialogue window, the editor, chat feedback and Asset Editor
+  notifications, is now a translation key in `Server/Languages/en-US/server.lang` (about 115 keys). A translator
+  ships `Server/Languages/<language>/server.lang` with the same keys in any asset pack; the game picks the player's
+  language. Dialogue text itself stays in the language it was written in. Command output that is data rather than
+  a sentence (dialogue lists, variable dumps, validator messages, outlines) is not translated.
+
 ## 0.2.0 (2026-09-12)
 
 The presentation release: conversations sit in a bar with the NPC in view, each dialogue, pack and server can

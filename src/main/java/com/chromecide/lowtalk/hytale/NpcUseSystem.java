@@ -53,7 +53,7 @@ public class NpcUseSystem extends EntityEventSystem<EntityStore, UseEntityEvent.
         if (holdingTool(playerEntity, commandBuffer)) {
             event.setCancelled(true);
             if (!player.hasPermission(LowTalkCommand.CREATOR)) {
-                player.sendMessage(com.hypixel.hytale.server.core.Message.raw("LowTalk: the dialogue tool needs the " + LowTalkCommand.CREATOR + " permission."));
+                player.sendMessage(LowTalkCommand.msg(plugin, "toolNeedsPermission").param("permission", LowTalkCommand.CREATOR));
                 return;
             }
             List<Dialogue> bound = plugin.getRegistry().candidates(npc.role(), npc.tags());

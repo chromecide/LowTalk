@@ -460,7 +460,7 @@ public class DialogueSession implements EffectHost {
 
     private void fail(RuntimeError e) {
         host.logger().at(Level.WARNING).log("Dialogue '%s' failed for %s: %s", dialogue.id(), player.getUsername(), e.getMessage());
-        player.sendMessage(Message.raw("This conversation has a problem; the server log has details.").color(host.config().getInfoColor()));
+        player.sendMessage(Message.translation("server.lowtalk.msg.conversationProblem").color(host.config().getInfoColor()));
         finish();
     }
 

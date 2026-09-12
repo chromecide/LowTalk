@@ -31,7 +31,9 @@ public final class DialogueIdArgument extends SingleArgumentType<String> {
         List<String> known = ids.get();
         if (known.contains(input)) return input;
         String near = Suggest.closest(input, known);
-        parseResult.fail(Message.raw("No dialogue with id '" + input + "'." + (near == null ? " Try /lowtalk list." : " Did you mean " + near + "?")));
+        parseResult.fail(near == null
+                ? Message.translation("server.lowtalk.msg.noDialogue").param("id", input)
+                : Message.translation("server.lowtalk.msg.noDialogueNear").param("id", input).param("near", near));
         return null;
     }
 

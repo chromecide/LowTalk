@@ -276,13 +276,13 @@ public final class JsonDialogues {
             EditorClient client = e.getKey();
             if (report.errors() > 0) {
                 client.sendPopupNotification(AssetEditorPopupNotificationType.Error,
-                        Message.raw("LowTalk: " + fileName + " has " + report.errors() + " error(s) and is not loaded.\n" + first(report, true)));
+                        Message.translation("server.lowtalk.msg.hasErrors").param("name", fileName).param("count", report.errors()).param("problems", first(report, true)));
             } else if (report.warnings() > 0) {
                 client.sendPopupNotification(AssetEditorPopupNotificationType.Warning,
-                        Message.raw("LowTalk: " + fileName + " loaded with " + report.warnings() + " warning(s).\n" + first(report, false)));
+                        Message.translation("server.lowtalk.msg.hasWarnings").param("name", fileName).param("count", report.warnings()).param("problems", first(report, false)));
             } else {
                 client.sendPopupNotification(AssetEditorPopupNotificationType.Success,
-                        Message.raw("LowTalk: " + fileName + " loaded. Talk to a bound NPC or use /lowtalk open " + id + " to try it."));
+                        Message.translation("server.lowtalk.msg.loadedOkOpen").param("name", fileName).param("id", id));
             }
         }
     }
@@ -311,10 +311,10 @@ public final class JsonDialogues {
         Dialogue d = plugin.getRegistry().byId(id);
         if (d == null) {
             event.getEditorClient().sendPopupNotification(AssetEditorPopupNotificationType.Warning,
-                    Message.raw("LowTalk: " + name + " is not loaded (see the server log, or save it again to see why)."));
+                    Message.translation("server.lowtalk.msg.notLoaded").param("name", name));
             return;
         }
         event.getEditorClient().sendPopupNotification(AssetEditorPopupNotificationType.Info,
-                Message.raw("LowTalk: loaded.\n" + String.join("\n", Outline.of(d).lines())));
+                Message.translation("server.lowtalk.msg.loadedOutline").param("outline", String.join("\n", Outline.of(d).lines())));
     }
 }
