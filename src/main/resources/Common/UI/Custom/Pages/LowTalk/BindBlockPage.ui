@@ -65,17 +65,27 @@ $C.@PageOverlay {
         Anchor: (Top: 14, Height: 34);
 
         $C.@TextButton #BindButton {
-          @Anchor = (Width: 140, Right: 8);
+          @Anchor = (Width: 100, Right: 6);
           @Text = %server.lowtalk.bindblock.bind;
         }
 
         $C.@SecondaryTextButton #UnbindButton {
-          @Anchor = (Width: 140, Right: 8);
+          @Anchor = (Width: 100, Right: 6);
           @Text = %server.lowtalk.bindblock.unbind;
         }
 
+        $C.@SecondaryTextButton #EditButton {
+          @Anchor = (Width: 100, Right: 6);
+          @Text = %server.lowtalk.browse.edit;
+        }
+
+        $C.@SecondaryTextButton #NewButton {
+          @Anchor = (Width: 130, Right: 6);
+          @Text = %server.lowtalk.browse.new;
+        }
+
         $C.@SecondaryTextButton #CancelButton {
-          @Anchor = (Width: 120);
+          @Anchor = (Width: 100);
           @Text = %server.lowtalk.editor.close;
         }
       }

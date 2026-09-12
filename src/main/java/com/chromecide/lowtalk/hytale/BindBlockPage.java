@@ -76,6 +76,9 @@ public class BindBlockPage extends InteractiveCustomUIPage<BindBlockPage.Data> {
         cmd.set("#Mode.Entries", modes);
         cmd.set("#Mode.Value", current == null ? BlockBindings.MODE_INSTEAD : current.mode());
         cmd.set("#UnbindButton.Visible", current != null);
+        cmd.set("#EditButton.Visible", current != null && plugin.getRegistry().byId(current.dialogue()) != null);
+        evt.addEventBinding(CustomUIEventBindingType.Activating, "#EditButton", new EventData().append("Action", "EDIT"), false);
+        evt.addEventBinding(CustomUIEventBindingType.Activating, "#NewButton", new EventData().append("Action", "NEW"), false);
         evt.addEventBinding(CustomUIEventBindingType.Activating, "#BindButton",
                 new EventData().append("Action", "BIND").append("@Dialogue", "#Dialogue.Value").append("@Mode", "#Mode.Value"), false);
         evt.addEventBinding(CustomUIEventBindingType.Activating, "#UnbindButton", new EventData().append("Action", "UNBIND"), false);
@@ -104,6 +107,23 @@ public class BindBlockPage extends InteractiveCustomUIPage<BindBlockPage.Data> {
                 close();
                 playerRef.sendMessage(LowTalkCommand.msg(plugin, had ? "blockUnbound" : "blockNotBound").param("block", blockId));
             }
+            case "EDIT" -> {
+                BlockBindings.Binding current = bindings.get(worldName, pos.x, pos.y, pos.z);
+                com.chromecide.lowtalk.model.Dialogue d = current == null ? null : plugin.getRegistry().byId(current.dialogue());
+                if (d == null) return;
+                store.getExternalData().getWorld().execute(() -> {
+                    if (!ref.isValid()) return;
+                    DialogueEditorPage.open(plugin, d, playerRef, ref, store, BrowsePage.narrator(d));
+                });
+            }
+            case "NEW" -> store.getExternalData().getWorld().execute(() -> {
+                if (!ref.isValid()) return;
+                NewDialoguePage.openFor(plugin, playerRef, ref, store,
+                        blockId + " has no dialogue yet. Create one: it is bound to this block (instead of its own action) and opens in the editor.", d -> {
+                            bindings.set(worldName, pos.x, pos.y, pos.z, d.id(), BlockBindings.MODE_INSTEAD);
+                            bindings.flush();
+                        });
+            });
             case "CANCEL" -> close();
             default -> {}
         }

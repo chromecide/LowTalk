@@ -62,14 +62,36 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
     private final NpcInfo npc;
     private final Ref<EntityStore> playerEntity;
     private final LinkedHashMap<String, Path> targets;
+    /** Text above the form when not for an NPC; null for the browser's default. */
+    @Nullable
+    private final String intro;
+    /** What to do with the new dialogue before the editor opens: bind it to the prop or block it was made for. */
+    @Nullable
+    private final java.util.function.Consumer<Dialogue> onCreated;
     private String status = "";
 
     public NewDialoguePage(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef playerRef, @Nonnull Ref<EntityStore> playerEntity, @Nullable NpcInfo npc) {
+        this(plugin, playerRef, playerEntity, npc, null, null);
+    }
+
+    private NewDialoguePage(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef playerRef, @Nonnull Ref<EntityStore> playerEntity, @Nullable NpcInfo npc,
+                            @Nullable String intro, @Nullable java.util.function.Consumer<Dialogue> onCreated) {
         super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC);
         this.plugin = plugin;
         this.npc = npc;
         this.playerEntity = playerEntity;
         this.targets = plugin.getRegistry().creationTargets();
+        this.intro = intro;
+        this.onCreated = onCreated;
+    }
+
+    /** From a prop or block bind page: a dialogue attached to nothing in its file, bound by the caller once it exists. */
+    public static void openFor(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity,
+                               @Nonnull Store<EntityStore> store, @Nonnull String intro, @Nonnull java.util.function.Consumer<Dialogue> onCreated) {
+        plugin.getSessions().end(player.getUuid());
+        Player p = store.getComponent(playerEntity, Player.getComponentType());
+        if (p == null) return;
+        p.getPageManager().openCustomPage(playerEntity, store, new NewDialoguePage(plugin, player, playerEntity, null, intro, onCreated));
     }
 
     public static void open(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity,
@@ -92,7 +114,8 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
     @Override
     public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder cmd, @Nonnull UIEventBuilder evt, @Nonnull Store<EntityStore> store) {
         cmd.append(LAYOUT);
-        if (npc == null) cmd.set("#Intro.Text", LowTalkCommand.msg(plugin, "newUnattachedIntro"));
+        if (npc == null && intro != null) cmd.set("#Intro.Text", intro);
+        else if (npc == null) cmd.set("#Intro.Text", LowTalkCommand.msg(plugin, "newUnattachedIntro"));
         else cmd.set("#Intro.Text", npc.name() + " (" + npc.role() + ") has no dialogue yet. Create one and it opens in the editor.");
         String suggested = npc == null || npc.role() == null ? "new_dialogue" : npc.role().toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9_-]", "_");
         int n = 2;
@@ -102,7 +125,8 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
         cmd.set("#Speaker.Value", npc == null ? "Narrator" : npc.name());
         List<DropdownEntryInfo> bind = new ArrayList<>();
         if (npc == null) {
-            bind.add(new DropdownEntryInfo(LocalizableString.fromString("nothing yet (npc: none); bind it to a prop, block, trigger or role later"), BIND_NONE));
+            bind.add(new DropdownEntryInfo(LocalizableString.fromString(onCreated != null
+                    ? "this prop or block (npc: none in the file)" : "nothing yet (npc: none); bind it to a prop, block, trigger or role later"), BIND_NONE));
         } else {
             bind.add(new DropdownEntryInfo(LocalizableString.fromString("every " + npc.role() + " (bind by role)"), BIND_ROLE));
             bind.add(new DropdownEntryInfo(LocalizableString.fromString("only this NPC (bind by tag)"), BIND_TAG));
@@ -159,6 +183,7 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
             vs.addTag(vs.npc(npc.id()), tag);
             vs.flush();
         }
+        if (onCreated != null) onCreated.accept(d);
         playerRef.sendMessage(byTag
                 ? LowTalkCommand.msg(plugin, "createdTagged").param("file", file.getFileName().toString()).param("npc", npc.name()).param("tag", tag)
                 : LowTalkCommand.msg(plugin, "created").param("file", file.getFileName().toString()));
