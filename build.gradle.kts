@@ -81,15 +81,52 @@ tasks.named<ProcessResources>("processResources") {
         exclude("tests/**")
         into("Server/LowTalk/Dialogues/Examples")
         rename { name -> "Example_" + name }
+        // The JSON Npc array may span several lines (the Node Editor writes it that way); drop the whole array,
+        // not just its first line, or the file is left unparseable and the server refuses to boot.
+        var skippingNpcArray = false
         filter { line ->
             when {
+                skippingNpcArray -> {
+                    if (line.trim().startsWith("]")) skippingNpcArray = false
+                    null
+                }
                 line.startsWith("npc: ") -> "npc: none   # shipped example: copy this asset into your pack and set a role id or @tag here"
-                line.trim().startsWith("\"Npc\":") -> line.substring(0, line.indexOf("\"Npc\"")) + "\"Npc\": [\"none\"],"
+                line.trim().startsWith("\"Npc\":") -> {
+                    val indent = line.substring(0, line.indexOf("\"Npc\""))
+                    if (!line.contains("]")) skippingNpcArray = true
+                    indent + "\"Npc\": [\"none\"],"
+                }
                 else -> line
             }
         }
     }
 }
+
+// Every shipped example must still be valid JSON with Npc: ["none"] after the filter above; a broken asset inside a
+// mod jar stops the whole server from booting, so this runs before the jar is built.
+val verifyShippedExamples by tasks.registering {
+    group = "lowtalk"
+    description = "Parses the example dialogues as packaged into the asset pack."
+    dependsOn(tasks.processResources)
+    val examples = layout.buildDirectory.dir("resources/main/Server/LowTalk/Dialogues/Examples")
+    doLast {
+        val dir = examples.get().asFile
+        require(dir.isDirectory) { "No shipped examples at $dir" }
+        var checked = 0
+        dir.listFiles { f -> f.name.endsWith(".json") }!!.forEach { f ->
+            val parsed = groovy.json.JsonSlurper().parse(f) as Map<*, *>
+            require(parsed["Npc"] == listOf("none")) { "$f: Npc should be [\"none\"] after packaging, got " + parsed["Npc"] }
+            checked++
+        }
+        dir.listFiles { f -> f.name.endsWith(".talk") }!!.forEach { f ->
+            require(f.readLines().any { it.startsWith("npc: none") }) { "$f: expected an npc: none line after packaging" }
+            checked++
+        }
+        println("verified $checked shipped example(s)")
+    }
+}
+tasks.named("jar") { dependsOn(verifyShippedExamples) }
+tasks.named("check") { dependsOn(verifyShippedExamples) }
 
 // Validate .talk files from the command line without a server:
 //   ./gradlew validate --args="examples"

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+## 0.2.1 (2026-09-12)
+
+Hotfix. **0.2.0 does not boot**: its shipped `Example_Lore_Keeper.json` was left malformed by the packaging step
+(the "unbind the example" filter rewrote only the first line of a multi-line NPC array), and the game treats a
+broken asset inside a mod jar as fatal. The filter now drops the whole array, and the build parses every shipped
+example before the jar is made. Also in this release: every fixed message LowTalk shows is a translation key.
+
 ### Translations
 
 - Every fixed message LowTalk shows, in the dialogue window, the editor, chat feedback and Asset Editor
