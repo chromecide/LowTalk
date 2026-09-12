@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### History
+
+- `history: latest` shows only what the NPC is saying now, with no transcript and no echo of the player's
+  answers; `full` (the default) is the scrolling transcript. Set per dialogue, per pack (`History` in
+  `Settings.json` or `setPackDefaults`), or in `lowtalk.json`, like the layout.
+
 ### Shop
 
 - `<<shop>>` no longer ends the conversation. The game's shop page opens as before; its Back button (or Escape)

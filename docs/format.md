@@ -24,6 +24,7 @@ Lines before the first passage are directives, `key: value`, one per line.
 | `scope:` | Variable namespace shared with other files. Defaults to the file name. |
 | `portrait:` | An image shown beside the text, as a path inside `Common/UI/Custom/` of any loaded asset pack, e.g. `Portraits/elder.png` from your own pack or `Pages/RespawnPageSkull.png` from the game. Name the base file (`RespawnPageSkull.png`, not `...@2x.png`); the client picks the high-resolution variant itself. |
 | `layout:` | Where this conversation appears: `bottom` (a bar along the bottom of the screen, the NPC stays visible), `top` (the same bar at the top) or `window` (a centred window over a dimmed screen). Leave it out to follow the pack's or the server's default; see [Layout](#layout). |
+| `history:` | How much stays on screen: `full` (the whole transcript, the player's answers included) or `latest` (only what the NPC is saying now). Leave it out to follow the pack's or the server's default; see [Layout](#layout). |
 | `include:` | Pull the passages of another file into this one, e.g. `include: _shared`. See [Includes](#includes). Repeatable. |
 | `on:` | `on: join` opens this dialogue by itself when a player finishes loading into a world. It runs without an NPC, so `speaker:` names the voice. Gate repeats with a guarded `start:`, a once-block, or an early `<<end>>` (a dialogue that ends before saying anything never opens a window). |
 
@@ -40,7 +41,7 @@ over a dimmed screen. Four levels decide, most specific first:
    the look of their whole pack once:
 
    ```json
-   { "Layout": "window", "HideHud": ["Reticle", "Hotbar", "Compass"] }
+   { "Layout": "window", "HideHud": ["Reticle", "Hotbar", "Compass"], "History": "latest" }
    ```
 
 3. defaults the pack's plugin registered through the API (`LowTalkApi.setPackDefaults`, the same two settings);
@@ -50,6 +51,11 @@ over a dimmed screen. Four levels decide, most specific first:
 `HideHud` names the HUD parts hidden while a dialogue is open and shown again when it closes; the names are the
 game's own: `Hotbar`, `Reticle`, `Chat`, `Compass`, `Health`, `Stamina`, `ObjectivePanel` and so on. It follows the
 same chain without the dialogue level. A server owner who wants one look across every mod sets `ForceLayout` in
+
+`history:` follows the same four levels as `layout:` (`History` in the pack file, the API and `lowtalk.json`).
+`full`, the default, keeps every line so far on screen, the player's answers included, in a scrolling transcript.
+`latest` shows only what the NPC is saying now, the way most RPG bars do; earlier lines and the player's answers
+are not shown, and the Continue and option buttons stand alone under the current line.
 `lowtalk.json`, which wins over all four.
 
 ## Passages
