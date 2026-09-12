@@ -1,14 +1,14 @@
-# STATION 1: choices, hubs, Continue, Leave, guarded and disabled options.
 npc: @test_basics
-title: Station 1 - Basics
 speaker: Tester
+title: Station 1 - Basics
+history: latest
 
 == start
 TEST 1: Basics. This line and the choices below should appear together, with no Continue button.
 -> Two lines in a row (expect a Continue button between them)
     First line. You should see a Continue button now.
     Second line. After this you should be back at the station menu.
--> Hidden option (only visible after you pick 'Reveal the hidden option')  <<if $saw_c>>
+-> Hidden option (only visible after you pick 'Reveal the hidden option') <<if $saw_c>>
     Correct: you saw this because you revealed it earlier.
 -> Reveal the hidden option
     The hidden option should now be visible in the menu.
