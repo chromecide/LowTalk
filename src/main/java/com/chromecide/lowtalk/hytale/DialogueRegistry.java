@@ -42,7 +42,7 @@ public class DialogueRegistry {
     /** Where dialogues live inside an asset pack. */
     public static final String PACK_DIR = "Server/LowTalk/Dialogues";
 
-    private static final String[] BUNDLED_EXAMPLES = {"rootling_merchant.talk", "village_elder.talk", "fortune_teller.talk"};
+    private static final String[] BUNDLED_EXAMPLES = {"rootling_merchant.talk", "village_elder.talk", "fortune_teller.talk", "lore_keeper.talk"};
     private static final String[] TEST_DIALOGUES = {
             "test_basics.talk", "test_memory.talk", "test_input.talk", "test_items.talk", "test_feedback.talk",
             "test_body.talk", "test_progress.talk", "test_travel.talk", "test_random.talk", "test_format.talk", "_shared.talk", "test_world.talk", "test_npc.talk", "test_media.talk", "test_talker.talk"

@@ -35,14 +35,24 @@ editor). Files it saves carry a `$WorkspaceID`, so a LowTalk JSON file opens
 in the right workspace without being asked, as long as the workspace is
 installed.
 
-## A demo graph
+## Example graphs
 
-`tools/nodeeditor/examples/Demo_Graph.json` is a small dialogue saved as a
-laid-out graph: a guide who greets you differently once met and hands out one
-errand. Copy it into a pack's `Server/LowTalk/Dialogues/` and open it in the
-Node Editor to see how the pieces wire together, or run `/lowtalk open
-Demo_Graph` in game to play it. `tools/nodeeditor/make_demo.py` regenerates
-it.
+Two dialogues ship as laid-out graphs in `tools/nodeeditor/examples/`. Copy one
+into a pack's `Server/LowTalk/Dialogues/` and open it in the Node Editor to see
+how the pieces wire together, or run `/lowtalk open <name>` in game to play it.
+
+- `Lore_Keeper.json` is the one to start with: a Kweebec elder with a hub node
+  that offers three topics, one node per topic that jumps back to the hub, and
+  a farewell. Say, Choice, Option, Jump and End are all it uses, plus one
+  touch of state: a "What should I do now?" option that only appears once all
+  three topics have been heard, through `visited()`. The same dialogue is in
+  `examples/lore_keeper.talk` as text, so the two can be compared side by
+  side. `tools/nodeeditor/make_lore.py` regenerates it.
+- `Demo_Graph.json` is busier: a guide who remembers you between visits, hands
+  out an errand with an item and a notification, and greets you differently
+  once met. `tools/nodeeditor/make_demo.py` regenerates it.
+
+Both generators share `graphgen.py`, which lays the nodes out on the canvas.
 
 ## Using it
 

@@ -51,7 +51,8 @@ dropped (the editor tells you when that happens).
 
 LowTalk's own asset pack carries the example dialogues under `Server/LowTalk/Dialogues/Examples/`, so they are
 always visible in the Asset Editor for reference: a merchant with a memory, a unique village elder, a fortune
-teller that asks your name (all three as text) and a valley guide as JSON. They are unbound there (`npc: none`),
+teller that asks your name, a lore keeper with a hub of topics (all four as text) and a valley guide and the same
+lore keeper as JSON. They are unbound there (`npc: none`),
 so shipping them changes no NPC. To start from one, use **Copy Asset** in the create dialog, save the copy into
 your pack, and set its `npc:` to a role id or an `@tag`. The same three text examples are also copied into the
 plugin's own `dialogues` folder on first run, bound to real roles, so a fresh server has working conversations.

@@ -1,0 +1,103 @@
+"""Shared helper for the example graph generators.
+
+A generator describes a dialogue as a tree of node(...) calls; write_graph() lays it out on the Node Editor canvas
+(x by depth, y by a post-order walk, parents centred on their children), stamps a $NodeId on every object and writes
+an ordinary LowTalk JSON dialogue asset with the editor's bookkeeping under $NodeEditorMetadata. The server ignores
+those keys, so the file loads like any other dialogue.
+"""
+import json
+import os
+import uuid
+
+X_STEP, Y_STEP = 520, 170
+WORKSPACE_ID = "LowTalk - Dialogue"
+
+
+def node(kind, fields, children=()):
+    """kind is the node type id (a statement Type, or Dialogue/Start/Node/Option/Branch/Alternative);
+    children is a list of (jsonKey, [child nodes]) wired through output pins."""
+    return {"kind": kind, "fields": fields, "children": list(children)}
+
+
+def stmt(kind, **fields):
+    return node(kind, fields)
+
+
+def with_body(kind, body, **fields):
+    return node(kind, fields, [("Body", body)])
+
+
+def option(text, body, cond="", show="", once=False):
+    return with_body("Option", body, Text=text, If=cond, ShowIf=show, Once=once)
+
+
+def say(text, speaker=""):
+    return stmt("Say", Speaker=speaker, Text=text)
+
+
+def jump(target):
+    return stmt("Jump", Node=target)
+
+
+def choice(options):
+    return node("Choice", {}, [("Options", options)])
+
+
+def dialogue(npc, speaker, title, starts, nodes, scope="", portrait="", on="", layout=""):
+    fields = {"Npc": npc, "Speaker": speaker, "Title": title, "Scope": scope, "Portrait": portrait, "On": on}
+    if layout:
+        fields["Layout"] = layout
+    return node("Dialogue", fields, [
+        ("Start", [stmt("Start", Node=n, When=w) for n, w in starts]),
+        ("Nodes", [with_body("Node", body, Name=name) for name, body in nodes]),
+    ])
+
+
+def write_graph(root, out_paths):
+    positions = {}
+    next_y = [0]
+
+    def layout(n, depth):
+        child_ys = []
+        for _, kids in n["children"]:
+            for k in kids:
+                child_ys.append(layout(k, depth + 1))
+        if child_ys:
+            y = sum(child_ys) / len(child_ys)
+        else:
+            y = next_y[0]
+            next_y[0] += Y_STEP
+        n["_pos"] = (depth * X_STEP, round(y))
+        return y
+
+    def emit(n, is_root=False):
+        nid = f"{n['kind']}-{uuid.uuid4()}"
+        out = {"$NodeId": nid}
+        if n["kind"] not in ("Dialogue", "Start", "Node", "Option", "Branch", "Alternative"):
+            out["Type"] = n["kind"]
+        out.update(n["fields"])
+        for key, kids in n["children"]:
+            out[key] = [emit(k) for k in kids]
+        meta = {"$Position": {"$x": n["_pos"][0], "$y": n["_pos"][1]}}
+        if is_root:
+            meta["$Title"] = "[ROOT] Dialogue"
+        positions[nid] = meta
+        return out
+
+    layout(root, 0)
+    doc = emit(root, is_root=True)
+    doc["$NodeEditorMetadata"] = {
+        "$Nodes": positions,
+        "$FloatingNodes": [],
+        "$Links": {},
+        "$Groups": [],
+        "$Comments": [],
+        "$WorkspaceID": WORKSPACE_ID,
+    }
+    text = json.dumps(doc, indent=2) + "\n"
+    for out in out_paths:
+        os.makedirs(os.path.dirname(out), exist_ok=True)
+        with open(out, "w", encoding="utf-8") as f:
+            f.write(text)
+        print(f"wrote {out} ({len(positions)} nodes)")
+    return doc
