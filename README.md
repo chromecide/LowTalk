@@ -147,6 +147,7 @@ without it: options that need a missing command are hidden and conditions on mis
 
 | LowTalk | Hytale release line | Hytale pre-release line |
 |---------|---------------------|-------------------------|
+| 0.3.0   | 0.6.3 to 0.6.5 (`LowTalk-0.3.0.jar`) | 0.7.0-pre.2 (`LowTalk-0.3.0+hytale.0.7.0-pre.2.jar`) |
 | 0.2.1   | 0.6.3 to 0.6.5 (`LowTalk-0.2.1.jar`) | 0.7.0-pre.2 (`LowTalk-0.2.1+hytale.0.7.0-pre.2.jar`) |
 | 0.2.0   | does not boot: use 0.2.1 | does not boot: use 0.2.1 |
 | 0.1.1   | 0.6.3 to 0.6.5 (`LowTalk-0.1.1.jar`) | 0.7.0-pre.2 (`LowTalk-0.1.1+hytale.0.7.0-pre.2.jar`) |

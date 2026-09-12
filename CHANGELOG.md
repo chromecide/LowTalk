@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 (2026-09-12)
+
 ### Tool targeting
 
 - The LowTalk tool now reaches 128 blocks, the same distance the game's own editor tools use, and using it on a
