@@ -107,9 +107,10 @@ public final class BuiltinEffects {
             Store<EntityStore> store = ref.getStore();
             Player player = store.getComponent(ref, Player.getComponentType());
             if (player == null) return null;
-            // The shop replaces the dialogue window, so the conversation is over.
-            session.detach();
-            player.getPageManager().openCustomPage(ref, store, new BarterPage(session.getPlayer(), shopId));
+            // The shop replaces the dialogue window; the conversation waits and resumes when the shop closes (Back or
+            // Escape) with whatever follows the command, or ends there if nothing does.
+            session.suspendForPage();
+            player.getPageManager().openCustomPage(ref, store, new com.chromecide.lowtalk.hytale.ShopPage(session.getPlayer(), shopId, session::resumeFromPage));
             return null;
         });
 

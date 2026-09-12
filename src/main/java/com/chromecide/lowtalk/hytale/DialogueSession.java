@@ -54,6 +54,10 @@ public class DialogueSession implements EffectHost {
     private java.util.Set<com.hypixel.hytale.protocol.packets.interface_.HudComponent> hiddenHud;
     private boolean ended = false;
     private boolean opened = false;
+    /** Another page (the shop) has replaced ours; the conversation waits for it to close. */
+    private boolean suspended = false;
+    /** The step to show when the conversation resumes; null means it was suspended before its first step. */
+    private Step resumeStep;
     private Step firstStep;
     private String lastNode;
     /** Bumped on every step so a stale <<wait>> timer cannot advance a later step. */
@@ -152,6 +156,15 @@ public class DialogueSession implements EffectHost {
         }
         s.applyEffects(first.effects());
         if (s.ended) return null;
+        if (s.suspended) {
+            if (first.step() instanceof Step.Finish) {
+                s.detach();
+                return null;
+            }
+            s.resumeStep = first.step();
+            s.firstStep = first.step();
+            return s; // the shop is up; the window opens when it closes
+        }
         if (first.step() instanceof Step.Finish) {
             s.finish();
             return null;
@@ -180,12 +193,14 @@ public class DialogueSession implements EffectHost {
                                        @Nonnull World world, @Nonnull UUID npcId, @Nonnull String npcName, @Nullable String startNode) {
         DialogueSession s = prepare(host, functions, dialogue, player, playerEntity, store, world, npcId, npcName, startNode);
         if (s == null) return null;
-        Player playerComponent = store.getComponent(playerEntity, Player.getComponentType());
-        if (playerComponent == null) {
-            s.finish();
-            return null;
+        if (!s.suspended) {
+            Player playerComponent = store.getComponent(playerEntity, Player.getComponentType());
+            if (playerComponent == null) {
+                s.finish();
+                return null;
+            }
+            playerComponent.getPageManager().openCustomPage(playerEntity, store, s.page);
         }
-        playerComponent.getPageManager().openCustomPage(playerEntity, store, s.page);
         s.afterOpen();
         return s;
     }
@@ -204,7 +219,7 @@ public class DialogueSession implements EffectHost {
         notify(l -> l.onStart(context));
         lastNode = conversation.getCurrentNode();
         if (lastNode != null) nodeReached(lastNode);
-        if (firstStep instanceof Step.Wait wait) {
+        if (firstStep instanceof Step.Wait wait && !suspended) {
             int serial = ++stepSerial;
             long millis = Math.round(Math.min(30.0, wait.seconds()) * 1000.0);
             world.scheduleAfter(() -> {
@@ -292,6 +307,10 @@ public class DialogueSession implements EffectHost {
     }
 
     void onDismissed() {
+        if (suspended) {
+            log("page replaced by another page; waiting for it to close");
+            return;
+        }
         // Escape: the window is gone, so the conversation is over.
         if (!ended) {
             log("ended by dismiss");
@@ -308,6 +327,61 @@ public class DialogueSession implements EffectHost {
     @Override
     public void end() {
         finish();
+    }
+
+    /**
+     * An effect is about to open another page (the shop) in place of ours. The conversation keeps its NPC hold, its
+     * listeners and its place, and {@link #resumeFromPage()} brings the window back when that page closes. If the
+     * conversation has nothing after the command, {@link #advance} ends it instead, as before.
+     */
+    @Override
+    public void suspendForPage() {
+        if (ended) return;
+        suspended = true;
+        log("suspended for another page");
+    }
+
+    /** The page that replaced ours closed (Back or Escape). Reopen the window on the next tick with the waiting step. */
+    public void resumeFromPage() {
+        if (ended || !suspended) return;
+        world.execute(() -> {
+            if (ended || !suspended) return;
+            suspended = false;
+            Step step = resumeStep;
+            resumeStep = null;
+            if (step == null || step instanceof Step.Finish) {
+                detach();
+                return;
+            }
+            try {
+                Ref<EntityStore> ref = player.getReference();
+                if (ref == null || !ref.isValid()) {
+                    detach();
+                    return;
+                }
+                Store<EntityStore> store = ref.getStore();
+                Player playerComponent = store.getComponent(ref, Player.getComponentType());
+                if (playerComponent == null) {
+                    detach();
+                    return;
+                }
+                page.show(step);
+                page.markOpened();
+                playerComponent.getPageManager().openCustomPage(ref, store, page);
+                log("resumed after the other page closed");
+                if (step instanceof Step.Wait wait) {
+                    int serial = ++stepSerial;
+                    long millis = Math.round(Math.min(30.0, wait.seconds()) * 1000.0);
+                    world.scheduleAfter(() -> {
+                        if (ended || serial != stepSerial) return;
+                        advance(conversation::next);
+                    }, millis, java.util.concurrent.TimeUnit.MILLISECONDS);
+                }
+            } catch (RuntimeException e) {
+                host.logger().at(Level.WARNING).log("Could not resume the conversation after the shop: %s", e.toString());
+                detach();
+            }
+        });
     }
 
     /**
@@ -338,7 +412,17 @@ public class DialogueSession implements EffectHost {
         }
         nodeChanged();
         applyEffects(r.effects());
-        if (ended) return; // an effect (e.g. shop) took over the screen
+        if (ended) return; // an effect took over the screen for good
+        if (suspended) {
+            // The shop is up. Nothing after the command: end quietly, the shop stays. Otherwise wait for Back.
+            if (r.step() instanceof Step.Finish) {
+                detach();
+            } else {
+                resumeStep = r.step();
+                log("waiting with step " + r.step().getClass().getSimpleName());
+            }
+            return;
+        }
         if (r.step() instanceof Step.Finish) {
             finish();
             return;

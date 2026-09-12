@@ -154,5 +154,7 @@ public final class TestRunner implements EffectHost {
     @Override public UUID getNpcId() { return npcId; }
     @Override public World getWorld() { return world; }
     @Override public void detach() { detached = true; }
+    @Override public void suspendForPage() { }   // a dry run has no pages; the statements after the command simply run
+    @Override public void resumeFromPage() { }
     @Override public void end() { detached = true; }
 }

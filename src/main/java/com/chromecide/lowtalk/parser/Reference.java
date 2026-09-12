@@ -36,7 +36,7 @@ public final class Reference {
         // ---- items and shops
         cmd("give", "Item_Id [count]", "Put items in the player's inventory.");
         cmd("take", "Item_Id [count]", "Remove items; fails the option if the player lacks them, so guard with has().");
-        cmd("shop", "[Shop_Id]", "Open this NPC's barter shop (or a named one); ends the conversation.");
+        cmd("shop", "[Shop_Id]", "Open this NPC's barter shop (or a named one). Statements after it run when the shop closes; with none, the conversation ends there.");
         // ---- npc
         cmd("attitude", "friendly", "Set this NPC's attitude toward the player: ignore, hostile, neutral, friendly, revered.");
         cmd("anim", "Id [Slot]", "Play an animation on the NPC; slot Emote by default, Status is what the game uses for greetings.");

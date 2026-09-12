@@ -20,6 +20,16 @@ public interface EffectHost {
     /** The effect took over the screen (e.g. opened the shop); the conversation is over, leave the window alone. */
     void detach();
 
+    /**
+     * Tell the conversation another page is about to replace its window; it waits and resumes with the statements
+     * after the command when that page closes, or ends if there are none. Pair with a page whose dismissal calls
+     * {@code resumeFromPage()} on the session.
+     */
+    void suspendForPage();
+
+    /** The page that replaced the window closed; bring the conversation back. */
+    void resumeFromPage();
+
     /** The effect moved the player on (e.g. teleport); end the conversation and close the window. */
     void end();
 }

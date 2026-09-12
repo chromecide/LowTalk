@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Shop
+
+- `<<shop>>` no longer ends the conversation. The game's shop page opens as before; its Back button (or Escape)
+  returns to the dialogue, which carries on with the statements after the command, transcript intact. A
+  `<<shop>>` with nothing after it still ends the conversation as the shop opens.
+
 ### Passages (was: nodes)
 
 - The named stretches of conversation are now called passages everywhere: the Node Editor type is `Passage`, JSON
