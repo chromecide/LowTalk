@@ -208,6 +208,9 @@ plain about what that means.
   sources were read to learn the API, never copied; the rule is in [CONTRIBUTING.md](CONTRIBUTING.md).
 - There is no AI in the mod. Every line a player reads was written by a dialogue author. The plugin makes no
   network calls and sends nothing anywhere.
+- No generative AI imagery, ever. The only images the mod ships today are two tiny frame textures drawn by a
+  script, pixel by pixel, from numbers. Icons, portraits and any other art will be made by people, and
+  contributions containing AI-generated images are rejected; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 If that is not something you want to run on your server, that is a fair choice, and the whole repository is here
 to read. Bugs are ours whichever of us typed them; please report them. Contributions are welcome from people
