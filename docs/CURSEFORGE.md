@@ -65,7 +65,8 @@ their state. It leaves journals and trackers to the mods that do those well.
 
 **Requirements:** a Hytale server. **Supported Hytale versions:** release line 0.6.3 to 0.6.5 (`LowTalk-0.1.1.jar`),
 pre-release line 0.7.0-pre.2 (`LowTalk-0.1.1+hytale.0.7.0-pre.2.jar`); one jar per line is attached to each GitHub
-release and the server refuses the wrong one. No dependencies.
+release and the server refuses the wrong one. No dependencies. LowTalk 0.1.1+ also carries a workaround for the 0.7.0-pre.2
+boot failure `Asset 'Rope' of type Beam doesn't exist` (a Hytale asset load-order bug; see the README).
 
 **AI Use Disclosure**
 

@@ -130,6 +130,25 @@ Each release ships one jar per Hytale line; the server refuses a jar built for t
 the same commit: `./gradlew buildAll` writes them to `build/dist/`. See [CONTRIBUTING.md](CONTRIBUTING.md) for how
 branches and tags follow Hytale's patchlines.
 
+
+### Known Hytale issue: 0.7.0-pre.2 boot failure
+
+Some servers on 0.7.0-pre.2 stop at asset validation with:
+
+```
+FAIL: Asset 'Rope' of type com.hypixel.hytale.builtin.beam.asset.Beam doesn't exist!
+Asset validation FAILED with 1 reason(s): Assets Hytale:Hytale failed to load.
+```
+
+This is a Hytale bug, not a mod bug: the new beam interaction is validated against the Beam asset store while
+the vanilla Hookshot loads, but no store declares that it must load after Beam, and the server visits stores in
+hash-map order. Whether it hits you depends on which mods are installed and how they are loaded, and once it hits
+it hits every boot. LowTalk 0.1.1 and later contain a workaround (`AssetLoadOrderFix`): during setup it adds the
+missing edge, Interaction after Beam, so everything that embeds interactions loads after Beam too. It logs one line,
+"Interaction assets now load after Beam assets", does nothing on the 0.6.x line, and does nothing once Hypixel
+declares the edge. If you see the error with LowTalk installed, check that the jar is 0.1.1 or later and that the
+log line appears before the error.
+
 ## Configuration
 
 `lowtalk.json` in the plugin folder:
