@@ -4,7 +4,7 @@
     "Name": "server.items.LowTalk_Tool.name",
     "Description": "server.items.LowTalk_Tool.description"
   },
-  "Icon": "Icons/Items/EditorTools/Entity.png",
+  "Icon": "Icons/Items/LowTalk/Tool.png",
   "Categories": [
     "Tool.BuilderTool"
   ],

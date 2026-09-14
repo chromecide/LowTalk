@@ -76,6 +76,10 @@ pre-release line 0.7.0-pre.2 (`LowTalk-0.3.0+hytale.0.7.0-pre.2.jar`); one jar p
 release and the server refuses the wrong one. No dependencies. LowTalk 0.1.1+ also carries a workaround for the 0.7.0-pre.2
 boot failure `Asset 'Rope' of type Beam doesn't exist` (a Hytale asset load-order bug; see the README).
 
+**Credits**
+
+The tool icon, a speech bubble being clicked, was drawn by [@Trix8ea](https://x.com/Trix8ea) on X.
+
 **AI Use Disclosure**
 
 LowTalk was designed, directed and play-tested by one person; most of the code

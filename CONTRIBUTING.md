@@ -57,7 +57,8 @@ look.
 AI-generated imagery is rejected, whatever the license or the prompt. That covers icons, portraits, textures,
 screenshots edited with generative tools, and anything else shown to a player or a reader. Draw it, photograph
 it, commission it, or leave it out. Procedurally generated textures are fine when the script that draws them is in
-the repository, as the transcript frame is.
+the repository, as the transcript frame is. An image that ships comes with the file it was made in, kept in
+[docs/art](docs/art/) beside the export, so anyone can check where it came from.
 
 ## Reporting bugs
 
