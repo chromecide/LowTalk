@@ -49,6 +49,18 @@
 - Other mods can name their own commands' arguments with `registerCommandArgs`, and get the same named fields and
   pickers as the built-in commands.
 
+### Where a new dialogue goes
+
+- A dialogue made in game is an asset in a pack by default. It used to be a `.talk` file in the server's own
+  dialogues folder, where nothing but LowTalk could see it: not the Asset Editor, not the Node Editor, and it
+  travelled with nothing. It is now written as JSON into an asset pack, which gives it a form in the Asset Editor,
+  a graph in the Node Editor, fields in here, and a home that ships. The New page keeps `.talk` as a choice for
+  people who write by hand, and still offers the server's folder, which takes text files only.
+- The New page can make an asset pack for you. A pack made by hand needs a manifest, and a name with a colon in
+  it produces a mod id the server cannot read, which stops it starting; the new-pack option writes a correct
+  manifest, refuses a name that would break it, and registers the pack with the running server so the dialogue
+  can go straight in without a restart.
+
 ### Names that match what you see
 
 - The objective list says what each objective asks for. An id such as `Objective_Gather` says nothing about what

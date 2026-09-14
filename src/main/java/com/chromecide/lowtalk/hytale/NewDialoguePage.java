@@ -40,6 +40,9 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
     private static final String BIND_ROLE = "role";
     private static final String BIND_TAG = "tag";
     private static final String BIND_NONE = "none";
+    private static final String NEW_PACK = "$newpack";
+    private static final String FORMAT_JSON = "json";
+    private static final String FORMAT_TALK = "talk";
 
     public static class Data {
         public static final BuilderCodec<Data> CODEC = BuilderCodec.builder(Data.class, Data::new)
@@ -48,12 +51,16 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
                 .append(new KeyedCodec<>("@Speaker", Codec.STRING, false), (d, s) -> d.speaker = s, d -> d.speaker).add()
                 .append(new KeyedCodec<>("@Bind", Codec.STRING, false), (d, s) -> d.bind = s, d -> d.bind).add()
                 .append(new KeyedCodec<>("@Where", Codec.STRING, false), (d, s) -> d.where = s, d -> d.where).add()
+                .append(new KeyedCodec<>("@Format", Codec.STRING, false), (d, s) -> d.format = s, d -> d.format).add()
+                .append(new KeyedCodec<>("@Pack", Codec.STRING, false), (d, s) -> d.pack = s, d -> d.pack).add()
                 .build();
         private String action;
         private String id;
         private String speaker;
         private String bind;
         private String where;
+        private String format;
+        private String pack;
     }
 
     private final LowTalkPlugin plugin;
@@ -143,25 +150,61 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
                             ? "this server only: the Asset Editor and the Node Editor cannot see it, and it does not travel with a pack"
                             : "part of the pack, so it ships with it and opens in the Asset Editor and the Node Editor too")));
         }
+        where.add(new DropdownEntryInfo(LocalizableString.fromString("+ a new asset pack of my own"), NEW_PACK,
+                LocalizableString.fromString("makes a pack in the server's mods folder and puts this dialogue in it")));
         cmd.set("#Where.Entries", where);
         String preferred = plugin.getRegistry().defaultCreationTarget();
-        cmd.set("#Where.Value", preferred.isEmpty() ? "$server" : preferred);
+        String chosen = preferred.isEmpty() ? (targets.size() > 1 ? "$server" : NEW_PACK) : preferred;
+        cmd.set("#Where.Value", chosen);
+        cmd.set("#PackRow.Visible", NEW_PACK.equals(chosen));
+        cmd.set("#PackName.Value", "");
+        evt.addEventBinding(CustomUIEventBindingType.ValueChanged, "#Where",
+                new EventData().append("Action", "WHERE").append("@Where", "#Where.Value"), false);
+        List<DropdownEntryInfo> formats = new ArrayList<>();
+        formats.add(new DropdownEntryInfo(LocalizableString.fromString("an asset (.json)"), FORMAT_JSON,
+                LocalizableString.fromString("a form in the Asset Editor, a graph in the Node Editor, and fields in here")));
+        formats.add(new DropdownEntryInfo(LocalizableString.fromString("a text file (.talk)"), FORMAT_TALK,
+                LocalizableString.fromString("for writing by hand; the Asset Editor opens it as text")));
+        cmd.set("#Format.Entries", formats);
+        cmd.set("#Format.Value", FORMAT_JSON);
         cmd.set("#Status.Text", status);
         evt.addEventBinding(CustomUIEventBindingType.Activating, "#CreateButton", new EventData().append("Action", "CREATE")
-                .append("@Id", "#Id.Value").append("@Speaker", "#Speaker.Value").append("@Bind", "#Bind.Value").append("@Where", "#Where.Value"), false);
+                .append("@Id", "#Id.Value").append("@Speaker", "#Speaker.Value").append("@Bind", "#Bind.Value")
+                .append("@Where", "#Where.Value").append("@Format", "#Format.Value").append("@Pack", "#PackName.Value"), false);
         evt.addEventBinding(CustomUIEventBindingType.Activating, "#CancelButton", new EventData().append("Action", "CANCEL"), false);
     }
 
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Data data) {
         if ("CANCEL".equals(data.action)) { close(); return; }
+        if ("WHERE".equals(data.action)) {
+            UICommandBuilder cmd = new UICommandBuilder();
+            cmd.set("#PackRow.Visible", NEW_PACK.equals(data.where));
+            sendUpdate(cmd, new UIEventBuilder(), false);
+            return;
+        }
         if (!"CREATE".equals(data.action)) return;
         String id = data.id == null ? "" : data.id.trim();
         if (!id.matches("[A-Za-z0-9_-]+")) { fail("The id needs letters, digits, _ or - only."); return; }
         if (plugin.getRegistry().byId(id) != null) { fail("A dialogue called " + id + " already exists."); return; }
         String where = data.where == null || data.where.equals("$server") ? "" : data.where;
-        Path root = targets.get(where);
+        boolean makePack = NEW_PACK.equals(where);
+        Path root;
+        String madePack = null;
+        if (makePack) {
+            try {
+                root = plugin.getRegistry().createPack(playerRef.getUsername(), data.pack == null ? "" : data.pack);
+                madePack = root.getParent() == null ? "the new pack" : root.getParent().getParent().getFileName().toString();
+            } catch (IOException e) {
+                fail(e.getMessage() == null ? "Could not make the pack." : e.getMessage());
+                return;
+            }
+        } else {
+            root = targets.get(where);
+        }
         if (root == null) { fail("That place is not available."); return; }
+        // the server's own folder is not an asset pack, so an asset cannot live in it
+        boolean asJson = !FORMAT_TALK.equals(data.format) && (makePack || !where.isEmpty());
         boolean byTag = npc != null && BIND_TAG.equals(data.bind);
         String tag = byTag ? id : null;
         String binding = npc == null ? "none" : (byTag ? "@" + tag : npc.role());
@@ -172,18 +215,31 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
                 + "Hello there.\n"
                 + "-> Goodbye\n"
                 + "    <<end>>\n";
-        Path file = root.resolve(id + ".talk");
+        Path file;
+        Dialogue d;
         try {
-            Files.createDirectories(root);
-            if (Files.exists(file)) { fail(file.getFileName() + " already exists there."); return; }
-            Files.writeString(file, text, StandardCharsets.UTF_8);
+            if (asJson) {
+                file = plugin.getRegistry().createJson(com.chromecide.lowtalk.parser.DialogueParser.parse(id + ".talk", text, null), root);
+                d = plugin.getRegistry().byId(id);
+                if (d == null) { fail("The new asset did not load; see the server log."); return; }
+            } else {
+                file = root.resolve(id + ".talk");
+                Files.createDirectories(root);
+                if (Files.exists(file)) { fail(file.getFileName() + " already exists there."); return; }
+                Files.writeString(file, text, StandardCharsets.UTF_8);
+                DialogueRegistry.LoadReport report = plugin.getRegistry().loadFile(file, text, true);
+                d = plugin.getRegistry().byId(id);
+                if (!report.ok() || d == null) { fail("The new file did not load: " + String.join(" ", report.messages())); return; }
+            }
         } catch (IOException e) {
             fail("Could not write the file: " + e.getMessage());
             return;
+        } catch (RuntimeException e) {
+            fail("Could not make the dialogue: " + e.getMessage());
+            return;
         }
-        DialogueRegistry.LoadReport report = plugin.getRegistry().loadFile(file, text, true);
-        Dialogue d = plugin.getRegistry().byId(id);
-        if (!report.ok() || d == null) { fail("The new file did not load: " + String.join(" ", report.messages())); return; }
+        if (madePack != null) playerRef.sendMessage(com.hypixel.hytale.server.core.Message.raw(
+                "Made the asset pack " + madePack + " in the server's mods folder."));
         if (byTag) {
             VariableStore vs = plugin.getStore();
             vs.addTag(vs.npc(npc.id()), tag);

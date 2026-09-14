@@ -89,6 +89,38 @@ $C.@PageOverlay {
         }
       }
 
+      Group #PackRow {
+        LayoutMode: Left;
+        Anchor: (Height: 38, Bottom: 8);
+
+        Label {
+          Anchor: (Width: 120);
+          Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+          Text: %server.lowtalk.newdialog.packName;
+        }
+
+        $C.@TextField #PackName {
+          @Anchor = (Width: 460);
+          PlaceholderText: %server.lowtalk.newdialog.packNameHint;
+        }
+      }
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 38, Bottom: 8);
+
+        Label {
+          Anchor: (Width: 120);
+          Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+          Text: %server.lowtalk.newdialog.format;
+        }
+
+        DropdownBox #Format {
+          Anchor: (Width: 460, Height: $C.@DropdownBoxHeight);
+          Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 520, EntryTooltipStyle: $C.@DefaultTextTooltipStyle);
+        }
+      }
+
       Label #Status {
         Anchor: (Height: 36, Top: 4);
         Style: (FontSize: 13, TextColor: #ffd37a, Wrap: true);
