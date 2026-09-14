@@ -5,7 +5,8 @@ $C = "../../Common.ui";
 // whose arguments do not fit) falls back to #Args, the single box of text this row used to be.
 //
 // Every slot carries both a text field and a dropdown; the editor shows whichever suits the argument and hides
-// the other, so one template covers ids, numbers, free text and short fixed lists.
+// the other, so one template covers ids, numbers, free text and lists. The lists search as you type (the client's
+// own ShowSearchInput), so an argument that is an id is one control, not a box to type in and a list to pick from.
 Group {
   LayoutMode: Left;
   Anchor: (Height: 38, Bottom: 6);
@@ -26,6 +27,7 @@ Group {
   DropdownBox #Name {
     Anchor: (Width: 150, Right: 8, Height: $C.@DropdownBoxHeight);
     Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 420, EntryTooltipStyle: $C.@DefaultTextTooltipStyle);
+    ShowSearchInput: true;
   }
 
   Group #Arg0 {
@@ -46,7 +48,8 @@ Group {
     DropdownBox #C0 {
       Anchor: (Right: 8, Height: $C.@DropdownBoxHeight);
       FlexWeight: 1;
-      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 240);
+      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
+      ShowSearchInput: true;
     }
   }
 
@@ -68,7 +71,8 @@ Group {
     DropdownBox #C1 {
       Anchor: (Right: 8, Height: $C.@DropdownBoxHeight);
       FlexWeight: 1;
-      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 240);
+      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
+      ShowSearchInput: true;
     }
   }
 
@@ -90,7 +94,8 @@ Group {
     DropdownBox #C2 {
       Anchor: (Right: 8, Height: $C.@DropdownBoxHeight);
       FlexWeight: 1;
-      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 240);
+      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
+      ShowSearchInput: true;
     }
   }
 
@@ -112,7 +117,8 @@ Group {
     DropdownBox #C3 {
       Anchor: (Right: 8, Height: $C.@DropdownBoxHeight);
       FlexWeight: 1;
-      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 240);
+      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
+      ShowSearchInput: true;
     }
   }
 
@@ -125,6 +131,7 @@ Group {
   DropdownBox #Pick {
     Anchor: (Width: 210, Right: 8, Height: $C.@DropdownBoxHeight);
     Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 360);
+    ShowSearchInput: true;
   }
 
   $C.@SecondaryTextButton #Up {

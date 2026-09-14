@@ -177,30 +177,7 @@ public final class JsonDialogues {
         }
     }
 
-    /**
-     * The part of a data set worth showing in a dropdown: entries containing the typed text, longest lists first
-     * trimmed to a limit. There are thousands of items and sounds, so an in-game picker has to narrow as the creator
-     * types rather than offer the lot. Entries that start with the text come before entries that merely contain it.
-     * When nothing matches, the start of the whole list is returned, so the dropdown is never empty.
-     */
-    public static java.util.List<String> names(String id, @Nullable String query, int limit) {
-        java.util.List<String> all = names(id);
-        String q = query == null ? "" : query.trim().toLowerCase(java.util.Locale.ROOT);
-        if (q.isEmpty()) return all.size() <= limit ? all : new java.util.ArrayList<>(all.subList(0, limit));
-        java.util.List<String> starts = new java.util.ArrayList<>();
-        java.util.List<String> contains = new java.util.ArrayList<>();
-        for (String n : all) {
-            String l = n.toLowerCase(java.util.Locale.ROOT);
-            if (l.startsWith(q)) starts.add(n);
-            else if (l.contains(q)) contains.add(n);
-            if (starts.size() >= limit) break;
-        }
-        starts.addAll(contains);
-        if (starts.isEmpty()) return all.size() <= limit ? all : new java.util.ArrayList<>(all.subList(0, limit));
-        return starts.size() <= limit ? starts : new java.util.ArrayList<>(starts.subList(0, limit));
-    }
-
-    /** How many entries a data set has, for deciding whether a picker needs filtering. */
+    /** How many entries a data set has. */
     public static int size(String id) {
         return names(id).size();
     }

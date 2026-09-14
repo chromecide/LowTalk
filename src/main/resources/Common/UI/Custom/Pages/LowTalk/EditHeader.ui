@@ -23,6 +23,7 @@ Group {
     DropdownBox #NpcPick {
       Anchor: (Width: 300, Height: $C.@DropdownBoxHeight);
       Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 360);
+      ShowSearchInput: true;
     }
   }
 
@@ -67,6 +68,7 @@ Group {
     DropdownBox #StartNode {
       Anchor: (Width: 300, Right: 20, Height: $C.@DropdownBoxHeight);
       Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
+      ShowSearchInput: true;
     }
 
     Label {

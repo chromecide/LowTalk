@@ -41,6 +41,7 @@ $C.@PageOverlay {
         DropdownBox #NodeJump {
           Anchor: (Width: 220, Right: 6, Height: $C.@DropdownBoxHeight);
           Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 260);
+          ShowSearchInput: true;
         }
 
         $C.@SecondaryTextButton #BackButton {

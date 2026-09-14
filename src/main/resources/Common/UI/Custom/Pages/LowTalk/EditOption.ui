@@ -27,6 +27,7 @@ Group {
   DropdownBox #Target {
     Anchor: (Width: 240, Right: 6, Height: $C.@DropdownBoxHeight);
     Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
+    ShowSearchInput: true;
   }
 
   $C.@SecondaryTextButton #Go {

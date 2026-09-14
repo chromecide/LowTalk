@@ -17,12 +17,13 @@
   on `objective` it offered dialogue ids, which are not objectives. Each command's picker now fills the argument
   that is actually an id, and a style is chosen from a list on the row itself.
 - Items, sounds, entity effects, objectives and objective lines can be picked from the game's own lists. These are
-  the arguments of the most-used commands, and until now every one of them had to be typed from memory. Each list
-  sits beside the argument it fills. A list short enough to read through, such as the game's particle effects, is
-  the whole control: there is no text box to type into at all. A long one (there are thousands of items and
-  sounds) keeps its text box, because typing into it is what narrows the list. An argument whose list is only a
-  suggestion, such as the time of day, always keeps its text box, and so does one whose value is built from a
-  variable.
+  the arguments of the most-used commands, and until now every one of them had to be typed from memory. An
+  argument that is an id is one control: a list that searches as you type, using the search box the game's own
+  dropdowns have. There is no separate text box to type into, and no picker sitting at the far end of the row.
+  A text box appears only where a list cannot be the whole answer: an argument whose list is a suggestion rather
+  than the truth, such as the time of day, and one whose value is not a plain id, such as one built from a
+  variable, so it can still be read and edited.
+- The lists of passages, of NPC roles and tags, and of command names search as you type too.
 - The Add menu says what each kind of row does, and offers the commands people reach for by name: give an item,
   start an objective, open the shop, play an animation, play a sound, show a title, show a notification, play a
   particle effect. Picking one inserts that command ready to fill in, instead of hiding it behind "Command".
