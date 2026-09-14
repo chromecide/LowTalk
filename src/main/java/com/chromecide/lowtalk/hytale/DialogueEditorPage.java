@@ -110,7 +110,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
     public enum Action {
         LINE_TEXT, LINE_SPEAKER, LINE_BUTTON,
         OPT_TEXT, OPT_TARGET, OPT_GO, OPT_MORE, OPT_IF, OPT_SHOW, OPT_ONCE, OPT_BODY, OPT_IF_PICK, OPT_SHOW_PICK,
-        CMD_NAME, CMD_ARGS, CMD_SLOT, CMD_SLOT_PICK, CMD_PICK, SET, JUMP_NODE, JUMP_GO, INPUT, WAIT,
+        CMD_NAME, CMD_ARGS, CMD_SLOT, CMD_SLOT_PICK, CMD_SLOT_FIND, CMD_PICK, SET, JUMP_NODE, JUMP_GO, INPUT, WAIT,
         BRANCH_COND, BRANCH_COND_PICK, BRANCH_BODY, BRANCH_ADD, BRANCH_DEL, BLOCK_BODY, ALT_ADD, ALT_DEL,
         UP, DOWN, DEL, ADD_KIND, ADD, ADD_NODE, RENAME, JUMP, BACK, HEADER, DELETE_NODE,
         H_BINDINGS, H_NPC_PICK, H_SPEAKER, H_TITLE, H_START, H_ON, H_PORTRAIT, H_SCOPE, H_LAYOUT, H_HISTORY,
@@ -627,18 +627,25 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         String dataset = CommandSpecs.datasetFor(spec, slot, values);
         List<String> all = dataset == null ? List.of() : JsonDialogues.names(dataset);
         boolean chooseOnly = chooseOnly(spec, slot, values);
-        boolean hasList = choice || dataset != null;
+        // a list too long to hand over is found on its own page instead, where typing narrows it on the server
+        boolean find = !choice && !a.open() && all.size() > WHOLE_LIST_MAX;
+        boolean hasList = (choice || dataset != null) && !find;
+        boolean field = !chooseOnly && !find || (find && !current.isEmpty() && !all.contains(current));
         cmd.set(sel + " #L" + slot + ".Text", a.label());
-        cmd.set(sel + " #V" + slot + ".Visible", !chooseOnly);
+        cmd.set(sel + " #V" + slot + ".Visible", field);
         cmd.set(sel + " #C" + slot + ".Visible", hasList);
-        if (!chooseOnly) {
+        cmd.set(sel + " #B" + slot + ".Visible", find);
+        if (field) {
             cmd.set(sel + " #V" + slot + ".Value", current);
             slotChange(evt, sel + " #V" + slot, row, slot);
         }
+        if (find) {
+            cmd.set(sel + " #B" + slot + ".Text", current.isEmpty() ? "choose a " + a.label() + "..." : current);
+            evt.addEventBinding(CustomUIEventBindingType.Activating, sel + " #B" + slot,
+                    rowData(Action.CMD_SLOT_FIND, row).append("Slot", String.valueOf(slot)), false);
+        }
         if (!hasList) return;
-        List<String> offer = choice ? a.choices()
-                : chooseOnly ? all
-                : JsonDialogues.names(dataset, current, PICK_LIMIT);
+        List<String> offer = choice ? a.choices() : chooseOnly ? all : JsonDialogues.names(dataset, current, PICK_LIMIT);
         cmd.set(sel + " #C" + slot + ".Entries", listEntries(a, current, offer, all.size(), chooseOnly));
         cmd.set(sel + " #C" + slot + ".Value", chooseOnly ? chosen(current, offer) : NONE);
         evt.addEventBinding(CustomUIEventBindingType.ValueChanged, sel + " #C" + slot,
@@ -667,7 +674,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
     private List<DropdownEntryInfo> listEntries(CommandSpecs.Arg a, String current, List<String> offer,
                                                 int total, boolean chooseOnly) {
         List<DropdownEntryInfo> entries = new ArrayList<>();
-        entries.add(entry(!chooseOnly ? offer.size() + " of " + total + ", type beside it to narrow..."
+        entries.add(entry(!chooseOnly ? "or type your own (" + offer.size() + " suggestions)"
                 : a.optional() ? "(not set)"
                 : "choose a " + a.label() + "...", NONE, null));
         boolean seen = false;
@@ -907,6 +914,21 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 // the caret would jump, and it no longer has to: the list beside it searches itself
                 if (spec.arg(slot).type() == CommandSpecs.Type.CHOICE) return true;
                 if (spec.arg(slot).type() == CommandSpecs.Type.ASSET) refreshList(row, slot);
+                return false;
+            }
+            case CMD_SLOT_FIND -> {
+                if (r == null) return false;
+                Statement s = draft.view(scope).get(r.statement());
+                if (!(s instanceof Statement.Command c)) return false;
+                CommandSpecs.Spec spec = CommandSpecs.of(c.name());
+                List<String> values = CommandSpecs.values(c);
+                if (spec == null || values == null || slot < 0 || slot >= spec.size()) return false;
+                String dataset = CommandSpecs.datasetFor(spec, slot, values);
+                if (dataset == null) return false;
+                int statement = r.statement();
+                PickerPage.open(plugin, playerRef, ref, store,
+                        "Choose a " + spec.arg(slot).label() + " for <<" + c.name() + ">>", dataset, values.get(slot),
+                        picked -> problem(setArg(statement, slot, picked)), this);
                 return false;
             }
             case CMD_SLOT_PICK -> {

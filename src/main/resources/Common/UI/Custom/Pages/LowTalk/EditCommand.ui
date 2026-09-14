@@ -4,9 +4,10 @@ $C = "../../Common.ui";
 // "scale" and "seconds" for vfx. A command the editor has no argument names for (one another mod added, or one
 // whose arguments do not fit) falls back to #Args, the single box of text this row used to be.
 //
-// Every slot carries both a text field and a dropdown; the editor shows whichever suits the argument and hides
-// the other, so one template covers ids, numbers, free text and lists. The lists search as you type (the client's
-// own ShowSearchInput), so an argument that is an id is one control, not a box to type in and a list to pick from.
+// Every slot carries a text field, a dropdown and a button; the editor shows whichever suits the argument and
+// hides the rest, so one template covers free text, numbers, fixed choices and ids. A list short enough to hand
+// over is a dropdown that searches itself; a list of thousands is a button that opens the picker page, because a
+// dropdown is only filled once and could never search the rest.
 Group {
   LayoutMode: Left;
   Anchor: (Height: 38, Bottom: 6);
@@ -51,6 +52,12 @@ Group {
       Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
       ShowSearchInput: true;
     }
+
+    $C.@SecondaryTextButton #B0 {
+      @Anchor = (Left: 0, Right: 8);
+      @Text = "";
+      FlexWeight: 1;
+    }
   }
 
   Group #Arg1 {
@@ -73,6 +80,12 @@ Group {
       FlexWeight: 1;
       Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
       ShowSearchInput: true;
+    }
+
+    $C.@SecondaryTextButton #B1 {
+      @Anchor = (Left: 0, Right: 8);
+      @Text = "";
+      FlexWeight: 1;
     }
   }
 
@@ -97,6 +110,12 @@ Group {
       Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
       ShowSearchInput: true;
     }
+
+    $C.@SecondaryTextButton #B2 {
+      @Anchor = (Left: 0, Right: 8);
+      @Text = "";
+      FlexWeight: 1;
+    }
   }
 
   Group #Arg3 {
@@ -119,6 +138,12 @@ Group {
       FlexWeight: 1;
       Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
       ShowSearchInput: true;
+    }
+
+    $C.@SecondaryTextButton #B3 {
+      @Anchor = (Left: 0, Right: 8);
+      @Text = "";
+      FlexWeight: 1;
     }
   }
 

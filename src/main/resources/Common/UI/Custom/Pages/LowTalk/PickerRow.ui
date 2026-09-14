@@ -1,0 +1,19 @@
+$C = "../../Common.ui";
+
+// One id in the picker: the whole row is the button, so a long list is quick to click through.
+Group {
+  LayoutMode: Left;
+  Anchor: (Height: 34, Bottom: 4);
+
+  Label #Current {
+    Anchor: (Width: 26);
+    Style: (FontSize: 14, TextColor: #8fd0ff, VerticalAlignment: Center, HorizontalAlignment: Center);
+    Text: "";
+  }
+
+  $C.@SecondaryTextButton #Choose {
+    @Anchor = (Left: 0);
+    @Text = "";
+    FlexWeight: 1;
+  }
+}

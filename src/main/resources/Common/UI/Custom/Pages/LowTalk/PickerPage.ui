@@ -1,0 +1,71 @@
+$C = "../../Common.ui";
+
+// Choosing one id out of a list too long to hand to a dropdown: there are thousands of items and sounds. Typing in
+// the box narrows the list on the server and the rows are sent again, which is how the game's own particle, sound
+// and entity pickers work. Closing it returns to whatever opened it, with nothing else changed.
+$C.@PageOverlay {
+  LayoutMode: Full;
+
+  $C.@DecoratedContainer {
+    Anchor: (Width: 700, Height: 640);
+
+    #Title {
+      $C.@Title #PageTitle {
+        @Text = "";
+      }
+    }
+
+    #Content {
+      LayoutMode: Top;
+      Padding: (Full: 14);
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Height: 38, Bottom: 8);
+
+        Label #SearchLabel {
+          Anchor: (Width: 70);
+          Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
+          Text: %server.lowtalk.picker.find;
+        }
+
+        $C.@TextField #Search {
+          FlexWeight: 1;
+          PlaceholderText: %server.lowtalk.picker.findHint;
+        }
+      }
+
+      Group #Rows {
+        FlexWeight: 1;
+        LayoutMode: TopScrolling;
+        ScrollbarStyle: $C.@DefaultScrollbarStyle;
+        Padding: (Right: 8);
+      }
+
+      Label #Status {
+        Anchor: (Height: 22, Top: 4);
+        Style: (FontSize: 12, TextColor: #8fa3b8, Wrap: true);
+        Text: "";
+      }
+
+      Group {
+        LayoutMode: Left;
+        Anchor: (Top: 8, Height: 38);
+
+        $C.@SecondaryTextButton #ClearButton {
+          @Anchor = (Width: 150, Right: 8);
+          @Text = %server.lowtalk.picker.clear;
+        }
+
+        Label #Fill {
+          FlexWeight: 1;
+        }
+
+        $C.@SecondaryTextButton #CancelButton {
+          @Anchor = (Width: 120);
+          @Text = %server.lowtalk.picker.cancel;
+        }
+      }
+    }
+  }
+}

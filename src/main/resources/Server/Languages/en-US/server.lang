@@ -165,3 +165,7 @@ lowtalk.browse.test = Test
 lowtalk.browse.new = New dialogue
 lowtalk.browse.reload = Reload files
 lowtalk.msg.notLoaded = LowTalk: {name} is not loaded (see the server log, or save it again to see why).
+lowtalk.picker.find = Find
+lowtalk.picker.findHint = type part of a name; the list follows as you type
+lowtalk.picker.clear = Leave it empty
+lowtalk.picker.cancel = Cancel
