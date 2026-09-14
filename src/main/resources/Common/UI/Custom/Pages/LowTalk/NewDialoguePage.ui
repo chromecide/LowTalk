@@ -5,7 +5,8 @@ $C.@PageOverlay {
   LayoutMode: Middle;
 
   $C.@DecoratedContainer {
-    Anchor: (Width: 640, Height: 420);
+    // tall enough for every row at once, including the pack name, which only shows when a new pack is being made
+    Anchor: (Width: 640, Height: 540);
 
     #Title {
       $C.@Title #PageTitle {
@@ -125,6 +126,11 @@ $C.@PageOverlay {
         Anchor: (Height: 36, Top: 4);
         Style: (FontSize: 13, TextColor: #ffd37a, Wrap: true);
         Text: "";
+      }
+
+      // takes up whatever room the hidden rows would have used, so the buttons stay at the bottom
+      Label #Spacer {
+        FlexWeight: 1;
       }
 
       Group {
