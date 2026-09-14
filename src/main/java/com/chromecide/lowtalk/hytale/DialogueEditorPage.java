@@ -1325,8 +1325,8 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                         .encode(asset, com.hypixel.hytale.codec.EmptyExtraInfo.EMPTY).asDocument()
                         .toJson(org.bson.json.JsonWriterSettings.builder().indent(true).build());
                 Files.writeString(json, out + "\n", StandardCharsets.UTF_8);
-                var store = JsonDialogues.store();
-                if (store != null) store.loadAssetsFromPaths(registry.packNameFor(json), List.of(json));
+                // not through the asset store: writing to one takes a lock the world thread cannot wait for
+                registry.loadAsset(d.id(), json.getFileName().toString(), d, registry.packNameFor(json), true);
                 status = recovered + "Saved " + json.getFileName() + "."
                         + (warning != null ? " Warning: " + warning : "");
             }

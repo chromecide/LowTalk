@@ -249,8 +249,9 @@ public class LowTalkCommand extends AbstractCommandCollection {
                             .encode(asset, com.hypixel.hytale.codec.EmptyExtraInfo.EMPTY).asDocument()
                             .toJson(org.bson.json.JsonWriterSettings.builder().indent(true).build());
                     java.nio.file.Files.writeString(out, json + "\n", java.nio.charset.StandardCharsets.UTF_8);
-                    var store = com.chromecide.lowtalk.hytale.json.JsonDialogues.store();
-                    if (store != null) store.loadAssetsFromPaths(packName, java.util.List.of(out));
+                    // into the registry rather than the asset store: a store write waits on a lock the world
+                    // thread holds while it ticks, and never gets it
+                    plugin.getRegistry().loadAsset(jsonId, out.getFileName().toString(), d, packName, true);
                     context.sendMessage(jsonId.equals(id)
                             ? msg(plugin, "wroteJson").param("file", out.getFileName().toString()).param("pack", packName).param("id", jsonId)
                             : msg(plugin, "wroteJsonKept").param("file", out.getFileName().toString()).param("pack", packName).param("id", jsonId).param("original", id));

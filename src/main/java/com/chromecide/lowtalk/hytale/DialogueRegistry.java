@@ -445,8 +445,10 @@ public class DialogueRegistry {
                 .encode(asset, com.hypixel.hytale.codec.EmptyExtraInfo.EMPTY).asDocument()
                 .toJson(org.bson.json.JsonWriterSettings.builder().indent(true).build());
         Files.writeString(file, out + "\n", StandardCharsets.UTF_8);
-        var store = com.chromecide.lowtalk.hytale.json.JsonDialogues.store();
-        if (store != null) store.loadAssetsFromPaths(packNameFor(file), java.util.List.of(file));
+        // Straight into the registry, not through the asset store: every write to a store takes the asset
+        // registry's write lock, and the world thread holds a read lock while it ticks, so asking for it there
+        // parks the server for good. The store reads the file the next time the server starts.
+        loadAsset(d.id(), file.getFileName().toString(), d, packNameFor(file), true);
         return file;
     }
 
