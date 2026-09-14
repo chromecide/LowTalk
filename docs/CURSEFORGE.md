@@ -78,7 +78,8 @@ boot failure `Asset 'Rope' of type Beam doesn't exist` (a Hytale asset load-orde
 
 **Credits**
 
-The tool icon, a speech bubble being clicked, was drawn by [@Trix8ea](https://x.com/Trix8ea) on X.
+The tool icon, a speech bubble being clicked, was drawn by [@Trix8ea](https://x.com/Trix8ea) on X and is used
+with their permission. The mod is MIT; the icon is not, and stays the artist's.
 
 **AI Use Disclosure**
 

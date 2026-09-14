@@ -58,7 +58,9 @@ AI-generated imagery is rejected, whatever the license or the prompt. That cover
 screenshots edited with generative tools, and anything else shown to a player or a reader. Draw it, photograph
 it, commission it, or leave it out. Procedurally generated textures are fine when the script that draws them is in
 the repository, as the transcript frame is. An image that ships comes with the file it was made in, kept in
-[docs/art](docs/art/) beside the export, so anyone can check where it came from.
+[docs/art](docs/art/) beside the export, so anyone can check where it came from. Art may be given under its own
+terms rather than the CLA, and an artist keeps their copyright if that is what was agreed; whatever was agreed is
+written down in `docs/art/README.md`.
 
 ## Reporting bugs
 

@@ -30,5 +30,20 @@ eb8727e87128bdca158a30f4012f1b8e5a8096153fd2130602e6d3f08593f3fc  tool-icon.png 
 Hytale's client names cached assets by their sha256, so the first hash is also what appears in a client log line
 for `Icons/Items/LowTalk/Tool.png`.
 
+## Licence
+
+LowTalk's code and documentation are MIT. **These images are not.**
+
+The icon and its source file remain the property of [@Trix8ea](https://x.com/Trix8ea), who provided them for use
+in LowTalk. They are outside the [MIT licence](../../LICENSE) and were not contributed under the
+[CLA](../../CLA.md), so nothing in either document grants rights over them. What that means in practice:
+
+- LowTalk ships the icon, and anyone may redistribute LowTalk with it, a fork of the mod included.
+- The icon may not be taken out of LowTalk for another project, used as the branding of a different mod, sold,
+  relicensed, or used as training data.
+- For anything else, ask the artist.
+
+## Notes
+
 Item icons must live under `Icons/ItemsGenerated/` or `Icons/Items/`; anywhere else and the server rejects the
 whole item asset at load, and the item shows as a question mark in the hotbar.

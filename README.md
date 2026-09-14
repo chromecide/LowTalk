@@ -228,7 +228,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Contributors accept a short
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE). That covers the code, the documentation, and the frame textures the repository draws
+with a script.
+
+The tool icon is the exception. It belongs to [@Trix8ea](https://x.com/Trix8ea), who provided it for use in
+LowTalk, and it is not under the MIT licence. The terms are in [docs/art](docs/art/).
 
 ## Credits
 
