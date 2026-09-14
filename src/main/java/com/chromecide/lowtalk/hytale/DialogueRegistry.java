@@ -468,7 +468,7 @@ public class DialogueRegistry {
      * Make an asset pack and register it with the running server, so a dialogue can go straight into it. A pack is
      * how work ships and how the Asset Editor and the Node Editor find it, and making one by hand means a manifest
      * whose name must not contain a colon: one that does produces a mod id the server cannot read, and it then
-     * refuses to start. Returns the folder inside it that dialogues go in.
+     * refuses to start. Returns the pack's own folder; dialogues go in {@link #PACK_DIR} inside it.
      */
     public Path createPack(@Nonnull String group, @Nonnull String name) throws IOException {
         String g = clean(group);
@@ -497,7 +497,28 @@ public class DialogueRegistry {
         Files.writeString(dir.resolve("manifest.json"), manifest, StandardCharsets.UTF_8);
         String id = register(dir);
         logger.at(Level.INFO).log("Created asset pack %s at %s", id, dir);
-        return dir.resolve(PACK_DIR);
+        return dir;
+    }
+
+    /**
+     * Remove a pack this session just made, when what it was made for could not be written. Only ever touches a
+     * folder holding nothing but the manifest and the empty folders that came with it, so a pack with anything in
+     * it is left alone.
+     */
+    public void removeEmptyPack(@Nonnull Path packRoot) {
+        try {
+            List<Path> files;
+            try (Stream<Path> walk = Files.walk(packRoot)) {
+                files = walk.filter(Files::isRegularFile).toList();
+            }
+            if (files.size() != 1 || !files.get(0).getFileName().toString().equals("manifest.json")) return;
+            try (Stream<Path> walk = Files.walk(packRoot)) {
+                for (Path p : walk.sorted(java.util.Comparator.reverseOrder()).toList()) Files.deleteIfExists(p);
+            }
+            logger.at(Level.INFO).log("Removed the empty pack at %s", packRoot);
+        } catch (IOException | RuntimeException e) {
+            logger.at(Level.WARNING).log("Could not remove the empty pack at %s: %s", packRoot, e.toString());
+        }
     }
 
     /** Read a pack's manifest and register it with the asset module, so this session can use it at once. */

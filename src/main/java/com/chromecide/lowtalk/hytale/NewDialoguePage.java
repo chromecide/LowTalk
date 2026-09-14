@@ -192,28 +192,38 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
         String id = data.id == null ? "" : data.id.trim();
         if (!id.matches("[A-Za-z0-9_-]+")) { fail("The id needs letters, digits, _ or - only."); return; }
         if (plugin.getRegistry().byId(id) != null) { fail("A dialogue called " + id + " already exists."); return; }
+        // Making a pack registers it with the asset module and loading an asset touches the asset stores, so the
+        // whole of it runs on the world thread rather than on the thread the button's event arrived on.
         String where = data.where == null || data.where.equals("$server") ? "" : data.where;
+        String format = data.format == null ? "" : data.format;
+        String bind = data.bind == null ? "" : data.bind;
+        String speaker = data.speaker == null || data.speaker.isBlank()
+                ? (npc == null ? "Narrator" : npc.name()) : data.speaker.trim();
+        store.getExternalData().getWorld().execute(() -> create(id, where, format, bind, speaker, store));
+    }
+
+    /** Write the new dialogue, making its pack first when that is what was asked for. World thread. */
+    private void create(String id, String where, String format, String bind, String speaker, Store<EntityStore> store) {
         boolean makePack = NEW_PACK.equals(where);
+        Path packRoot = null;
         Path root;
-        String madePack = null;
-        if (makePack) {
-            try {
-                root = plugin.getRegistry().createPack(playerRef.getUsername(), packName);
-                madePack = root.getParent() == null ? "the new pack" : root.getParent().getParent().getFileName().toString();
-            } catch (IOException e) {
-                fail(e.getMessage() == null ? "Could not make the pack." : e.getMessage());
-                return;
+        try {
+            if (makePack) {
+                packRoot = plugin.getRegistry().createPack(playerRef.getUsername(), packName);
+                root = packRoot.resolve(DialogueRegistry.PACK_DIR);
+            } else {
+                root = targets.get(where);
             }
-        } else {
-            root = targets.get(where);
+        } catch (IOException | RuntimeException e) {
+            fail(e.getMessage() == null ? "Could not make the pack: " + e : e.getMessage());
+            return;
         }
         if (root == null) { fail("That place is not available."); return; }
         // the server's own folder is not an asset pack, so an asset cannot live in it
-        boolean asJson = !FORMAT_TALK.equals(data.format) && (makePack || !where.isEmpty());
-        boolean byTag = npc != null && BIND_TAG.equals(data.bind);
+        boolean asJson = !FORMAT_TALK.equals(format) && (makePack || !where.isEmpty());
+        boolean byTag = npc != null && BIND_TAG.equals(bind);
         String tag = byTag ? id : null;
         String binding = npc == null ? "none" : (byTag ? "@" + tag : npc.role());
-        String speaker = data.speaker == null || data.speaker.isBlank() ? (npc == null ? "Narrator" : npc.name()) : data.speaker.trim();
         String text = "npc: " + binding + "\n"
                 + "speaker: " + speaker + "\n\n"
                 + "== start\n"
@@ -226,25 +236,25 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
             if (asJson) {
                 file = plugin.getRegistry().createJson(com.chromecide.lowtalk.parser.DialogueParser.parse(id + ".talk", text, null), root);
                 d = plugin.getRegistry().byId(id);
-                if (d == null) { fail("The new asset did not load; see the server log."); return; }
+                if (d == null) throw new IOException("the new asset did not load; see the server log");
             } else {
                 file = root.resolve(id + ".talk");
                 Files.createDirectories(root);
-                if (Files.exists(file)) { fail(file.getFileName() + " already exists there."); return; }
+                if (Files.exists(file)) throw new IOException(file.getFileName() + " already exists there");
                 Files.writeString(file, text, StandardCharsets.UTF_8);
                 DialogueRegistry.LoadReport report = plugin.getRegistry().loadFile(file, text, true);
                 d = plugin.getRegistry().byId(id);
-                if (!report.ok() || d == null) { fail("The new file did not load: " + String.join(" ", report.messages())); return; }
+                if (!report.ok() || d == null) throw new IOException("the new file did not load: " + String.join(" ", report.messages()));
             }
-        } catch (IOException e) {
-            fail("Could not write the file: " + e.getMessage());
-            return;
-        } catch (RuntimeException e) {
-            fail("Could not make the dialogue: " + e.getMessage());
+        } catch (IOException | RuntimeException e) {
+            // a pack made a moment ago for a dialogue that could not be written is of no use to anyone
+            if (packRoot != null) plugin.getRegistry().removeEmptyPack(packRoot);
+            plugin.getLogger().at(java.util.logging.Level.WARNING).withCause(e).log("Could not create dialogue %s", id);
+            fail("Could not make the dialogue: " + (e.getMessage() == null ? e.toString() : e.getMessage()));
             return;
         }
-        if (madePack != null) playerRef.sendMessage(com.hypixel.hytale.server.core.Message.raw(
-                "Made the asset pack " + madePack + " in the server's mods folder."));
+        if (packRoot != null) playerRef.sendMessage(com.hypixel.hytale.server.core.Message.raw(
+                "Made the asset pack " + packRoot.getFileName() + " in the server's mods folder."));
         if (byTag) {
             VariableStore vs = plugin.getStore();
             vs.addTag(vs.npc(npc.id()), tag);
@@ -254,10 +264,8 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
         playerRef.sendMessage(byTag
                 ? LowTalkCommand.msg(plugin, "createdTagged").param("file", file.getFileName().toString()).param("npc", npc.name()).param("tag", tag)
                 : LowTalkCommand.msg(plugin, "created").param("file", file.getFileName().toString()));
-        store.getExternalData().getWorld().execute(() -> {
-            if (!playerEntity.isValid()) return;
-            DialogueEditorPage.open(plugin, d, playerRef, playerEntity, store, npc == null ? BrowsePage.narrator(d) : npc);
-        });
+        if (!playerEntity.isValid()) return;
+        DialogueEditorPage.open(plugin, d, playerRef, playerEntity, store, npc == null ? BrowsePage.narrator(d) : npc);
     }
 
     private void fail(String message) {
