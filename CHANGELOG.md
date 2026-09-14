@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.1 (2026-09-14)
+
 - The LowTalk tool has its own icon: a speech bubble being clicked, drawn by
   [@Trix8ea](https://x.com/Trix8ea). It replaces the borrowed builder-tools icon. The layered source, both
   colourways and their checksums are in `docs/art/`, so the provenance of every image the mod ships can be
