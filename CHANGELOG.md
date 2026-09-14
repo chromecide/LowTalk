@@ -4,6 +4,11 @@
 
 ## 0.3.1 (2026-09-14)
 
+- A command typed into a line's words no longer breaks the dialogue. Writing `<<wait 2>>` at the end of a line of
+  speech, rather than on a line of its own, produced a file the parser refused; the dialogue then dropped out of
+  the registry, disappeared from the browser, and the open editor said "no longer loaded; nothing was saved" with
+  no way to rescue the work on screen. Such a line is now kept as text, the validator warns which snippet looks
+  like a command, and the editor falls back to the file the dialogue came from if the registry has lost it.
 - Installing the mod no longer puts words in vanilla NPCs' mouths. `CopyExamplesOnFirstRun` now defaults to
   false, so a fresh server has no bound dialogue until someone writes or copies one. The examples still ship
   inside the asset pack, bound to nothing, ready to open in the Asset Editor or through `/lowtalk browse`.

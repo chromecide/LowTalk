@@ -307,7 +307,10 @@ public final class DialogueParser {
         if (cmd.matches()) {
             return parseCommand(l, cmd.group(1), minIndent);
         }
-        if (l.text().startsWith("<<") || l.text().endsWith(">>")) {
+        // Only a line that opens with << is a command. Text may legitimately end with ">>", and a line that carries a
+        // command in the middle of its words is kept as text: the validator warns about it rather than refusing the
+        // whole file, which used to drop a dialogue the in-game editor had just written.
+        if (l.text().startsWith("<<")) {
             throw new ParseException(p, "malformed command, expected <<...>>: " + l.text());
         }
         idx++;

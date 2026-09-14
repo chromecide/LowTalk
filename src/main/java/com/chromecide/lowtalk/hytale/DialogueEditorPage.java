@@ -122,6 +122,9 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
     private record RowRef(int statement, int sub) {}
 
     private final LowTalkPlugin plugin;
+    /** Where this dialogue was loaded from when the editor opened. A save falls back to it if the registry has
+     *  dropped the dialogue in the meantime, so a bad reload cannot strand the work on screen. */
+    private final DialogueRegistry.Loaded origin;
     private final UUID npcId;
     private final String npcName;
     private DialogueDraft draft;
@@ -142,6 +145,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         this.npcName = npcName;
         this.draft = new DialogueDraft(dialogue);
         this.scope = Scope.node(draft.startNode());
+        this.origin = plugin.getRegistry().loadedFor(dialogue.id());
     }
 
     /** Open the editor for a dialogue on an NPC. World thread. */
@@ -741,11 +745,15 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         Dialogue d = draft.toDialogue();
         DialogueRegistry registry = plugin.getRegistry();
         DialogueRegistry.Loaded loaded = registry.loadedFor(d.id());
-        if (loaded == null) { status = "This dialogue is no longer loaded; nothing was saved."; return; }
+        boolean dropped = loaded == null;
+        if (dropped) loaded = origin;   // the registry lost it, most likely a reload found a problem: write it back anyway
+        if (loaded == null) { status = "This dialogue has nowhere to save to; copy your text out before closing."; return; }
         List<Validator.Problem> problems = new Validator(plugin.getEffects().names(), plugin.getFunctions().names()).validate(d);
         for (Validator.Problem p : problems) {
             if (p.error()) { status = "Not saved: " + p.message(); return; }
         }
+        String warning = problems.stream().filter(p -> !p.error()).map(Validator.Problem::message).findFirst().orElse(null);
+        String recovered = dropped ? "The dialogue had dropped off the list; wrote it back to " + loaded.display() + ". " : "";
         try {
             if (loaded.file() != null) {
                 boolean hadComments = false;
@@ -757,10 +765,10 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 String text = Printer.dialogue(d);
                 Files.writeString(loaded.file(), text, StandardCharsets.UTF_8);
                 DialogueRegistry.LoadReport report = registry.loadFile(loaded.file(), text, true);
-                status = report.ok()
+                status = recovered + (report.ok()
                         ? "Saved " + loaded.display() + (hadComments ? ". Comments in the file were dropped (the editor rewrites it)." : ".")
                         + (report.warnings() > 0 ? " " + report.warnings() + " warning(s): " + String.join(" ", report.messages()) : "")
-                        : "Saved, but the file did not load: " + String.join(" ", report.messages());
+                        : "Saved, but the file did not load: " + String.join(" ", report.messages()));
             } else {
                 Path json = registry.findAssetFile(d.id() + ".json");
                 if (json == null) { status = "Could not find " + d.id() + ".json to write to."; return; }
@@ -772,7 +780,8 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 Files.writeString(json, out + "\n", StandardCharsets.UTF_8);
                 var store = JsonDialogues.store();
                 if (store != null) store.loadAssetsFromPaths(registry.packNameFor(json), List.of(json));
-                status = "Saved " + json.getFileName() + ".";
+                status = recovered + "Saved " + json.getFileName() + "."
+                        + (warning != null ? " Warning: " + warning : "");
             }
             Dialogue reloaded = registry.byId(d.id());
             if (reloaded != null) {

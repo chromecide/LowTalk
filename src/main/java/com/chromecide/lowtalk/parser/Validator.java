@@ -446,7 +446,21 @@ public final class Validator {
         for (Text.Part p : t.parts()) {
             if (p instanceof Text.Part.Interp in) checkExpr(in.expr(), pos, out);
             else if (p instanceof Text.Part.Pick pk) pk.choices().forEach(c -> checkText(c, pos, out));
+            else if (p instanceof Text.Part.Plain plain) {
+                int open = plain.text().indexOf("<<");
+                if (open >= 0 && plain.text().indexOf(">>", open) > open) {
+                    out.add(new Problem(pos, false, "this line's words contain " + command(plain.text(), open)
+                            + "; a command has to be on a line of its own, so here it is shown to the player as text"));
+                }
+            }
         }
+    }
+
+    /** The command-looking snippet inside a line, for the warning above. */
+    private static String command(String text, int open) {
+        int close = text.indexOf(">>", open);
+        String inner = text.substring(open, Math.min(close + 2, text.length()));
+        return inner.length() <= 40 ? inner : inner.substring(0, 37) + "...";
     }
     private static String plainNumber(double d) {
         return d == Math.rint(d) ? String.valueOf((long) d) : String.valueOf(d);

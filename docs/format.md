@@ -92,6 +92,10 @@ A bare line uses the default speaker. `Name: text` overrides it for that line.
 A line that happens to start with a word and a colon, like `Note: bring bread`,
 would be read as a speaker; put a backslash in front (`\Note: bring bread`) to
 keep it as text. The same escape works for a line that must start with `->`.
+
+A command has to be on a line of its own. `<<wait 2>>` written at the end of a line of speech is part of
+what the character says, not a pause, and the validator warns when a line's words contain something that
+looks like a command.
 Text may include `{player}` (the player's name), `{npc}` (the NPC's name), and
 `{$var}` (a variable's value), or any expression such as
 `{$met ? "Back again" : "Hello"}`.
