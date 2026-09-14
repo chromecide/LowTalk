@@ -64,7 +64,7 @@ public final class Reference {
         cmd("run", "\"/command {player}\"", "Run a server command as the console; never include player-typed text.");
         // ---- media
         cmd("music", "Music_Container_Id | clear", "Force a music playlist for this player, or return to the area's music.");
-        cmd("vfx", "Particle_System_Id [scale] [seconds]", "Play a particle effect at the NPC (or the player when there is no NPC).");
+        cmd("vfx", "Particle_System_Id [scale] [seconds] [player]", "Play a particle effect where the conversation is: the NPC or prop, or the block a dialogue is bound to. 'player' puts it on the player instead.");
         cmd("camera", "Camera_Effect_Id [intensity]", "Shake this player's camera with a camera effect, intensity 0 to 1.");
 
         // ---- functions

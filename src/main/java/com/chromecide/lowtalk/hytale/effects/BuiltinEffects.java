@@ -411,8 +411,13 @@ public final class BuiltinEffects {
             Store<EntityStore> store = BuiltinFunctions.store(session.getContext());
             Ref<EntityStore> npcRef = npcRef(session, store);
             NetworkId netId = npcRef == null ? null : store.getComponent(npcRef, NetworkId.getComponentType());
+            org.joml.Vector3d origin = session.getOrigin();
             if (netId != null) {
                 SoundUtil.playSoundEventEntity(index, netId.getId(), store);
+            } else if (origin != null) {
+                // a dialogue bound to a block: the sound comes from the block, for everyone near it
+                SoundUtil.playSoundEvent3d(index, com.hypixel.hytale.protocol.SoundCategory.SFX,
+                        origin.x, origin.y, origin.z, store);
             } else {
                 SoundUtil.playSoundEvent2dToPlayer(session.getPlayer(), index, com.hypixel.hytale.protocol.SoundCategory.SFX);
             }

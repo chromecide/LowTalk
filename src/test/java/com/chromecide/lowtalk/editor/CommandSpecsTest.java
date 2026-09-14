@@ -37,7 +37,7 @@ class CommandSpecsTest {
     void argumentsNotWrittenYetAreStillShown() {
         // the point of the fields: an author who has typed only the particle can see that a scale and a number of
         // seconds may follow, which the old single box of text never told them
-        assertEquals(List.of("Smoke", "", ""), CommandSpecs.values(cmd("vfx", "Smoke")));
+        assertEquals(List.of("Smoke", "", "", ""), CommandSpecs.values(cmd("vfx", "Smoke")));
         assertEquals("Smoke", round("vfx", "Smoke"));
     }
 
@@ -47,6 +47,13 @@ class CommandSpecsTest {
         List<String> values = CommandSpecs.values(c);
         values.set(2, "4");
         assertEquals("Smoke \"\" 4", CommandSpecs.join(CommandSpecs.of("vfx"), values));
+    }
+
+    @Test
+    void whereAParticlePlaysIsFoundWhereverItSits() {
+        assertEquals(List.of("Smoke", "", "", "player"), CommandSpecs.values(cmd("vfx", "Smoke", "player")));
+        assertEquals(List.of("Smoke", "2", "1", "player"), CommandSpecs.values(cmd("vfx", "Smoke", "2", "player", "1")));
+        assertEquals("Smoke 2 1 player", round("vfx", "Smoke", "2", "player", "1"));
     }
 
     @Test

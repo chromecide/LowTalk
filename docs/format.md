@@ -196,7 +196,7 @@ time. Any statements are allowed inside, not just lines.
 | `<<weather Weather_Id>>`, `<<weather Weather_Id player>>`, `<<weather clear [player]>>` | Force a weather (an id from `Server/Weathers`, e.g. `Zone1_Cloudy_Medium`) for the whole world or for this player only; `clear` returns to the world's natural weather, or to the `ClearSkyWeather` from `lowtalk.json` (default `Default_Flat`) in worlds that have none, such as flat and void worlds. Uses the game's weather system exactly as its own `/weather` command does. |
 | `<<time noon>>`, `<<time 19.5>>`, `<<time dusk 5>>`, `<<time pause>>`, `<<time resume>>` | Set the time of day by name (dawn, noon, dusk, midnight and their aliases) or hour; a second number fades there over that many seconds. Pause and resume the clock. |
 | `<<music Music_Container_Id>>`, `<<music clear>>` | Force a music playlist for this player (an id from `Server/Audio/MusicContainers`), or return to the area's music. |
-| `<<vfx Particle_System_Id [scale] [seconds]>>` | Play a particle effect at the NPC, or at the player when there is no NPC. |
+| `<<vfx Particle_System_Id [scale] [seconds] [player]>>` | Play a particle effect where the conversation is: on the NPC or prop that is speaking, or at the block a dialogue is bound to. Add `player` to put it on the player instead. With neither an NPC nor a block, it is on the player anyway. |
 | `<<camera Camera_Effect_Id [intensity]>>` | Shake this player's camera with a camera effect from `Server/Camera/CameraEffect`; intensity 0 to 1. |
 | `<<npc_name "Elder Mara">>`, `<<npc_name clear>>` | Rename this NPC (nameplate and display name, persisted with the NPC). |
 | `<<state Name [SubState]>>` | Put this NPC's role into one of the states defined in its role JSON. |

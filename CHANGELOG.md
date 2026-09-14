@@ -36,6 +36,17 @@
 - Other mods can name their own commands' arguments with `registerCommandArgs`, and get the same named fields and
   pickers as the built-in commands.
 
+### Where things happen
+
+- A dialogue bound to a block now knows where that block is, so what it does happens there. `<<vfx>>` played its
+  particles on whoever opened the conversation, because a block is not an entity and the position it was used on
+  was thrown away; a talking campfire lit its sparks around the player's feet instead of at the fire. `<<sound>>`
+  was played flat into the player's ears for the same reason, and now comes from the block, for everyone near it.
+  Dialogues on NPCs and props were always placed correctly and are unchanged.
+- `<<vfx>>` takes `player` to put the effect on the player instead of on whatever is speaking, which is what you
+  want for something that happens to them, such as a healing sparkle. The word can sit anywhere among the
+  arguments, so `<<vfx Heal_Sparkle player>>` needs no placeholders, and the editor shows it as an "at" field.
+
 ### Fixes carried in this release
 
 - An option's condition may compare numbers again. `-> I'm hurt. <<if stat("Health") < max_stat("Health")>>` was

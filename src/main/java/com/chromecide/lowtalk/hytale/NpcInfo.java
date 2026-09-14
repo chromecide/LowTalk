@@ -18,14 +18,36 @@ import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.UUID;
 
-/** What LowTalk needs to know about an NPC entity: identity, role, display name, and tags. */
-public record NpcInfo(Ref<EntityStore> ref, UUID id, String role, String name, Set<String> tags) {
+/**
+ * What LowTalk needs to know about an NPC entity: identity, role, display name, and tags.
+ *
+ * <p>{@code at} is where the conversation is happening when there is no entity to stand in for it: a dialogue
+ * bound to a block knows the block it was used on, and effects that happen somewhere, such as a particle, use it
+ * instead of falling back to the player.
+ */
+public record NpcInfo(Ref<EntityStore> ref, UUID id, String role, String name, Set<String> tags,
+                      @Nullable org.joml.Vector3d at) {
+    public NpcInfo(Ref<EntityStore> ref, UUID id, String role, String name, Set<String> tags) {
+        this(ref, id, role, name, tags, null);
+    }
+
     /** The zero UUID marks a conversation with no NPC (triggers, joins, /lowtalk open with nothing in view). */
     public static final UUID NONE = new UUID(0L, 0L);
 
     /** Stand-in for dialogues that run without an NPC; the dialogue's speaker: names the voice. */
     public static NpcInfo narrator(com.chromecide.lowtalk.model.Dialogue d) {
         return new NpcInfo(null, NONE, "none", d.speaker() != null ? d.speaker() : "Narrator", Set.of());
+    }
+
+    /** A narrator that stands at a place in the world: the block a dialogue is bound to, or a trigger volume. */
+    public static NpcInfo at(com.chromecide.lowtalk.model.Dialogue d, org.joml.Vector3d where) {
+        NpcInfo n = narrator(d);
+        return new NpcInfo(n.ref(), n.id(), n.role(), n.name(), n.tags(), where);
+    }
+
+    /** A narrator standing in the middle of a block. */
+    public static NpcInfo atBlock(com.chromecide.lowtalk.model.Dialogue d, org.joml.Vector3i block) {
+        return at(d, new org.joml.Vector3d(block.x() + 0.5, block.y() + 0.5, block.z() + 0.5));
     }
 
 

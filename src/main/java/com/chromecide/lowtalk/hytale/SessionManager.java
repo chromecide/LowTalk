@@ -38,7 +38,7 @@ public class SessionManager {
                                 @Nonnull Store<EntityStore> store, @Nonnull World world, @Nonnull NpcInfo npc) {
         DialogueSession existing = sessions.remove(player.getUuid());
         if (existing != null) existing.end();
-        DialogueSession s = DialogueSession.open(plugin, plugin.getFunctions(), dialogue, player, playerEntity, store, world, npc.id(), npc.name());
+        DialogueSession s = DialogueSession.open(plugin, plugin.getFunctions(), dialogue, player, playerEntity, store, world, npc);
         if (s != null) sessions.put(player.getUuid(), s);
         return s;
     }
@@ -49,7 +49,7 @@ public class SessionManager {
                                   @Nonnull Store<EntityStore> store, @Nonnull World world, @Nonnull NpcInfo npc) {
         DialogueSession existing = sessions.remove(player.getUuid());
         if (existing != null) existing.end();
-        DialogueSession s = DialogueSession.open(plugin, plugin.getFunctions(), dialogue, player, playerEntity, store, world, npc.id(), npc.name(), startNode);
+        DialogueSession s = DialogueSession.open(plugin, plugin.getFunctions(), dialogue, player, playerEntity, store, world, npc, startNode);
         if (s != null) sessions.put(player.getUuid(), s);
         return s;
     }
@@ -71,7 +71,7 @@ public class SessionManager {
         if (npc == null) npc = NpcInfo.narrator(dialogue);
         DialogueSession existing = sessions.remove(player.getUuid());
         if (existing != null) existing.end();
-        DialogueSession s = DialogueSession.prepare(plugin, plugin.getFunctions(), dialogue, player, playerEntity, store, world, npc.id(), npc.name());
+        DialogueSession s = DialogueSession.prepare(plugin, plugin.getFunctions(), dialogue, player, playerEntity, store, world, npc);
         if (s != null) {
             sessions.put(player.getUuid(), s);
             s.afterOpen();

@@ -173,16 +173,32 @@ public final class WorldEffects {
             if (com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem.getAssetMap().getAsset(id) == null) {
                 throw new RuntimeError(effect.pos(), "no particle system called '" + id + "' (see Server/Particles)");
             }
-            float scale = effect.args().size() > 1 ? parseFloat(effect, effect.args().get(1), "scale") : 1.0f;
-            float seconds = effect.args().size() > 2 ? parseFloat(effect, effect.args().get(2), "duration") : 0.0f;
+            // <<vfx Id [scale] [seconds] [npc|player]>>: the word is recognised wherever it sits, the numbers are
+            // in order, so <<vfx Id player>> needs no placeholders
+            float scale = 1.0f;
+            float seconds = 0.0f;
+            boolean onPlayer = false;
+            int numbers = 0;
+            for (String raw : effect.args().subList(1, effect.args().size())) {
+                String a = raw.trim();
+                if (a.equalsIgnoreCase("player")) {
+                    onPlayer = true;
+                } else if (a.equalsIgnoreCase("npc") || a.equalsIgnoreCase("here")) {
+                    onPlayer = false;
+                } else if (numbers == 0) {
+                    scale = parseFloat(effect, a, "scale");
+                    numbers++;
+                } else if (numbers == 1) {
+                    seconds = parseFloat(effect, a, "duration");
+                    numbers++;
+                } else {
+                    throw new RuntimeError(effect.pos(), "<<vfx>> takes a scale, a number of seconds, and npc or player; got an extra '" + a + "'");
+                }
+            }
             Ref<EntityStore> playerRef = BuiltinFunctions.playerEntity(session.getContext());
             Store<EntityStore> store = playerRef.getStore();
-            Ref<EntityStore> at = BuiltinEffects.npcRef(session, store);
-            if (at == null) at = playerRef;
-            TransformComponent transform = store.getComponent(at, TransformComponent.getComponentType());
-            if (transform == null) return null;
-            org.joml.Vector3d pos = new org.joml.Vector3d(transform.getPosition());
-            pos.y += 1.0; // chest height rather than the feet
+            org.joml.Vector3d pos = where(session, store, playerRef, onPlayer);
+            if (pos == null) return null;
             com.hypixel.hytale.server.core.universe.world.ParticleUtil.spawnParticleEffect(id, pos, 0.0f, 0.0f, 0.0f, scale, seconds, store);
             return null;
         });
@@ -198,6 +214,27 @@ public final class WorldEffects {
             session.getPlayer().getPacketHandler().writeNoCache(cameraEffect.createCameraShakePacket(intensity));
             return null;
         });
+    }
+
+    /**
+     * Where something that happens in the world should happen: on the NPC or prop that is speaking, or, when a
+     * dialogue is bound to a block and so has no entity, at the block itself. Only when there is neither does it
+     * fall back to the player, which is also what {@code player} asks for. Entity positions are raised a block, so
+     * an effect sits at chest height rather than around the feet; a block's own middle needs no lifting.
+     */
+    @javax.annotation.Nullable
+    static org.joml.Vector3d where(EffectHost session, Store<EntityStore> store, Ref<EntityStore> playerRef, boolean onPlayer) {
+        Ref<EntityStore> at = onPlayer ? playerRef : BuiltinEffects.npcRef(session, store);
+        if (at == null) {
+            org.joml.Vector3d origin = session.getOrigin();
+            if (origin != null) return new org.joml.Vector3d(origin);
+            at = playerRef;
+        }
+        TransformComponent transform = store.getComponent(at, TransformComponent.getComponentType());
+        if (transform == null) return null;
+        org.joml.Vector3d pos = new org.joml.Vector3d(transform.getPosition());
+        pos.y += 1.0;
+        return pos;
     }
 
     private static float parseFloat(com.chromecide.lowtalk.runtime.Effect effect, String raw, String what) {

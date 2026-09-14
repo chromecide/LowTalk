@@ -84,6 +84,7 @@ public final class CommandSpecs {
     private static final List<String> ANIMATION_SLOTS = List.of("Emote", "Status", "Action", "Movement", "Face", "ServerAction");
     private static final List<String> NOTIFY_STYLES = List.of("default", "success", "warning", "danger");
     private static final List<String> TITLE_SIZES = List.of("minor", "major");
+    private static final List<String> VFX_PLACES = List.of("npc", "player");
     private static final List<String> OBJECTIVE_VERBS = List.of("start", "cancel", "line", "task");
 
     private static final Map<String, Spec> SPECS = new java.util.concurrent.ConcurrentHashMap<>();
@@ -161,7 +162,8 @@ public final class CommandSpecs {
         spec("run", text("command"));
         // ---- media
         spec("music", asset("music", MUSIC));
-        spec("vfx", asset("particle", PARTICLES), optionalNumber("scale"), optionalNumber("seconds"));
+        spec("vfx", asset("particle", PARTICLES), optionalNumber("scale"), optionalNumber("seconds"),
+                optionalChoice("at", VFX_PLACES));
         spec("camera", asset("effect", CAMERA_EFFECTS), optionalNumber("strength"));
     }
 
@@ -270,6 +272,19 @@ public final class CommandSpecs {
                     else return null;
                 }
                 return List.of(raw.get(0), under, size, seconds);
+            }
+            case "vfx" -> {
+                if (raw.isEmpty()) return raw;
+                String at = "";
+                List<String> numbers = new ArrayList<>();
+                for (String a : raw.subList(1, raw.size())) {
+                    String t = a.trim();
+                    if (VFX_PLACES.contains(t.toLowerCase(Locale.ROOT))) at = t.toLowerCase(Locale.ROOT);
+                    else if (numbers.size() < 2) numbers.add(t);
+                    else return null;
+                }
+                while (numbers.size() < 2) numbers.add("");
+                return List.of(raw.get(0), numbers.get(0), numbers.get(1), at);
             }
             case "objective" -> {
                 if (raw.size() != 1) return raw;

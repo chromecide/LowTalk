@@ -62,7 +62,8 @@ public class BlockUseSystem extends EntityEventSystem<EntityStore, UseBlockEvent
             return;
         }
         if (binding.suppressesBlock()) event.setCancelled(true);
-        plugin.getSessions().openFor(d, player, playerEntity, store, world, null);
+        // the block itself is where this conversation is, so a particle or a sound happens at the block
+        plugin.getSessions().openFor(d, player, playerEntity, store, world, NpcInfo.atBlock(d, pos));
     }
 
     @Nullable
