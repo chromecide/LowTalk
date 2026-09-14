@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.1 (2026-09-14)
+
 - Installing the mod no longer puts words in vanilla NPCs' mouths. `CopyExamplesOnFirstRun` now defaults to
   false, so a fresh server has no bound dialogue until someone writes or copies one. The examples still ship
   inside the asset pack, bound to nothing, ready to open in the Asset Editor or through `/lowtalk browse`.
@@ -11,9 +13,6 @@
   just been loaded with their chunks, so a build straight after a server start found nothing to clean up. It now
   walks the world's entity store instead, and says how many it removed. `/lowtalk testworld respawn` used the
   same lookup and is fixed with it.
-
-## 0.3.1 (2026-09-14)
-
 - New screenshots throughout, taken on 0.6.5 with the current UI: the old ones still showed the centre window
   from before the dialogue bar became the default. The CurseForge listing draft uses the new set and no longer
   points at an image that was not in the repository.

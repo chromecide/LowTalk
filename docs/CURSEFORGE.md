@@ -91,9 +91,16 @@ is public so you can see exactly what you are running.
 
 **Version notes for 0.3.1** (the "changelog" box on the file upload)
 
-The LowTalk tool has its own icon: a speech bubble being clicked, drawn by @Trix8ea. The mod stays MIT; the
-icon stays the artist's, and the layered source, both colourways and their checksums are in the repository so
-the provenance of every image the mod ships can be checked. No other change: 0.3.0 jars behave identically.
+Installing LowTalk no longer puts words in vanilla NPCs' mouths. The example dialogues used to be copied in on
+first run already bound to Kweebec Merchants, Kweebec Elders and Klops Merchants; now a fresh server has no
+bound dialogue until you write or copy one. The examples still ship inside the pack, bound to nothing, so
+`/lowtalk browse` and the Asset Editor still have something to start from. Set `CopyExamplesOnFirstRun` to true
+in `lowtalk.json` before the first run for the old behaviour.
+
+The tool also has an icon of its own, a speech bubble being clicked, drawn by @Trix8ea. The mod stays MIT; the
+icon stays the artist's, and its layered source and checksums are in the repository.
+
+Fixed: `/lowtalk testworld build` spawned a second set of station NPCs when run again after a server start.
 
 **Version notes for 0.3.0** (the "changelog" box on the file upload)
 
