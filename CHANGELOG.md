@@ -4,6 +4,9 @@
 
 ## 0.3.1 (2026-09-14)
 
+- New screenshots throughout, taken on 0.6.5 with the current UI: the old ones still showed the centre window
+  from before the dialogue bar became the default. The CurseForge listing draft uses the new set and no longer
+  points at an image that was not in the repository.
 - The LowTalk tool has its own icon: a speech bubble being clicked, drawn by
   [@Trix8ea](https://x.com/Trix8ea). It replaces the borrowed builder-tools icon. The layered source, both
   colourways and their checksums are in `docs/art/`, so the provenance of every image the mod ships can be

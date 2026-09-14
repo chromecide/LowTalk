@@ -104,35 +104,30 @@ here" opening a dead window. Booted on plain 0.6.5 and 0.7.0-pre.2 servers befor
 
 **Screenshots** (in `docs/screenshots/`, ready to upload; captions are the suggested CurseForge captions)
 
-![The dialogue window: the Rootling Merchant greets the player, four options below](screenshots/dialogue-window.png)
-*Talking to an NPC. The window is the game's own UI style; options appear as the conversation branches.*
+![The Rootling Merchant greets a returning player, with four numbered options in the dialogue bar below](screenshots/dialogue-bar.png)
+*A conversation as players see it. The bar is the default presentation, the options are numbered, and the HUD
+steps out of the way while you talk. The merchant knows this player has been here before.*
 
-![A returning visit: the merchant remembers the player, hands over bread with a "You receive 1 Bread" line, and the options remain](screenshots/dialogue-give-bread.png)
-*Memory and consequences: the merchant greets a returning player by name, and a choice hands over real bread with the game's own narration line.*
+![The merchant hands over bread: a "You receive 1 Bread." line sits above his reply](screenshots/dialogue-give-bread.png)
+*Choices with consequences. An option hands over real bread and the game's own narration line says so. The
+option that asked for it is not offered again.*
 
-![The merchant's barter shop opened from the conversation](screenshots/merchant-shop.png)
-*"What do you sell?" opens the NPC's own barter shop. LowTalk hands off to the game's systems rather than replacing them.*
+![The merchant's barter shop, opened from the conversation](screenshots/merchant-shop.png)
+*"What do you sell?" opens the NPC's own barter shop. LowTalk hands off to the game's systems rather than
+replacing them, and the conversation picks up where it left off when the shop closes.*
 
-![Madame Klops with her skull portrait asks the player's name; a text box holds "Blueberry Muffins"](screenshots/dialogue-text-input.png)
-*Text input: an NPC can ask a question and keep the answer. Portraits are any image from an asset pack.*
+![The in-game editor on the first_meeting passage: a line, a set-variable row and a jump, each an editable field](screenshots/ingame-editor-passage.png)
+*The in-game editor. Use the LowTalk tool on an NPC, press Edit, and its conversation opens as fields: this
+passage greets the player, remembers the meeting and jumps to the hub. Test here plays it from this point.*
 
-![The fortune teller repeats the typed name back and offers four options](screenshots/dialogue-remembers-name.png)
-*The answer becomes a variable that follows the player between NPCs: "So. Blueberry Muffins. Every merchant in these lands will know it by nightfall."*
-
-![The in-game editor on a passage: a line, a set-variable row and a jump, each an editable field](screenshots/ingame-editor-passage.png)
-*The in-game editor: use the LowTalk tool on an NPC, press Edit, and its conversation opens as fields. This passage greets the player, remembers the meeting and jumps to the hub.*
-
-![The in-game editor on the hub passage: four options, each with a target dropdown](screenshots/ingame-editor-options.png)
-*Options in the in-game editor. Each has a target: another passage, the end, back to the options, or a new passage; Go walks into it.*
+![Hytale's Asset Editor in text mode with a .talk dialogue open in an asset pack](screenshots/asset-editor-text.png)
+*The same dialogues are assets. Hytale's Asset Editor opens a `.talk` file from any pack, and every save is
+validated and loaded into the running server.*
 
 ![The Node Editor showing a whole dialogue as a wired graph](screenshots/node-editor-graph.png)
-*The same kind of dialogue drawn in Hytale's Node Editor with the LowTalk workspace: passages, options, branches and commands wired up.*
+*Or draw it. Hytale's Node Editor with the LowTalk workspace: passages, options, branches and commands wired
+together.*
 
-![The Asset Editor's form view of a dialogue: an option with its condition, once flag and body](screenshots/asset-editor-form.png)
-*The Asset Editor's form: a dialogue as fields. This option is shown only until the errand is taken, once, and its body hands over bread.*
-
-![The Asset Editor's text mode with a .talk file open and LowTalk's load report in the corner](screenshots/asset-editor-text.png)
-*Text mode in the Asset Editor. Every save is validated and loaded; the notification says what was loaded and which NPCs it binds to.*
-
-Still to capture: `/lowtalk reload` output showing a line-numbered error; the NPC bind page; a talking prop with its
-"Press F to read" prompt; the dialogue browser.
+Worth capturing later, not needed for the listing: the bind pages for an NPC, a prop and a block; a talking prop
+with its "Press F to read" prompt; the dialogue browser; the window and top layouts beside the bar; and
+`/lowtalk reload` printing a line-numbered error.
