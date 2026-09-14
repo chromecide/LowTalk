@@ -468,9 +468,9 @@ public class DialogueRegistry {
      * Make an asset pack and register it with the running server, so a dialogue can go straight into it. A pack is
      * how work ships and how the Asset Editor and the Node Editor find it, and making one by hand means a manifest
      * whose name must not contain a colon: one that does produces a mod id the server cannot read, and it then
-     * refuses to start. Returns the pack's own folder; dialogues go in {@link #PACK_DIR} inside it.
+     * refuses to start.
      */
-    public Path createPack(@Nonnull String group, @Nonnull String name) throws IOException {
+    public NewPack createPack(@Nonnull String group, @Nonnull String name) throws IOException {
         String g = clean(group);
         String n = clean(name);
         if (g.isEmpty() || n.isEmpty()) throw new IOException("A pack needs a name of letters, digits, _ or -.");
@@ -495,10 +495,24 @@ public class DialogueRegistry {
                 }
                 """.formatted(g, n, serverVersion());
         Files.writeString(dir.resolve("manifest.json"), manifest, StandardCharsets.UTF_8);
-        String id = register(dir);
-        logger.at(Level.INFO).log("Created asset pack %s at %s", id, dir);
-        return dir;
+        boolean usable;
+        try {
+            String id = register(dir);
+            logger.at(Level.INFO).log("Created asset pack %s at %s", id, dir);
+            usable = true;
+        } catch (IOException | RuntimeException e) {
+            // the pack is written and correct; the running server would not take it, which a restart will fix
+            logger.at(Level.WARNING).withCause(e).log("Made the pack at %s but could not register it with the running server", dir);
+            usable = false;
+        }
+        return new NewPack(dir, usable);
     }
+
+    /**
+     * A pack that has just been made. {@code usableNow} is false when the running server would not take it, which
+     * happens without harm: the pack is on disk and correct, and the next start will load it.
+     */
+    public record NewPack(Path root, boolean usableNow) {}
 
     /**
      * Remove a pack this session just made, when what it was made for could not be written. Only ever touches a

@@ -209,13 +209,21 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
         Path root;
         try {
             if (makePack) {
-                packRoot = plugin.getRegistry().createPack(playerRef.getUsername(), packName);
+                DialogueRegistry.NewPack made = plugin.getRegistry().createPack(playerRef.getUsername(), packName);
+                if (!made.usableNow()) {
+                    // the pack is written and correct, but this server will only pick it up when it next starts
+                    fail("Made the pack " + made.root().getFileName() + ", but this server cannot use it until it is "
+                            + "restarted. Restart it, then make the dialogue again and choose that pack.");
+                    return;
+                }
+                packRoot = made.root();
                 root = packRoot.resolve(DialogueRegistry.PACK_DIR);
             } else {
                 root = targets.get(where);
             }
         } catch (IOException | RuntimeException e) {
-            fail(e.getMessage() == null ? "Could not make the pack: " + e : e.getMessage());
+            plugin.getLogger().at(java.util.logging.Level.WARNING).withCause(e).log("Could not make the pack %s", packName);
+            fail("Could not make the pack: " + (e.getMessage() == null ? e.toString() : e.getMessage()));
             return;
         }
         if (root == null) { fail("That place is not available."); return; }
