@@ -187,6 +187,14 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
         if (root == null) { fail("That place is not available."); return; }
         // the server's own folder is not an asset pack, so an asset cannot live in it
         boolean asJson = !FORMAT_TALK.equals(format) && !where.isEmpty();
+        // the game names assets Capitalised_Words and warns in the log about anything else, so an asset gets a name
+        // in that shape; a text file keeps what was typed, since no asset store ever reads it
+        String typed = id;
+        if (asJson) id = LowTalkCommand.assetName(id);
+        if (!id.equals(typed) && plugin.getRegistry().byId(id) != null) {
+            fail("A dialogue called " + id + " already exists; assets are named that way, so " + typed + " would become it.");
+            return;
+        }
         boolean byTag = npc != null && BIND_TAG.equals(bind);
         String tag = byTag ? id : null;
         String binding = npc == null ? "none" : (byTag ? "@" + tag : npc.role());
@@ -222,6 +230,8 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
             vs.addTag(vs.npc(npc.id()), tag);
             vs.flush();
         }
+        if (!id.equals(typed)) playerRef.sendMessage(com.hypixel.hytale.server.core.Message.raw(
+                "Named it " + id + ": the game names assets that way, and warns about anything else."));
         if (onCreated != null) onCreated.accept(d);
         playerRef.sendMessage(byTag
                 ? LowTalkCommand.msg(plugin, "createdTagged").param("file", file.getFileName().toString()).param("npc", npc.name()).param("tag", tag)

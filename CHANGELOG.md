@@ -56,6 +56,9 @@
   travelled with nothing. It is now written as JSON into an asset pack, which gives it a form in the Asset Editor,
   a graph in the Node Editor, fields in here, and a home that ships. The New page keeps `.talk` as a choice for
   people who write by hand, and still offers the server's folder, which takes text files only.
+  A dialogue written as an asset is named the way the game names assets, Capitalised_Words, since anything else
+  makes the asset store log a warning about it on every load; the page says so when it renames what was typed. A
+  text file keeps the name as written, because no asset store reads one.
   The page lists the packs the server started with. A pack made while the server is running, in the Asset Editor
   or anywhere else, is only picked up on the next start, which is the game's own rule: registering one with a
   running server takes a lock held for the server's lifetime.
