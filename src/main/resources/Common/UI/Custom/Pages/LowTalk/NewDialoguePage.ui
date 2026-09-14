@@ -85,7 +85,7 @@ $C.@PageOverlay {
 
         DropdownBox #Where {
           Anchor: (Width: 460, Height: $C.@DropdownBoxHeight);
-          Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 460);
+          Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 520, EntryTooltipStyle: $C.@DefaultTextTooltipStyle);
         }
       }
 

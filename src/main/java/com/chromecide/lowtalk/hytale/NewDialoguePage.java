@@ -135,11 +135,17 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
         cmd.set("#Bind.Value", npc == null ? BIND_NONE : BIND_ROLE);
         List<DropdownEntryInfo> where = new ArrayList<>();
         for (Map.Entry<String, Path> e : targets.entrySet()) {
-            String label = e.getKey().isEmpty() ? "the server's dialogues folder" : "asset pack " + e.getKey();
-            where.add(new DropdownEntryInfo(LocalizableString.fromString(label), e.getKey().isEmpty() ? "$server" : e.getKey()));
+            boolean server = e.getKey().isEmpty();
+            where.add(new DropdownEntryInfo(
+                    LocalizableString.fromString(server ? "the server's dialogues folder" : "asset pack " + e.getKey()),
+                    server ? "$server" : e.getKey(),
+                    LocalizableString.fromString(server
+                            ? "this server only: the Asset Editor and the Node Editor cannot see it, and it does not travel with a pack"
+                            : "part of the pack, so it ships with it and opens in the Asset Editor and the Node Editor too")));
         }
         cmd.set("#Where.Entries", where);
-        cmd.set("#Where.Value", "$server");
+        String preferred = plugin.getRegistry().defaultCreationTarget();
+        cmd.set("#Where.Value", preferred.isEmpty() ? "$server" : preferred);
         cmd.set("#Status.Text", status);
         evt.addEventBinding(CustomUIEventBindingType.Activating, "#CreateButton", new EventData().append("Action", "CREATE")
                 .append("@Id", "#Id.Value").append("@Speaker", "#Speaker.Value").append("@Bind", "#Bind.Value").append("@Where", "#Where.Value"), false);

@@ -415,6 +415,21 @@ public class DialogueRegistry {
         return out;
     }
 
+    /**
+     * Where a new dialogue should go unless the creator says otherwise: their own asset pack when the server has
+     * one. A dialogue in a pack is part of something that ships, and the Asset Editor and the Node Editor can open
+     * it; one in the server's own folder belongs to this server alone and no other tool can see it. The game's own
+     * packs are not offered as a default, since a creator's work does not belong in them.
+     */
+    public String defaultCreationTarget() {
+        for (String name : creationTargets().keySet()) {
+            if (name.isEmpty()) continue;
+            if (name.regionMatches(true, 0, "Hytale", 0, 6)) continue;
+            return name;
+        }
+        return "";
+    }
+
     /** Where a loaded dialogue came from: a file (.talk) or an asset (file null), or null if not loaded. */
     @Nullable
     public synchronized Loaded loadedFor(@Nonnull String id) {
