@@ -33,6 +33,9 @@ public class ToolTargetInteraction extends SimpleInstantInteraction {
             .documentation("LowTalk: the tool on an entity the UseEntity interaction ignores, such as an unbound prop.")
             .build();
 
+    /** How far the tool reaches when the client did not say which block it aimed at; the item's own use distance. */
+    private static final double REACH = 128.0;
+
     private static LowTalkPlugin plugin;
 
     public static void install(LowTalkPlugin owner) {
@@ -62,14 +65,21 @@ public class ToolTargetInteraction extends SimpleInstantInteraction {
             return;
         }
         if (target == null || !target.isValid()) {
-            // A usable block (door, chest, lever...) was handled by the UseBlock step, which LowTalk cancelled to
-            // open the bind page; the chain still falls through to here, so stand down for those.
-            if (usableBlockInFront(context, buffer)) return;
-            // Nothing (or a plain block) in front of the tool: the dialogue browser.
             if (!player.hasPermission(LowTalkCommand.CREATOR)) {
                 player.sendMessage(LowTalkCommand.msg(plugin, "toolNeedsPermission").param("permission", LowTalkCommand.CREATOR));
                 return;
             }
+            // A block that can be clicked (door, lantern, chest, lever...) gets the bind page. The tool does this
+            // itself rather than through the game's UseBlock step, so that pointing the tool at a lantern does not
+            // also light it. Blocks with no use of their own cannot be bound, since nothing would ever open them.
+            org.joml.Vector3i block = blockInFront(context, actor, buffer);
+            String blockId = block == null ? null : usableBlockId(block, buffer);
+            if (blockId != null) {
+                BindBlockPage.open(plugin, player, actor, buffer.getExternalData().getStore(),
+                        buffer.getExternalData().getWorld().getName(), block, blockId);
+                return;
+            }
+            // Nothing usable in front of the tool: the dialogue browser.
             BrowsePage.open(plugin, player, actor, buffer.getExternalData().getStore());
             return;
         }
@@ -91,18 +101,31 @@ public class ToolTargetInteraction extends SimpleInstantInteraction {
         BindPropPage.open(plugin, player, actor, buffer.getExternalData().getStore(), id, label);
     }
 
-    /** True if the tool is aimed at a loaded block whose type has a Use interaction. */
-    private static boolean usableBlockInFront(InteractionContext context, CommandBuffer<EntityStore> buffer) {
+    /** The block the tool is pointing at: what the client aimed with, or a look-along-the-view fallback. */
+    @javax.annotation.Nullable
+    private static org.joml.Vector3i blockInFront(InteractionContext context, Ref<EntityStore> actor,
+                                                  CommandBuffer<EntityStore> buffer) {
         com.hypixel.hytale.protocol.BlockPosition pos = context.getTargetBlock();
-        if (pos == null) return false;
+        if (pos != null) return new org.joml.Vector3i(pos.x, pos.y, pos.z);
+        try {
+            return com.hypixel.hytale.server.core.util.TargetUtil.getTargetBlock(actor, REACH, buffer);
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
+    /** The id of a loaded block whose type has a Use interaction, or null: only those can be bound. */
+    @javax.annotation.Nullable
+    private static String usableBlockId(org.joml.Vector3i pos, CommandBuffer<EntityStore> buffer) {
         try {
             com.hypixel.hytale.server.core.universe.world.World world = buffer.getExternalData().getWorld();
             com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk chunk =
                     world.getChunkIfLoaded(com.hypixel.hytale.math.util.ChunkUtil.indexChunkFromBlock(pos.x, pos.z));
             com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType type = chunk == null ? null : chunk.getBlockType(pos.x, pos.y, pos.z);
-            return type != null && type.getInteractions() != null && type.getInteractions().containsKey(InteractionType.Use);
+            if (type == null || type.getInteractions() == null || !type.getInteractions().containsKey(InteractionType.Use)) return null;
+            return String.valueOf(type.getId());
         } catch (RuntimeException e) {
-            return false;
+            return null;
         }
     }
 

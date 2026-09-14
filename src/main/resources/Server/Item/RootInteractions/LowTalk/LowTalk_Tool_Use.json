@@ -1,5 +1,5 @@
 {
-  "$Comment": "The LowTalk tool's use: the game's own UseBlock then UseEntity interactions, which raise the use events LowTalk listens to (same order as bare hands, without the break-block fallback), then LowTalk's own LowTalkTarget step for entities UseEntity ignores, such as unbound props.",
+  "$Comment": "The LowTalk tool's use. It does NOT run the game's UseBlock step: that would fire the block's own interaction, so using the tool on a lantern or a door would light it or open it (and the client would predict the change) as well as opening the bind page. LowTalk's own step finds the block instead. UseEntity still runs, because that is what raises the use event for NPCs and bound props, and LowTalk cancels it when the tool is held.",
   "Cooldown": {
     "Cooldown": 0.25,
     "ClickBypass": true
@@ -11,12 +11,9 @@
         "ItemAnimationId": "Interact"
       },
       "Next": {
-        "Type": "UseBlock",
+        "Type": "UseEntity",
         "Failed": {
-          "Type": "UseEntity",
-          "Failed": {
-            "Type": "LowTalkTarget"
-          }
+          "Type": "LowTalkTarget"
         }
       }
     }

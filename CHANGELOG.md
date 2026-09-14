@@ -48,6 +48,11 @@
   want for something that happens to them, such as a healing sparkle. The word can sit anywhere among the
   arguments, so `<<vfx Heal_Sparkle player>>` needs no placeholders, and the editor shows it as an "at" field.
 
+- The tool no longer works the block it is used on. Pointing it at a lantern lit and unlit it, a door opened and
+  closed, because the tool's use ran the game's own UseBlock step to find out which block was clicked, and that
+  step runs the block's interaction. The tool finds the block itself now, so using it on a block only opens the
+  bind page. Blocks with no use of their own still cannot be bound, since nothing would ever open them.
+
 ### Fixes carried in this release
 
 - An option's condition may compare numbers again. `-> I'm hurt. <<if stat("Health") < max_stat("Health")>>` was

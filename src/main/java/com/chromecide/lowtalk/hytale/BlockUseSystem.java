@@ -22,7 +22,9 @@ import javax.annotation.Nullable;
 /**
  * Using a block that has a dialogue bound to it opens the dialogue. The server only reports a use for blocks whose
  * type has a Use interaction, so that is the set of blocks that can be bound. A creator holding the LowTalk tool
- * gets the binding page instead, the block counterpart of clicking an NPC with the tool.
+ * gets the binding page instead, from the tool's own interaction step rather than from here: running the game's
+ * UseBlock step with the tool would work the block as well as open the page, so pointing the tool at a lantern
+ * would keep lighting and unlighting it.
  */
 public class BlockUseSystem extends EntityEventSystem<EntityStore, UseBlockEvent.Pre> {
     private final LowTalkPlugin plugin;
@@ -43,6 +45,8 @@ public class BlockUseSystem extends EntityEventSystem<EntityStore, UseBlockEvent
         Vector3i pos = event.getTargetBlock();
         String blockId = event.getBlockType() == null ? "?" : String.valueOf(event.getBlockType().getId());
 
+        // The tool no longer runs the game's UseBlock step, so it does not normally reach here; if something else
+        // raises the event while the tool is held, the creator still gets the bind page rather than a conversation.
         if (NpcUseSystem.holdingTool(playerEntity, commandBuffer)) {
             event.setCancelled(true);
             if (!player.hasPermission(LowTalkCommand.CREATOR)) {
