@@ -51,6 +51,12 @@
 
 ### Names that match what you see
 
+- The objective list says what each objective asks for. An id such as `Objective_Gather` says nothing about what
+  the player will be told to do, and the dozen objectives Hytale ships are samples, so starting one and being
+  asked for three dirt comes as a surprise. Each entry now reads "Objective_Gather - Gather 3 Soil_Dirt", and an
+  objective line says how many objectives it strings together. The format guide now also says plainly that an
+  objective is an asset you write, and where it goes.
+
 - `<<title>>`'s second line is named for where it lands. The game draws it small and above the main line, the way
   it announces a zone, but the editor called it "under it" and the reference called it a secondary title. The
   field now reads "above it", and the reference and the format guide say where it goes. Nothing about what the

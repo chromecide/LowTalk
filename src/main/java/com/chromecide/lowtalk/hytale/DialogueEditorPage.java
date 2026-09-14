@@ -660,7 +660,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         }
         if (!list) return;
         List<String> offer = choice || !box ? all : JsonDialogues.names(dataset, current, PICK_LIMIT);
-        cmd.set(listSel + ".Entries", listEntries(a, current, offer, all.size(), !box));
+        cmd.set(listSel + ".Entries", listEntries(a, dataset, current, offer, all.size(), !box));
         cmd.set(listSel + ".Value", box ? NONE : chosen(current, offer));
         bindSlot(evt, listSel, picked, row, slot);
     }
@@ -786,15 +786,16 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
     }
 
     /** The entries of one argument's list, with a first line that says what the list is for. */
-    private List<DropdownEntryInfo> listEntries(CommandSpecs.Arg a, String current, List<String> offer,
-                                                int total, boolean chooseOnly) {
+    private List<DropdownEntryInfo> listEntries(CommandSpecs.Arg a, @Nullable String dataset, String current,
+                                                List<String> offer, int total, boolean chooseOnly) {
         List<DropdownEntryInfo> entries = new ArrayList<>();
         entries.add(entry(!chooseOnly ? "or type your own (" + offer.size() + " suggestions)"
                 : a.optional() ? "(not set)"
                 : "choose a " + a.label() + "...", NONE, null));
         boolean seen = false;
         for (String o : offer) {
-            entries.add(entry(o, o, null));
+            String note = JsonDialogues.note(dataset, o);
+            entries.add(entry(note.isEmpty() ? o : o + "  -  " + note, o, note.isEmpty() ? null : note));
             if (o.equalsIgnoreCase(current)) seen = true;
         }
         if (chooseOnly && !current.isEmpty() && !seen) entries.add(entry(current, current, null));
@@ -840,7 +841,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         List<String> offer = JsonDialogues.names(dataset, current, PICK_LIMIT);
         UICommandBuilder cmd = new UICommandBuilder();
         String sel = "#Rows[" + row + "] #C" + slot;
-        cmd.set(sel + ".Entries", listEntries(spec.arg(slot), current, offer, JsonDialogues.size(dataset), false));
+        cmd.set(sel + ".Entries", listEntries(spec.arg(slot), dataset, current, offer, JsonDialogues.size(dataset), false));
         cmd.set(sel + ".Value", NONE);
         sendUpdate(cmd, new UIEventBuilder(), false);
     }

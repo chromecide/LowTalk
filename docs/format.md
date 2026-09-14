@@ -326,6 +326,18 @@ clash. JSON files do not support `include:`. Name JSON dialogues the way the
 game names assets, `Capitalised_Words.json`, or the asset store logs a
 format warning (harmless, but noisy).
 
+## Objectives are assets, and you write your own
+
+`<<objective Some_Id>>` starts an objective that already exists. It does not describe one: what the player is
+asked to do lives in the objective asset, not in the dialogue. Hytale ships about a dozen sample objectives and
+they are exactly that, samples: `Objective_Gather` asks for three dirt, `Objective_Tutorial` is the first-run
+checklist. Starting one of those from a conversation gives the player that sample task, which is rarely what you
+meant.
+
+Your own objective is a JSON asset in your pack under `Server/Objective/Objectives/`, which the game's Asset
+Editor can write for you. The in-game editor's objective list shows what each objective asks for beside its name,
+so a sample is easy to spot before you pick it. The next section is a worked example.
+
 ## Quests that are completed by talking
 
 LowTalk adds a task type to the game's objectives. A quest can require the

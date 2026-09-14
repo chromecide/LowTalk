@@ -200,6 +200,77 @@ public final class JsonDialogues {
         return starts.size() <= limit ? starts : new java.util.ArrayList<>(starts.subList(0, limit));
     }
 
+    /**
+     * A short note about one entry of a data set, for the editor to show beside its name. An objective's id says
+     * nothing about what it asks the player to do, and the game ships a dozen sample objectives, so "3 dirt" comes
+     * as a surprise when one of them is started. Empty when there is nothing useful to say.
+     */
+    public static String note(@Nullable String dataset, String name) {
+        if (dataset == null) return "";
+        try {
+            if (dataset.equals(DATASET_OBJECTIVES)) return objectiveNote(name);
+            if (dataset.equals(DATASET_OBJECTIVE_LINES)) return objectiveLineNote(name);
+        } catch (RuntimeException | LinkageError e) {
+            return "";
+        }
+        return "";
+    }
+
+    /** What an objective asks for: "Gather 3 Soil_Dirt", "Craft 1 Tool_Hatchet_Crude, Kill 3". */
+    private static String objectiveNote(String id) {
+        com.hypixel.hytale.builtin.adventure.objectives.config.ObjectiveAsset o =
+                com.hypixel.hytale.builtin.adventure.objectives.config.ObjectiveAsset.getAssetMap().getAsset(id);
+        if (o == null || o.getTaskSets() == null) return "";
+        java.util.List<String> parts = new java.util.ArrayList<>();
+        for (com.hypixel.hytale.builtin.adventure.objectives.config.task.TaskSet set : o.getTaskSets()) {
+            if (set == null || set.getTasks() == null) continue;
+            for (com.hypixel.hytale.builtin.adventure.objectives.config.task.ObjectiveTaskAsset t : set.getTasks()) {
+                if (t == null) continue;
+                StringBuilder sb = new StringBuilder(t.getClass().getSimpleName()
+                        .replace("ObjectiveTaskAsset", "").replace("TaskAsset", ""));
+                if (t instanceof com.hypixel.hytale.builtin.adventure.objectives.config.task.CountObjectiveTaskAsset c
+                        && c.getCount() > 0) {
+                    sb.append(' ').append(c.getCount());
+                }
+                String what = taskTarget(t);
+                if (!what.isEmpty()) sb.append(' ').append(what);
+                parts.add(sb.toString());
+                if (parts.size() == 4) {
+                    parts.add("...");
+                    return String.join(", ", parts);
+                }
+            }
+        }
+        return String.join(", ", parts);
+    }
+
+    /** The item or block a task is about, when it names one. */
+    private static String taskTarget(com.hypixel.hytale.builtin.adventure.objectives.config.task.ObjectiveTaskAsset t) {
+        if (t instanceof com.hypixel.hytale.builtin.adventure.objectives.config.task.GatherObjectiveTaskAsset g) {
+            return g.getBlockTagOrItemIdField() == null ? "" : nz(g.getBlockTagOrItemIdField().getItemId());
+        }
+        if (t instanceof com.hypixel.hytale.builtin.adventure.objectives.config.task.UseBlockObjectiveTaskAsset u) {
+            return u.getBlockTagOrItemIdField() == null ? "" : nz(u.getBlockTagOrItemIdField().getItemId());
+        }
+        if (t instanceof com.hypixel.hytale.builtin.adventure.objectives.config.task.CraftObjectiveTaskAsset c) {
+            return nz(c.getItemId());
+        }
+        return "";
+    }
+
+    /** How many objectives an objective line strings together. */
+    private static String objectiveLineNote(String id) {
+        com.hypixel.hytale.builtin.adventure.objectives.config.ObjectiveLineAsset line =
+                com.hypixel.hytale.builtin.adventure.objectives.config.ObjectiveLineAsset.getAssetMap().getAsset(id);
+        if (line == null || line.getObjectiveIds() == null || line.getObjectiveIds().length == 0) return "";
+        String[] ids = line.getObjectiveIds();
+        return ids.length + " objective(s), starting " + ids[0];
+    }
+
+    private static String nz(@Nullable String s) {
+        return s == null ? "" : s;
+    }
+
     /** How many entries a data set has. */
     public static int size(String id) {
         return names(id).size();
