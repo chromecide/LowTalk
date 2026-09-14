@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.3.1 (2026-09-14)
+
+- The LowTalk tool has its own icon: a speech bubble being clicked, drawn by
+  [@Trix8ea](https://x.com/Trix8ea). It replaces the borrowed builder-tools icon. The layered source, both
+  colourways and their checksums are in `docs/art/`, so the provenance of every image the mod ships can be
+  checked; the art is hand made, as `CONTRIBUTING.md` requires.
+- The mod stays MIT, but the icon is carved out of it: it remains the artist's, used by LowTalk with permission.
+  The terms are in `docs/art/README.md`, and the README's License section names the exception.
+
 ## 0.3.0 (2026-09-12)
 
 ### Tool targeting

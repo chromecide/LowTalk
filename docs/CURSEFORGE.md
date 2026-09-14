@@ -71,10 +71,15 @@ their state. It leaves journals and trackers to the mods that do those well.
 `lowtalk.creator`, server operation needs `lowtalk.admin` (give admins
 `lowtalk.*`); players need nothing.
 
-**Requirements:** a Hytale server. **Supported Hytale versions:** release line 0.6.3 to 0.6.5 (`LowTalk-0.3.0.jar`),
-pre-release line 0.7.0-pre.2 (`LowTalk-0.3.0+hytale.0.7.0-pre.2.jar`); one jar per line is attached to each GitHub
+**Requirements:** a Hytale server. **Supported Hytale versions:** release line 0.6.3 to 0.6.5 (`LowTalk-0.3.1.jar`),
+pre-release line 0.7.0-pre.2 (`LowTalk-0.3.1+hytale.0.7.0-pre.2.jar`); one jar per line is attached to each GitHub
 release and the server refuses the wrong one. No dependencies. LowTalk 0.1.1+ also carries a workaround for the 0.7.0-pre.2
 boot failure `Asset 'Rope' of type Beam doesn't exist` (a Hytale asset load-order bug; see the README).
+
+**Credits**
+
+The tool icon, a speech bubble being clicked, was drawn by [@Trix8ea](https://x.com/Trix8ea) on X and is used
+with their permission. The mod is MIT; the icon is not, and stays the artist's.
 
 **AI Use Disclosure**
 
@@ -83,6 +88,12 @@ and documentation was written by Claude Code under that direction. There is no A
 player reads is written by a dialogue author, and the plugin makes no network calls. No generative AI is used for
 imagery: the mod's art is made by people, and contributions with AI-generated images are rejected. The repository
 is public so you can see exactly what you are running.
+
+**Version notes for 0.3.1** (the "changelog" box on the file upload)
+
+The LowTalk tool has its own icon: a speech bubble being clicked, drawn by @Trix8ea. The mod stays MIT; the
+icon stays the artist's, and the layered source, both colourways and their checksums are in the repository so
+the provenance of every image the mod ships can be checked. No other change: 0.3.0 jars behave identically.
 
 **Version notes for 0.3.0** (the "changelog" box on the file upload)
 
