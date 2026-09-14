@@ -58,8 +58,14 @@ and the in-game editor treat it like a built-in:
 ```java
 api.registerCommand("grant_title", "<<grant_title name>>", "Give the player a title.", (ctx, args) -> ...);
 api.registerDataSet("MyTitles", () -> myTitles.ids());
-api.registerCommandPicker("grant_title", "MyTitles");   // one data set per argument, null for free text
+api.registerCommandArgs("grant_title", "title:MyTitles", "years?");
 ```
+
+`registerCommandArgs` names the arguments, which is what the in-game editor shows: one labelled field each,
+instead of one box of text. A label followed by `:` and a data set id gets a picker that narrows as the creator
+types; a label ending in `?` marks an argument that may be left empty. The older
+`api.registerCommandPicker("grant_title", "MyTitles")` still works and still gives the plain text box a picker for
+one argument, but a command with named arguments reads better and is harder to get wrong.
 
 `ctx` also reaches the game: `ctx.getNpcRef()`, `ctx.getWorld()` and
 `ctx.getEntityStore()` (world thread only; null for a narrator conversation).

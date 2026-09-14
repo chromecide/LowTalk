@@ -5,6 +5,13 @@ Group {
   LayoutMode: Left;
   Anchor: (Height: 38, Bottom: 6);
 
+  // A "!" here means the validator found an error on this row, a "?" a warning; empty when the row is fine.
+  Label #Bad {
+    Anchor: (Width: 16);
+    Style: (FontSize: 15, TextColor: #ff9d8a, VerticalAlignment: Center, HorizontalAlignment: Center);
+    Text: "";
+  }
+
   Label #Tag {
     Anchor: (Width: 60);
     Style: (FontSize: 12, TextColor: #8fd0ff, RenderUppercase: true, VerticalAlignment: Center);

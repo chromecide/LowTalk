@@ -91,6 +91,14 @@ is public so you can see exactly what you are running.
 
 **Version notes for 0.3.1** (the "changelog" box on the file upload)
 
+The in-game editor now explains itself. Commands are edited as named fields instead of one box of text: a particle
+effect asks for a particle, a scale and a number of seconds; giving an item asks for an item and a count. Items,
+sounds, entity effects and objectives can be picked from the game's own lists, narrowed by what you type. The Add
+menu offers the common commands by name (give an item, start an objective, open the shop, play an animation) and
+says what every kind of row does. Mistakes are marked on the row as you make them rather than when you press Save,
+and conditions can be picked from a menu instead of written. Three pickers that filled the wrong argument are
+fixed.
+
 Installing LowTalk no longer puts words in vanilla NPCs' mouths. The example dialogues used to be copied in on
 first run already bound to Kweebec Merchants, Kweebec Elders and Klops Merchants; now a fresh server has no
 bound dialogue until you write or copy one. The examples still ship inside the pack, bound to nothing, so

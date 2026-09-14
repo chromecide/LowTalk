@@ -55,6 +55,12 @@ public final class JsonDialogues {
     public static final String DATASET_MUSIC = "LowTalkMusic";
     public static final String DATASET_PARTICLES = "LowTalkParticles";
     public static final String DATASET_CAMERA_EFFECTS = "LowTalkCameraEffects";
+    /** The game's own lists, for the command rows' pickers. Named once in CommandSpecs so both agree. */
+    public static final String DATASET_ITEMS = com.chromecide.lowtalk.editor.CommandSpecs.ITEMS;
+    public static final String DATASET_SOUNDS = com.chromecide.lowtalk.editor.CommandSpecs.SOUNDS;
+    public static final String DATASET_ENTITY_EFFECTS = com.chromecide.lowtalk.editor.CommandSpecs.ENTITY_EFFECTS;
+    public static final String DATASET_OBJECTIVES = com.chromecide.lowtalk.editor.CommandSpecs.OBJECTIVES;
+    public static final String DATASET_OBJECTIVE_LINES = com.chromecide.lowtalk.editor.CommandSpecs.OBJECTIVE_LINES;
     private static final int MAX_SUGGESTIONS = 40;
 
     private static HytaleAssetStore<String, LowTalkJson, DefaultAssetMap<String, LowTalkJson>> store;
@@ -130,23 +136,73 @@ public final class JsonDialogues {
                 com.hypixel.hytale.server.core.asset.type.camera.CameraEffect.getAssetMap().getAssetMap().keySet()));
         dataset(plugin, DATASET_SHOPS, () -> new java.util.ArrayList<>(
                 com.hypixel.hytale.builtin.adventure.shop.barter.BarterShopAsset.getAssetMap().getAssetMap().keySet()));
+        dataset(plugin, DATASET_ITEMS, () -> new java.util.ArrayList<>(
+                com.hypixel.hytale.server.core.asset.type.item.config.Item.getAssetMap().getAssetMap().keySet()));
+        dataset(plugin, DATASET_SOUNDS, () -> new java.util.ArrayList<>(
+                com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent.getAssetMap().getAssetMap().keySet()));
+        dataset(plugin, DATASET_ENTITY_EFFECTS, () -> new java.util.ArrayList<>(
+                com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect.getAssetMap().getAssetMap().keySet()));
+        dataset(plugin, DATASET_OBJECTIVES, () -> new java.util.ArrayList<>(
+                com.hypixel.hytale.builtin.adventure.objectives.config.ObjectiveAsset.getAssetMap().getAssetMap().keySet()));
+        dataset(plugin, DATASET_OBJECTIVE_LINES, () -> new java.util.ArrayList<>(
+                com.hypixel.hytale.builtin.adventure.objectives.config.ObjectiveLineAsset.getAssetMap().getAssetMap().keySet()));
     }
 
     /** Register an autocomplete data set: the supplier's names, filtered by the typed prefix or fragment, sorted. */
     private static final java.util.Map<String, java.util.function.Supplier<java.util.List<String>>> DATASETS = new java.util.concurrent.ConcurrentHashMap<>();
 
+    /** A data set's sorted contents, kept for a few seconds: there are thousands of items, and a picker asks for
+     *  them again on every keystroke. Short enough that a dialogue saved a moment ago shows up in its own list. */
+    private record Cached(long at, java.util.List<String> names) {}
+
+    private static final java.util.Map<String, Cached> CACHE = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final long CACHE_MILLIS = 5000;
+
     /** The full, sorted contents of a data set (for in-game pickers); empty when unknown or unavailable. */
     public static java.util.List<String> names(String id) {
         java.util.function.Supplier<java.util.List<String>> s = DATASETS.get(id);
         if (s == null) return java.util.List.of();
+        Cached hit = CACHE.get(id);
+        long now = System.currentTimeMillis();
+        if (hit != null && now - hit.at() < CACHE_MILLIS) return hit.names();
         try {
             java.util.List<String> all = new java.util.ArrayList<>(s.get());
             all.removeIf(java.util.Objects::isNull);
             java.util.Collections.sort(all);
-            return all;
+            java.util.List<String> out = java.util.List.copyOf(all);
+            CACHE.put(id, new Cached(now, out));
+            return out;
         } catch (RuntimeException e) {
             return java.util.List.of();
         }
+    }
+
+    /**
+     * The part of a data set worth showing in a dropdown: entries containing the typed text, longest lists first
+     * trimmed to a limit. There are thousands of items and sounds, so an in-game picker has to narrow as the creator
+     * types rather than offer the lot. Entries that start with the text come before entries that merely contain it.
+     * When nothing matches, the start of the whole list is returned, so the dropdown is never empty.
+     */
+    public static java.util.List<String> names(String id, @Nullable String query, int limit) {
+        java.util.List<String> all = names(id);
+        String q = query == null ? "" : query.trim().toLowerCase(java.util.Locale.ROOT);
+        if (q.isEmpty()) return all.size() <= limit ? all : new java.util.ArrayList<>(all.subList(0, limit));
+        java.util.List<String> starts = new java.util.ArrayList<>();
+        java.util.List<String> contains = new java.util.ArrayList<>();
+        for (String n : all) {
+            String l = n.toLowerCase(java.util.Locale.ROOT);
+            if (l.startsWith(q)) starts.add(n);
+            else if (l.contains(q)) contains.add(n);
+            if (starts.size() >= limit) break;
+        }
+        starts.addAll(contains);
+        if (starts.isEmpty()) return all.size() <= limit ? all : new java.util.ArrayList<>(all.subList(0, limit));
+        return starts.size() <= limit ? starts : new java.util.ArrayList<>(starts.subList(0, limit));
+    }
+
+    /** How many entries a data set has, for deciding whether a picker needs filtering. */
+    public static int size(String id) {
+        return names(id).size();
     }
 
     /** Register a named list for pickers and Asset Editor autocomplete (other plugins use LowTalkApi.registerDataSet). */

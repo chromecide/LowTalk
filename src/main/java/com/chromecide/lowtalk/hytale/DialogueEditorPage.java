@@ -1,6 +1,7 @@
 package com.chromecide.lowtalk.hytale;
 
 import com.chromecide.lowtalk.LowTalkPlugin;
+import com.chromecide.lowtalk.editor.CommandSpecs;
 import com.chromecide.lowtalk.editor.DialogueDraft;
 import com.chromecide.lowtalk.editor.DialogueDraft.Kind;
 import com.chromecide.lowtalk.editor.DialogueDraft.Scope;
@@ -70,6 +71,10 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
     private static final String HEADER = "Pages/LowTalk/EditHeader.ui";
     private static final int MAX_CRUMBS = 5;
     private static final String NONE = "$none";
+    /** How many named argument fields a command row has room for; longer commands fall back to plain text. */
+    private static final int ARG_SLOTS = 4;
+    /** How many entries a picker offers at once. The game has thousands of items, so the list has to narrow. */
+    private static final int PICK_LIMIT = 50;
 
     /** Which game list feeds the picker for a command's arguments, by argument position. */
     private static final Map<String, String[]> PICKERS = new java.util.concurrent.ConcurrentHashMap<>(Map.ofEntries(
@@ -97,9 +102,9 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
 
     public enum Action {
         LINE_TEXT, LINE_SPEAKER, LINE_BUTTON,
-        OPT_TEXT, OPT_TARGET, OPT_GO, OPT_MORE, OPT_IF, OPT_SHOW, OPT_ONCE, OPT_BODY,
-        CMD_NAME, CMD_ARGS, CMD_PICK, SET, JUMP_NODE, JUMP_GO, INPUT, WAIT,
-        BRANCH_COND, BRANCH_BODY, BRANCH_ADD, BRANCH_DEL, BLOCK_BODY, ALT_ADD, ALT_DEL,
+        OPT_TEXT, OPT_TARGET, OPT_GO, OPT_MORE, OPT_IF, OPT_SHOW, OPT_ONCE, OPT_BODY, OPT_IF_PICK, OPT_SHOW_PICK,
+        CMD_NAME, CMD_ARGS, CMD_SLOT, CMD_PICK, SET, JUMP_NODE, JUMP_GO, INPUT, WAIT,
+        BRANCH_COND, BRANCH_COND_PICK, BRANCH_BODY, BRANCH_ADD, BRANCH_DEL, BLOCK_BODY, ALT_ADD, ALT_DEL,
         UP, DOWN, DEL, ADD_KIND, ADD, ADD_NODE, RENAME, JUMP, BACK, HEADER, DELETE_NODE,
         H_BINDINGS, H_NPC_PICK, H_SPEAKER, H_TITLE, H_START, H_ON, H_PORTRAIT, H_SCOPE, H_LAYOUT, H_HISTORY,
         SAVE, TEST, DISCARD, CLOSE
@@ -109,11 +114,13 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         public static final BuilderCodec<Data> CODEC = BuilderCodec.builder(Data.class, Data::new)
                 .append(new KeyedCodec<>("Action", Codec.STRING, false), (d, s) -> d.action = s, d -> d.action).add()
                 .append(new KeyedCodec<>("Row", Codec.STRING, false), (d, s) -> d.row = s, d -> d.row).add()
+                .append(new KeyedCodec<>("Slot", Codec.STRING, false), (d, s) -> d.slot = s, d -> d.slot).add()
                 .append(new KeyedCodec<>("@Value", Codec.STRING, false), (d, s) -> d.value = s, d -> d.value).add()
                 .append(new KeyedCodec<>("@Value2", Codec.STRING, false), (d, s) -> d.value2 = s, d -> d.value2).add()
                 .build();
         private String action;
         private String row;
+        private String slot;
         private String value;
         private String value2;
     }
@@ -136,6 +143,10 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
     private final Set<String> expanded = new HashSet<>();
     private String status = "";
     private String addKind = Kind.LINE.name();
+    /** Statements and options the validator is unhappy with, true when it is an error rather than a warning.
+     *  Recomputed on every redraw so a row is marked while it is being written, not only when Save is pressed. */
+    private final java.util.Map<Object, Boolean> flagged = new java.util.IdentityHashMap<>();
+    private String liveSummary = "";
 
     public DialogueEditorPage(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef playerRef, @Nonnull Dialogue dialogue,
                               @Nonnull UUID npcId, @Nonnull String npcName) {
@@ -173,17 +184,26 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         bind(evt, "#DiscardButton", Action.DISCARD, null);
         bind(evt, "#CloseButton", Action.CLOSE, null);
         List<DropdownEntryInfo> kinds = new ArrayList<>();
-        kinds.add(entry("Line (something said)", Kind.LINE.name(), null));
-        kinds.add(entry("Option (something the player can say)", Kind.OPTION.name(), null));
-        kinds.add(entry("Command (give, objective, anim, ...)", Kind.COMMAND.name(), null));
-        kinds.add(entry("Set a variable", Kind.SET.name(), null));
-        kinds.add(entry("If / else block", Kind.IF.name(), null));
-        kinds.add(entry("Once block (first time only)", Kind.ONCE.name(), null));
-        kinds.add(entry("Random block (one of several)", Kind.RANDOM.name(), null));
-        kinds.add(entry("Ask the player to type something", Kind.INPUT.name(), null));
-        kinds.add(entry("Wait a few seconds", Kind.WAIT.name(), null));
-        kinds.add(entry("Jump to a passage", Kind.JUMP.name(), null));
-        kinds.add(entry("End the conversation", Kind.END.name(), null));
+        kinds.add(kind("Line (something said)", Kind.LINE, null, "A line the NPC says. Leave the speaker empty and it is the NPC's own voice."));
+        kinds.add(kind("Option (something the player can say)", Kind.OPTION, null, "A choice in the list at the bottom. Edit what happens when it is picked."));
+        kinds.add(kind("Give the player an item", Kind.COMMAND, "give", null));
+        kinds.add(kind("Take an item away", Kind.COMMAND, "take", null));
+        kinds.add(kind("Start an objective", Kind.COMMAND, "objective", null));
+        kinds.add(kind("Open this NPC's shop", Kind.COMMAND, "shop", null));
+        kinds.add(kind("Play an animation", Kind.COMMAND, "anim", null));
+        kinds.add(kind("Play a sound", Kind.COMMAND, "sound", null));
+        kinds.add(kind("Show a title across the screen", Kind.COMMAND, "title", null));
+        kinds.add(kind("Show a notification in the corner", Kind.COMMAND, "notify", null));
+        kinds.add(kind("Play a particle effect", Kind.COMMAND, "vfx", null));
+        kinds.add(kind("Any other command...", Kind.COMMAND, null, "Every command, with its arguments named: attitude, teleport, weather, reputation and the rest."));
+        kinds.add(kind("Set a variable", Kind.SET, null, "Remember something about this player, such as $met = true."));
+        kinds.add(kind("If / else block", Kind.IF, null, "Show different lines depending on a variable, an item, an objective or the time."));
+        kinds.add(kind("Once block (first time only)", Kind.ONCE, null, "Runs the first time this player reaches it and never again."));
+        kinds.add(kind("Random block (one of several)", Kind.RANDOM, null, "Picks one of its alternatives each time, so an NPC does not repeat itself."));
+        kinds.add(kind("Ask the player to type something", Kind.INPUT, null, "Opens a text box and stores what they type in a variable."));
+        kinds.add(kind("Wait a few seconds", Kind.WAIT, null, "Pauses before the next line, with no Continue button."));
+        kinds.add(kind("Jump to a passage", Kind.JUMP, null, "Continue at another passage of this dialogue."));
+        kinds.add(kind("End the conversation", Kind.END, null, "Closes the window."));
         cmd.set("#AddKind.Entries", kinds);
         cmd.set("#AddKind.Value", addKind);
         render(cmd, evt);
@@ -199,6 +219,17 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         EventData data = new EventData().append("Action", action.name());
         data.append("@Value", valueSelector == null ? selector + ".Value" : valueSelector);
         evt.addEventBinding(CustomUIEventBindingType.ValueChanged, selector, data, false);
+    }
+
+    /** One entry of the Add menu. A command entry carries the command it inserts, and borrows its own one-line
+     *  description from the reference so the menu explains itself. */
+    private static DropdownEntryInfo kind(String label, Kind kind, @Nullable String command, @Nullable String tooltip) {
+        String tip = tooltip;
+        if (tip == null && command != null) {
+            Reference.Entry ref = Reference.lookup(command);
+            if (ref != null) tip = ref.usage() + "  -  " + ref.description();
+        }
+        return entry(label, command == null ? kind.name() : kind.name() + ":" + command, tip);
     }
 
     private static DropdownEntryInfo entry(String label, String value, @Nullable String tooltip) {
@@ -226,12 +257,97 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         cmd.set("#NodeJump.Entries", nodeEntries);
         cmd.set("#NodeJump.Value", scope.node());
         cmd.set("#Crumbs.Text", crumbText());
-        cmd.set("#Status.Text", status);
+        revalidate();
+        cmd.set("#Status.Text", status.isEmpty() ? liveSummary : status);
         cmd.set("#AddRow.Visible", !header);
         cmd.clear("#Rows");
         rows.clear();
         if (header) renderHeader(cmd, evt);
         else renderScope(cmd, evt);
+    }
+
+    /**
+     * Check the draft as it stands and remember which rows to mark. The validator blames each problem on the
+     * statement or option it found it in, so a creator sees a "!" beside the row that needs attention instead of a
+     * file and line number they cannot see from in here.
+     */
+    private void revalidate() {
+        flagged.clear();
+        liveSummary = "";
+        int errors = 0;
+        int warnings = 0;
+        String first = null;
+        try {
+            List<Validator.Problem> problems =
+                    new Validator(plugin.getEffects().names(), plugin.getFunctions().names()).validate(draft.toDialogue());
+            for (Validator.Problem p : problems) {
+                if (p.error()) errors++; else warnings++;
+                if (first == null || (p.error() && errors == 1)) first = p.message();
+                Object subject = p.subject();
+                if (subject == null) continue;
+                Boolean was = flagged.get(subject);
+                if (was == null || (p.error() && !was)) flagged.put(subject, p.error());
+            }
+        } catch (RuntimeException e) {
+            plugin.getLogger().at(Level.FINE).withCause(e).log("dialogue editor: could not check the draft");
+            return;
+        }
+        if (first == null) return;
+        String counts = errors > 0 && warnings > 0 ? errors + " to fix, " + warnings + " to look at"
+                : errors > 0 ? errors + " to fix"
+                : warnings + " to look at";
+        liveSummary = counts + " (! on the row means it must be fixed, ? is a warning): " + first;
+    }
+
+    /** The mark for a row: "!" when it or anything inside it has an error, "?" for a warning, empty when it is fine. */
+    private String mark(Object subject) {
+        if (flagged.isEmpty()) return "";
+        List<Object> parts = new ArrayList<>();
+        collect(subject, parts);
+        boolean warned = false;
+        for (Object o : parts) {
+            Boolean bad = flagged.get(o);
+            if (bad == null) continue;
+            if (bad) return "!";
+            warned = true;
+        }
+        return warned ? "?" : "";
+    }
+
+    /** The mark for exactly one statement or option, ignoring anything written inside it. */
+    private String markSelf(Object subject) {
+        Boolean bad = flagged.get(subject);
+        return bad == null ? "" : bad ? "!" : "?";
+    }
+
+    /** Whichever of two marks matters more. */
+    private static String worse(String a, String b) {
+        if ("!".equals(a) || "!".equals(b)) return "!";
+        return a.isEmpty() ? b : a;
+    }
+
+    /** The mark for a row that stands for a block of statements, such as one branch of an if. */
+    private String markBody(List<Statement> body) {
+        boolean warned = false;
+        for (Statement s : body) {
+            String m = mark(s);
+            if ("!".equals(m)) return m;
+            if (!m.isEmpty()) warned = true;
+        }
+        return warned ? "?" : "";
+    }
+
+    /** A statement or option and everything written inside it. */
+    private static void collect(Object subject, List<Object> out) {
+        out.add(subject);
+        switch (subject) {
+            case Option o -> o.body().forEach(x -> collect(x, out));
+            case Statement.Choice c -> c.options().forEach(o -> collect(o, out));
+            case Statement.Conditional c -> c.branches().forEach(b -> b.body().forEach(x -> collect(x, out)));
+            case Statement.Once o -> o.body().forEach(x -> collect(x, out));
+            case Statement.Random r -> r.alternatives().forEach(a -> a.forEach(x -> collect(x, out)));
+            default -> {}
+        }
     }
 
     private String crumbText() {
@@ -304,6 +420,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             switch (s) {
                 case Statement.Line l -> {
                     String sel = append(cmd, ROW_LINE, row);
+                    cmd.set(sel + " #Bad.Text", mark(l));
                     cmd.set(sel + " #Speaker.Value", nz(l.speaker()));
                     cmd.set(sel + " #Text.Value", Printer.text(l.text()));
                     rowChange(evt, sel + " #Speaker", Action.LINE_SPEAKER, row);
@@ -316,6 +433,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                     for (int o = 0; o < c.options().size(); o++) {
                         Option opt = c.options().get(o);
                         String sel = append(cmd, ROW_OPTION, row);
+                        cmd.set(sel + " #Bad.Text", worse(mark(opt), markSelf(c)));
                         cmd.set(sel + " #Label.Value", Printer.text(opt.text()));
                         cmd.set(sel + " #Target.Entries", targetEntries(opt));
                         cmd.set(sel + " #Target.Value", DialogueDraft.optionTarget(opt));
@@ -331,6 +449,12 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                             cmd.set(sel2 + " #Once.Text", opt.once() ? "once: yes" : "once: no");
                             rowChange(evt, sel2 + " #If", Action.OPT_IF, row);
                             rowChange(evt, sel2 + " #ShowIf", Action.OPT_SHOW, row);
+                            cmd.set(sel2 + " #IfHelp.Entries", conditionEntries());
+                            cmd.set(sel2 + " #IfHelp.Value", NONE);
+                            cmd.set(sel2 + " #ShowHelp.Entries", conditionEntries());
+                            cmd.set(sel2 + " #ShowHelp.Value", NONE);
+                            rowChange(evt, sel2 + " #IfHelp", Action.OPT_IF_PICK, row);
+                            rowChange(evt, sel2 + " #ShowHelp", Action.OPT_SHOW_PICK, row);
                             rowClick(evt, sel2 + " #Once", Action.OPT_ONCE, row);
                             rowClick(evt, sel2 + " #Body", Action.OPT_BODY, row);
                             rows.add(new RowRef(i, o));
@@ -340,31 +464,17 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 }
                 case Statement.Command c -> {
                     String sel = append(cmd, ROW_COMMAND, row);
+                    cmd.set(sel + " #Bad.Text", mark(c));
                     cmd.set(sel + " #Name.Entries", commandEntries());
                     cmd.set(sel + " #Name.Value", c.name());
-                    cmd.set(sel + " #Args.Value", DialogueDraft.argsText(c));
-                    String dataset = pickerFor(c.name());
-                    List<DropdownEntryInfo> picks = new ArrayList<>();
-                    int argIndex = pickerArg(c.name());
-                    String current = argIndex >= 0 && c.args().size() > argIndex ? Printer.text(c.args().get(argIndex)) : "";
-                    if (dataset != null) {
-                        picks.add(entry(argIndex == 0 ? "pick..." : "pick argument " + (argIndex + 1) + "...", NONE, null));
-                        boolean seen = false;
-                        for (String n : JsonDialogues.names(dataset)) { picks.add(entry(n, n, null)); if (n.equals(current)) seen = true; }
-                        if (!seen && !current.isEmpty()) picks.add(entry(current, current, null));
-                    }
-                    cmd.set(sel + " #Pick.Entries", picks);
-                    cmd.set(sel + " #Pick.Value", dataset == null || current.isEmpty() ? NONE : current);
-                    cmd.set(sel + " #Pick.Visible", dataset != null);
+                    renderCommand(cmd, evt, sel, row, c);
                     evt.addEventBinding(CustomUIEventBindingType.ValueChanged, sel + " #Name",
-                            rowData(Action.CMD_NAME, row).append("@Value", sel + " #Name.Value").append("@Value2", sel + " #Args.Value"), false);
-                    evt.addEventBinding(CustomUIEventBindingType.ValueChanged, sel + " #Args",
-                            rowData(Action.CMD_ARGS, row).append("@Value", sel + " #Name.Value").append("@Value2", sel + " #Args.Value"), false);
-                    rowChange(evt, sel + " #Pick", Action.CMD_PICK, row);
+                            rowData(Action.CMD_NAME, row).append("@Value", sel + " #Name.Value"), false);
                     row = standard(evt, sel, row, new RowRef(i, -1));
                 }
                 case Statement.Set st -> {
                     String sel = append(cmd, ROW_SET, row);
+                    cmd.set(sel + " #Bad.Text", mark(st));
                     cmd.set(sel + " #Var.Value", Printer.expr(st.target()));
                     cmd.set(sel + " #Value.Value", Printer.expr(st.value()));
                     for (String f : List.of("#Var", "#Value")) {
@@ -375,6 +485,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 }
                 case Statement.Jump j -> {
                     String sel = append(cmd, ROW_JUMP, row);
+                    cmd.set(sel + " #Bad.Text", mark(j));
                     List<DropdownEntryInfo> nodes = new ArrayList<>();
                     for (String n : draft.nodeNames()) nodes.add(entry(n, n, null));
                     cmd.set(sel + " #Node.Entries", nodes);
@@ -385,6 +496,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 }
                 case Statement.Input in -> {
                     String sel = append(cmd, ROW_INPUT, row);
+                    cmd.set(sel + " #Bad.Text", mark(in));
                     cmd.set(sel + " #Var.Value", Printer.expr(in.target()));
                     cmd.set(sel + " #Prompt.Value", Printer.text(in.prompt()));
                     for (String f : List.of("#Var", "#Prompt")) {
@@ -395,12 +507,14 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 }
                 case Statement.Wait w -> {
                     String sel = append(cmd, ROW_WAIT, row);
+                    cmd.set(sel + " #Bad.Text", mark(w));
                     cmd.set(sel + " #Seconds.Value", Printer.expr(w.seconds()));
                     rowChange(evt, sel + " #Seconds", Action.WAIT, row);
                     row = standard(evt, sel, row, new RowRef(i, -1));
                 }
                 case Statement.End e -> {
                     String sel = append(cmd, ROW_BLOCK, row);
+                    cmd.set(sel + " #Bad.Text", mark(e));
                     cmd.set(sel + " #Tag.Text", "end");
                     cmd.set(sel + " #Summary.Text", "the conversation ends here");
                     cmd.set(sel + " #Body.Visible", false);
@@ -411,11 +525,19 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                     for (int b = 0; b < c.branches().size(); b++) {
                         Statement.Branch br = c.branches().get(b);
                         String sel = append(cmd, ROW_BRANCH, row);
+                        cmd.set(sel + " #Bad.Text", worse(markBody(br.body()), b == 0 ? markSelf(c) : ""));
                         cmd.set(sel + " #Tag.Text", b == 0 ? "if" : br.condition() == null ? "else" : "else if");
                         cmd.set(sel + " #Cond.Value", br.condition() == null ? "" : Printer.expr(br.condition()));
                         cmd.set(sel + " #Cond.Visible", !(b > 0 && br.condition() == null));
                         cmd.set(sel + " #AddBranch.Visible", b == c.branches().size() - 1);
                         rowChange(evt, sel + " #Cond", Action.BRANCH_COND, row);
+                        boolean takesCondition = !(b > 0 && br.condition() == null);
+                        cmd.set(sel + " #CondHelp.Visible", takesCondition);
+                        if (takesCondition) {
+                            cmd.set(sel + " #CondHelp.Entries", conditionEntries());
+                            cmd.set(sel + " #CondHelp.Value", NONE);
+                            rowChange(evt, sel + " #CondHelp", Action.BRANCH_COND_PICK, row);
+                        }
                         rowClick(evt, sel + " #Body", Action.BRANCH_BODY, row);
                         rowClick(evt, sel + " #AddBranch", Action.BRANCH_ADD, row);
                         rowClick(evt, sel + " #Up", Action.UP, row);
@@ -429,6 +551,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 }
                 case Statement.Once o -> {
                     String sel = append(cmd, ROW_BLOCK, row);
+                    cmd.set(sel + " #Bad.Text", mark(o));
                     cmd.set(sel + " #Tag.Text", "once");
                     cmd.set(sel + " #Summary.Text", summary(o.body()));
                     cmd.set(sel + " #AddAlt.Visible", false);
@@ -438,6 +561,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 case Statement.Random r -> {
                     for (int a = 0; a < r.alternatives().size(); a++) {
                         String sel = append(cmd, ROW_BLOCK, row);
+                        cmd.set(sel + " #Bad.Text", worse(markBody(r.alternatives().get(a)), a == 0 ? markSelf(r) : ""));
                         cmd.set(sel + " #Tag.Text", a == 0 ? "random" : "or");
                         cmd.set(sel + " #Summary.Text", summary(r.alternatives().get(a)));
                         cmd.set(sel + " #AddAlt.Visible", a == r.alternatives().size() - 1);
@@ -454,6 +578,108 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 }
             }
         }
+    }
+
+    /**
+     * A command row: the command's name, then one named field per argument it takes, so that a creator reading the
+     * row can see that the number after a particle is its scale and the one after that is a count of seconds.
+     * Arguments picked from one of the game's lists get the picker at the end of the row, which narrows as they
+     * type because there are thousands of items. A command with no argument names, or one whose arguments do not
+     * fit them, keeps the plain box of text this row used to be.
+     */
+    private void renderCommand(UICommandBuilder cmd, UIEventBuilder evt, String sel, int row, Statement.Command c) {
+        CommandSpecs.Spec spec = CommandSpecs.of(c.name());
+        List<String> values = CommandSpecs.values(c);
+        int slots = values == null ? 0 : spec.size();
+        for (int slot = 0; slot < ARG_SLOTS; slot++) {
+            String at = sel + " #Arg" + slot;
+            cmd.set(at + ".Visible", slot < slots);
+            if (slot >= slots) continue;
+            CommandSpecs.Arg a = spec.arg(slot);
+            String current = values.get(slot);
+            boolean choice = a.type() == CommandSpecs.Type.CHOICE;
+            cmd.set(sel + " #L" + slot + ".Text", a.label());
+            cmd.set(sel + " #V" + slot + ".Visible", !choice);
+            cmd.set(sel + " #C" + slot + ".Visible", choice);
+            if (choice) {
+                List<DropdownEntryInfo> entries = new ArrayList<>();
+                entries.add(entry(a.optional() ? "(not set)" : "choose...", NONE, null));
+                boolean seen = false;
+                for (String o : a.choices()) {
+                    entries.add(entry(o, o, null));
+                    if (o.equalsIgnoreCase(current)) seen = true;
+                }
+                if (!current.isEmpty() && !seen) entries.add(entry(current, current, null));
+                cmd.set(sel + " #C" + slot + ".Entries", entries);
+                cmd.set(sel + " #C" + slot + ".Value", current.isEmpty() ? NONE : current);
+                slotChange(evt, sel + " #C" + slot, row, slot);
+            } else {
+                cmd.set(sel + " #V" + slot + ".Value", current);
+                slotChange(evt, sel + " #V" + slot, row, slot);
+            }
+        }
+        boolean plain = values == null;
+        cmd.set(sel + " #Args.Visible", plain);
+        if (plain) {
+            cmd.set(sel + " #Args.Value", DialogueDraft.argsText(c));
+            evt.addEventBinding(CustomUIEventBindingType.ValueChanged, sel + " #Args",
+                    rowData(Action.CMD_ARGS, row).append("@Value", sel + " #Name.Value").append("@Value2", sel + " #Args.Value"), false);
+        }
+        renderPick(cmd, sel, c, spec, values);
+        rowChange(evt, sel + " #Pick", Action.CMD_PICK, row);
+    }
+
+    /** The picker at the end of a command row: the game's list for whichever argument is an id, narrowed by what
+     *  has been typed into that argument so far. Hidden when the command has no such argument. */
+    private void renderPick(UICommandBuilder cmd, String sel, Statement.Command c,
+                            @Nullable CommandSpecs.Spec spec, @Nullable List<String> values) {
+        int slot = values == null ? pickerArg(c.name()) : CommandSpecs.assetSlot(spec);
+        // in plain-text mode the arguments are not in known places, so a picker could only overwrite the wrong one;
+        // it is offered for a command with no named arguments at all, where it is all the help there is
+        String dataset = values == null ? (spec == null ? pickerFor(c.name()) : null)
+                : CommandSpecs.datasetFor(spec, slot, values);
+        List<DropdownEntryInfo> picks = new ArrayList<>();
+        if (dataset != null) {
+            String typed = values != null ? values.get(slot)
+                    : slot >= 0 && c.args().size() > slot ? Printer.text(c.args().get(slot)) : "";
+            List<String> matches = JsonDialogues.names(dataset, typed, PICK_LIMIT);
+            int total = JsonDialogues.size(dataset);
+            String label = spec != null && slot >= 0 && slot < spec.size() ? spec.arg(slot).label() : "value";
+            picks.add(entry(total <= PICK_LIMIT ? "pick the " + label + "..."
+                    : matches.size() + " of " + total + ", type to narrow...", NONE, null));
+            for (String n : matches) picks.add(entry(n, n, null));
+        }
+        cmd.set(sel + " #Pick.Entries", picks);
+        cmd.set(sel + " #Pick.Value", NONE);
+        cmd.set(sel + " #Pick.Visible", dataset != null);
+    }
+
+    /** Re-send only one command row's picker, so its list narrows as the creator types without moving the caret. */
+    private void refreshPick(int row) {
+        RowRef r = rowRef(String.valueOf(row));
+        if (r == null) return;
+        Statement s = draft.view(scope).get(r.statement());
+        if (!(s instanceof Statement.Command c)) return;
+        UICommandBuilder cmd = new UICommandBuilder();
+        renderPick(cmd, "#Rows[" + row + "]", c, CommandSpecs.of(c.name()), CommandSpecs.values(c));
+        sendUpdate(cmd, new UIEventBuilder(), false);
+    }
+
+    /** Write one named argument back, keeping the others where they are. */
+    @Nullable
+    private String setArg(int statement, int slot, String value) {
+        Statement s = draft.view(scope).get(statement);
+        if (!(s instanceof Statement.Command c)) return null;
+        CommandSpecs.Spec spec = CommandSpecs.of(c.name());
+        List<String> values = CommandSpecs.values(c);
+        if (spec == null || values == null || slot < 0 || slot >= values.size()) return null;
+        values.set(slot, NONE.equals(value) ? "" : value);
+        return draft.setCommand(scope, statement, c.name(), CommandSpecs.join(spec, values));
+    }
+
+    private static void slotChange(UIEventBuilder evt, String selector, int row, int slot) {
+        evt.addEventBinding(CustomUIEventBindingType.ValueChanged, selector,
+                rowData(Action.CMD_SLOT, row).append("Slot", String.valueOf(slot)).append("@Value", selector + ".Value"), false);
     }
 
     private static String append(UICommandBuilder cmd, String layout, int row) {
@@ -503,6 +729,39 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         return entries;
     }
 
+    /**
+     * Ready-made conditions. The three condition fields are the only places in the editor that ask for an
+     * expression, so the list offers the shapes people actually want, with the dialogue's own variables first.
+     * What it writes is ordinary text the creator can then edit; nothing here is a separate format.
+     */
+    private List<DropdownEntryInfo> conditionEntries() {
+        List<DropdownEntryInfo> out = new ArrayList<>();
+        out.add(entry("use a ready-made condition...", NONE, null));
+        for (String v : variablesInUse()) {
+            out.add(entry("when " + v + " is set", v, "true once something in this dialogue has done <<set " + v + " = true>>"));
+            out.add(entry("when " + v + " is not set", "not " + v, null));
+        }
+        out.add(entry("when the player has an item", "has(\"Food_Bread\")", "put your own item id in place of Food_Bread"));
+        out.add(entry("when the player has no such item", "not has(\"Food_Bread\")", "put your own item id in place of Food_Bread"));
+        out.add(entry("when they have seen a passage", "visited(\"" + draft.startNode() + "\")", "true once this player has reached that passage"));
+        out.add(entry("when an objective is finished", "objective(\"Objective_Id\") == \"complete\"", "also \"active\" and \"none\""));
+        out.add(entry("when this NPC likes them", "attitude() == \"friendly\"", "ignore, hostile, neutral, friendly, revered"));
+        out.add(entry("at night", "hour() < 6 or hour() > 20", "the in-game hour, 0 to 23"));
+        out.add(entry("one time in three", "chance(0.33)", "a number between 0 and 1"));
+        return out;
+    }
+
+    /** Variables this dialogue already sets, newest last, for the condition menu. */
+    private List<String> variablesInUse() {
+        java.util.LinkedHashSet<String> names = new java.util.LinkedHashSet<>();
+        for (String node : draft.nodeNames()) {
+            List<Object> all = new ArrayList<>();
+            for (Statement s : draft.view(Scope.node(node))) collect(s, all);
+            for (Object o : all) if (o instanceof Statement.Set set) names.add(Printer.expr(set.target()));
+        }
+        return names.size() <= 8 ? new ArrayList<>(names) : new ArrayList<>(names).subList(0, 8);
+    }
+
     private List<DropdownEntryInfo> commandEntries() {
         Set<String> names = new TreeSet<>(Validator.BUILTIN_COMMANDS.keySet());
         names.addAll(plugin.getEffects().names());
@@ -541,10 +800,12 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             return;
         }
         RowRef r = rowRef(data.row);
+        int row = number(data.row);
+        int slot = number(data.slot);
         String value = data.value == null ? "" : data.value;
         String value2 = data.value2 == null ? "" : data.value2;
         try {
-            boolean redraw = handle(action, r, value, value2, ref, store);
+            boolean redraw = handle(action, r, row, slot, value, value2, ref, store);
             if (redraw) refresh();
         } catch (RuntimeException e) {
             plugin.getLogger().at(Level.WARNING).withCause(e).log("dialogue editor: %s failed", action);
@@ -553,8 +814,18 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         }
     }
 
+    /** A number sent with an event, or -1 when it was absent or malformed. */
+    private static int number(@Nullable String s) {
+        try {
+            return s == null ? -1 : Integer.parseInt(s.trim());
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
     /** Apply one event; returns true when the window must be redrawn. */
-    private boolean handle(Action action, @Nullable RowRef r, String value, String value2, Ref<EntityStore> ref, Store<EntityStore> store) {
+    private boolean handle(Action action, @Nullable RowRef r, int row, int slot, String value, String value2,
+                           Ref<EntityStore> ref, Store<EntityStore> store) {
         switch (action) {
             // typing into fields changes the draft without redrawing, so the caret stays where it is
             case LINE_TEXT -> { if (r != null) draft.setLineText(scope, r.statement(), value); return false; }
@@ -563,7 +834,21 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             case OPT_TEXT -> { if (r != null) draft.setOptionText(scope, r.statement(), r.sub(), value); return false; }
             case OPT_IF -> { if (r != null) return problem(draft.setOptionGuard(scope, r.statement(), r.sub(), value)); return false; }
             case OPT_SHOW -> { if (r != null) return problem(draft.setOptionShowGuard(scope, r.statement(), r.sub(), value)); return false; }
-            case CMD_NAME, CMD_ARGS -> { if (r != null) return problem(draft.setCommand(scope, r.statement(), value, value2)) || action == Action.CMD_NAME; return false; }
+            case CMD_ARGS -> { if (r != null) return problem(draft.setCommand(scope, r.statement(), value, value2)); return false; }
+            case CMD_SLOT -> {
+                if (r == null) return false;
+                Statement s = draft.view(scope).get(r.statement());
+                if (!(s instanceof Statement.Command c)) return false;
+                CommandSpecs.Spec spec = CommandSpecs.of(c.name());
+                String failed = setArg(r.statement(), slot, value);
+                if (failed != null) { status = failed; return true; }
+                if (spec == null || slot < 0 || slot >= spec.size()) return false;
+                // a fixed choice can change what the rest of the command means, so redraw; typing must not, or the
+                // caret would jump, so only the picker beside the field is re-sent
+                if (spec.arg(slot).type() == CommandSpecs.Type.CHOICE) return true;
+                if (spec.arg(slot).type() == CommandSpecs.Type.ASSET) refreshPick(row);
+                return false;
+            }
             case SET -> { if (r != null) return problem(draft.setSet(scope, r.statement(), value, value2)); return false; }
             case INPUT -> { if (r != null) return problem(draft.setInput(scope, r.statement(), value, value2)); return false; }
             case WAIT -> { if (r != null) return problem(draft.setWait(scope, r.statement(), value)); return false; }
@@ -573,6 +858,17 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             case H_TITLE -> { draft.setTitle(value); return false; }
             case H_PORTRAIT -> { draft.setDirective("portrait", value); return false; }
             case H_SCOPE -> { draft.setScope(value); return false; }
+
+            case CMD_NAME -> {
+                if (r == null) return false;
+                Statement s = draft.view(scope).get(r.statement());
+                if (!(s instanceof Statement.Command c) || c.name().equals(value)) return false;
+                boolean had = !DialogueDraft.argsText(c).isBlank();
+                String err = draft.setCommand(scope, r.statement(), value, CommandSpecs.defaults(value));
+                if (err != null) { status = err; return true; }
+                status = had ? "Changed to " + value + "; its own arguments are shown, the old ones are gone." : "";
+                return true;
+            }
 
             case OPT_TARGET -> {
                 if (r == null) return false;
@@ -602,10 +898,28 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 return true;
             }
             case OPT_BODY -> { if (r != null) go(scope.into(r.statement(), r.sub())); return true; }
+            case OPT_IF_PICK -> {
+                if (r == null || NONE.equals(value)) return false;
+                problem(draft.setOptionGuard(scope, r.statement(), r.sub(), value));
+                return true;
+            }
+            case OPT_SHOW_PICK -> {
+                if (r == null || NONE.equals(value)) return false;
+                problem(draft.setOptionShowGuard(scope, r.statement(), r.sub(), value));
+                return true;
+            }
+            case BRANCH_COND_PICK -> {
+                if (r == null || NONE.equals(value)) return false;
+                problem(draft.setBranchCondition(scope, r.statement(), r.sub(), value));
+                return true;
+            }
             case CMD_PICK -> {
                 if (r == null || NONE.equals(value)) return false;
                 Statement s = draft.view(scope).get(r.statement());
-                if (s instanceof Statement.Command c) draft.setCommandArg(scope, r.statement(), Math.max(0, pickerArg(c.name())), value);
+                if (!(s instanceof Statement.Command c)) return false;
+                CommandSpecs.Spec spec = CommandSpecs.of(c.name());
+                if (spec != null && CommandSpecs.values(c) != null) problem(setArg(r.statement(), CommandSpecs.assetSlot(spec), value));
+                else draft.setCommandArg(scope, r.statement(), Math.max(0, pickerArg(c.name())), value);
                 return true;
             }
             case JUMP_NODE -> { if (r != null) draft.setJump(scope, r.statement(), value); return false; }
@@ -638,20 +952,23 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             case ADD_KIND -> { if (!value.isEmpty()) addKind = value; return false; }
             case ADD -> {
                 if (header) { status = "Go back to a passage to add to it."; return true; }
-                String kindName = value.isEmpty() ? addKind : value;
+                String chosen = value.isEmpty() ? addKind : value;
+                int colon = chosen.indexOf(':');
+                String command = colon < 0 ? null : chosen.substring(colon + 1);
                 Kind kind;
                 try {
-                    kind = Kind.valueOf(kindName);
+                    kind = Kind.valueOf(colon < 0 ? chosen : chosen.substring(0, colon));
                 } catch (IllegalArgumentException e) {
                     return false;
                 }
-                addKind = kindName;
+                addKind = chosen;
                 if (kind == Kind.OPTION) {
                     int count = 0;
                     for (Statement s : draft.view(scope)) if (s instanceof Statement.Choice c) count += c.options().size();
                     if (count >= DialoguePage.OPTION_SLOTS) { status = "A passage can show at most " + DialoguePage.OPTION_SLOTS + " options."; return true; }
                 }
-                draft.add(scope, kind);
+                int added = draft.add(scope, kind);
+                if (command != null) draft.setCommand(scope, added, command, CommandSpecs.defaults(command));
                 status = "";
                 return true;
             }

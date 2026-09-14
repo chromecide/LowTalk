@@ -1,9 +1,21 @@
 $C = "../../Common.ui";
 
-// A command: which one, its arguments as text, and a picker for the first argument when the game has a list for it.
+// A command. Which one, then one named field per argument it takes: "item" and "count" for give, "particle",
+// "scale" and "seconds" for vfx. A command the editor has no argument names for (one another mod added, or one
+// whose arguments do not fit) falls back to #Args, the single box of text this row used to be.
+//
+// Every slot carries both a text field and a dropdown; the editor shows whichever suits the argument and hides
+// the other, so one template covers ids, numbers, free text and short fixed lists.
 Group {
   LayoutMode: Left;
   Anchor: (Height: 38, Bottom: 6);
+
+  // A "!" here means the validator found an error on this row, a "?" a warning; empty when the row is fine.
+  Label #Bad {
+    Anchor: (Width: 16);
+    Style: (FontSize: 15, TextColor: #ff9d8a, VerticalAlignment: Center, HorizontalAlignment: Center);
+    Text: "";
+  }
 
   Label #Tag {
     Anchor: (Width: 26);
@@ -12,19 +24,107 @@ Group {
   }
 
   DropdownBox #Name {
-    Anchor: (Width: 170, Right: 6, Height: $C.@DropdownBoxHeight);
+    Anchor: (Width: 150, Right: 8, Height: $C.@DropdownBoxHeight);
     Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 420, EntryTooltipStyle: $C.@DefaultTextTooltipStyle);
   }
 
+  Group #Arg0 {
+    FlexWeight: 3;
+    LayoutMode: Left;
+
+    Label #L0 {
+      Anchor: (Width: 62);
+      Style: (FontSize: 12, TextColor: #8fa3b8, VerticalAlignment: Center);
+      Text: "";
+    }
+
+    $C.@TextField #V0 {
+      @Anchor = (Right: 8);
+      FlexWeight: 1;
+    }
+
+    DropdownBox #C0 {
+      Anchor: (Right: 8, Height: $C.@DropdownBoxHeight);
+      FlexWeight: 1;
+      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 240);
+    }
+  }
+
+  Group #Arg1 {
+    FlexWeight: 2;
+    LayoutMode: Left;
+
+    Label #L1 {
+      Anchor: (Width: 62);
+      Style: (FontSize: 12, TextColor: #8fa3b8, VerticalAlignment: Center);
+      Text: "";
+    }
+
+    $C.@TextField #V1 {
+      @Anchor = (Right: 8);
+      FlexWeight: 1;
+    }
+
+    DropdownBox #C1 {
+      Anchor: (Right: 8, Height: $C.@DropdownBoxHeight);
+      FlexWeight: 1;
+      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 240);
+    }
+  }
+
+  Group #Arg2 {
+    FlexWeight: 2;
+    LayoutMode: Left;
+
+    Label #L2 {
+      Anchor: (Width: 62);
+      Style: (FontSize: 12, TextColor: #8fa3b8, VerticalAlignment: Center);
+      Text: "";
+    }
+
+    $C.@TextField #V2 {
+      @Anchor = (Right: 8);
+      FlexWeight: 1;
+    }
+
+    DropdownBox #C2 {
+      Anchor: (Right: 8, Height: $C.@DropdownBoxHeight);
+      FlexWeight: 1;
+      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 240);
+    }
+  }
+
+  Group #Arg3 {
+    FlexWeight: 2;
+    LayoutMode: Left;
+
+    Label #L3 {
+      Anchor: (Width: 62);
+      Style: (FontSize: 12, TextColor: #8fa3b8, VerticalAlignment: Center);
+      Text: "";
+    }
+
+    $C.@TextField #V3 {
+      @Anchor = (Right: 8);
+      FlexWeight: 1;
+    }
+
+    DropdownBox #C3 {
+      Anchor: (Right: 8, Height: $C.@DropdownBoxHeight);
+      FlexWeight: 1;
+      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 240);
+    }
+  }
+
   $C.@TextField #Args {
-    @Anchor = (Right: 6);
-    FlexWeight: 1;
+    @Anchor = (Right: 8);
+    FlexWeight: 3;
     PlaceholderText: %server.lowtalk.editor.args;
   }
 
   DropdownBox #Pick {
-    Anchor: (Width: 240, Right: 8, Height: $C.@DropdownBoxHeight);
-    Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 320);
+    Anchor: (Width: 210, Right: 8, Height: $C.@DropdownBoxHeight);
+    Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 360);
   }
 
   $C.@SecondaryTextButton #Up {

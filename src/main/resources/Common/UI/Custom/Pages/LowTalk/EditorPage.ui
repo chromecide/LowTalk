@@ -82,8 +82,8 @@ $C.@PageOverlay {
         }
 
         DropdownBox #AddKind {
-          Anchor: (Width: 260, Right: 6, Height: $C.@DropdownBoxHeight);
-          Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 320);
+          Anchor: (Width: 300, Right: 6, Height: $C.@DropdownBoxHeight);
+          Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 420, EntryTooltipStyle: $C.@DefaultTextTooltipStyle);
         }
 
         $C.@SecondaryTextButton #AddButton {

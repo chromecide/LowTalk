@@ -8,6 +8,7 @@ import com.chromecide.lowtalk.model.Pos;
 import com.chromecide.lowtalk.model.Statement;
 import com.chromecide.lowtalk.model.Text;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -20,7 +21,21 @@ import java.util.Set;
  */
 public final class Validator {
 
-    public record Problem(Pos pos, boolean error, String message) {
+    /**
+     * Something wrong with a dialogue. {@code subject} is the statement or option it was found in, when the check
+     * knew one: the in-game editor uses it to mark the row that needs attention, since a creator editing fields in
+     * a window has no line numbers to go by. It is not part of the message and is null for whole-file checks.
+     */
+    public record Problem(Pos pos, boolean error, String message, @Nullable Object subject) {
+        public Problem(Pos pos, boolean error, String message) {
+            this(pos, error, message, null);
+        }
+
+        /** The same problem, blamed on the innermost statement or option it was found in. */
+        public Problem in(Object owner) {
+            return subject != null ? this : new Problem(pos, error, message, owner);
+        }
+
         @Override
         public String toString() {
             return (error ? "error" : "warning") + " " + pos + ": " + message;
@@ -232,6 +247,7 @@ public final class Validator {
         for (int i = 0; i < body.size(); i++) {
             Statement s = body.get(i);
             boolean last = i == body.size() - 1;
+            int mark = out.size();
             switch (s) {
                 case Statement.Line l -> checkText(l.text(), l.pos(), out);
                 case Statement.Choice c -> {
@@ -242,11 +258,13 @@ public final class Validator {
                         out.add(new Problem(c.pos(), false, "statements after a set of options are never reached; put them inside the options or before them"));
                     }
                     for (Option o : c.options()) {
+                        int optionMark = out.size();
                         checkText(o.text(), o.pos(), out);
                         if (o.guard() != null) checkExpr(o.guard(), o.pos(), out);
                         if (o.showGuard() != null) checkExpr(o.showGuard(), o.pos(), out);
                         checkBlock(o.body(), d, inputVars, out, true);
                         checkFarmable(o, out);
+                        blame(out, optionMark, o);
                     }
                 }
                 case Statement.Conditional c -> {
@@ -288,7 +306,13 @@ public final class Validator {
                 case Statement.Input in -> checkText(in.prompt(), in.pos(), out);
                 case Statement.Command cmd -> checkCommand(cmd, inputVars, out);
             }
+            blame(out, mark, s);
         }
+    }
+
+    /** Blame every problem found since {@code from} on this statement, unless a nested one already owns it. */
+    private static void blame(List<Problem> out, int from, Object owner) {
+        for (int i = from; i < out.size(); i++) out.set(i, out.get(i).in(owner));
     }
 
     /**

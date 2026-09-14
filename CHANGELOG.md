@@ -4,6 +4,41 @@
 
 ## 0.3.1 (2026-09-14)
 
+### The in-game editor explains itself
+
+- Commands are edited as named fields instead of one box of text. A `vfx` row now reads "particle", "scale" and
+  "seconds" rather than `Cinematic_Pink_Smoke 1`, a `give` row reads "item" and "count", and arguments a command
+  accepts but the author has not written yet are shown empty rather than being invisible. Arguments the runtime
+  accepts in any order, such as a notification's style or a title's size and duration, are sorted into their own
+  fields. A command whose arguments cannot be laid out that way, or one another mod added without naming its
+  arguments, keeps the plain text box.
+- Fixed three pickers that filled the wrong argument. The picker on a `reputation` row offered group ids but wrote
+  them over the amount; on `notify` and `title` it offered a style but overwrote the author's second line of text;
+  on `objective` it offered dialogue ids, which are not objectives. Each command's picker now fills the argument
+  that is actually an id, and a style is chosen from a list on the row itself.
+- Items, sounds, entity effects, objectives and objective lines can be picked from the game's own lists. These are
+  the arguments of the most-used commands, and until now every one of them had to be typed from memory. Because
+  there are thousands of items and sounds, the picker narrows to what has been typed into the field beside it.
+- The Add menu says what each kind of row does, and offers the commands people reach for by name: give an item,
+  start an objective, open the shop, play an animation, play a sound, show a title, show a notification, play a
+  particle effect. Picking one inserts that command ready to fill in, instead of hiding it behind "Command".
+- Mistakes are shown while they are made. The editor checks the draft on every change and marks the row with "!"
+  for something that must be fixed and "?" for a warning, with a count and the first message under the rows. It
+  used to check only when Save or Test was pressed, and reported a file and line number that a creator working in
+  a window could not act on.
+- Conditions can be chosen rather than written. The "only if", "grey unless" and "if" fields have a menu of ready
+  made conditions, including the variables this dialogue already sets, which writes ordinary condition text that
+  can then be edited by hand.
+- Other mods can name their own commands' arguments with `registerCommandArgs`, and get the same named fields and
+  pickers as the built-in commands.
+
+### Fixes carried in this release
+
+- An option's condition may compare numbers again. `-> I'm hurt. <<if stat("Health") < max_stat("Health")>>` was
+  not read as a condition at all, because the pattern that lifts a trailing `<<if>>` off an option refused any
+  condition containing an angle bracket. The option was offered to everyone and the player was shown the raw
+  `<<if ...>>` as part of the words. The shipped village elder example did exactly this. Found by the new warning
+  about commands hidden in a line's words.
 - A command typed into a line's words no longer breaks the dialogue. Writing `<<wait 2>>` at the end of a line of
   speech, rather than on a line of its own, produced a file the parser refused; the dialogue then dropped out of
   the registry, disappeared from the browser, and the open editor said "no longer loaded; nothing was saved" with

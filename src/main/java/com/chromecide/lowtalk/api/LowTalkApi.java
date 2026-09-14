@@ -92,6 +92,15 @@ public final class LowTalkApi {
         com.chromecide.lowtalk.hytale.DialogueEditorPage.registerPicker(command, dataSetsByArgument);
     }
 
+    /**
+     * Name your command's arguments, so the in-game editor shows it as one labelled field per argument instead of
+     * one box of text. Each label may be followed by a colon and a data set id to pick from, and may end in "?"
+     * when the argument is optional: {@code registerCommandArgs("bounty", "target:MyTargets", "reward?")}.
+     */
+    public void registerCommandArgs(@Nonnull String command, @Nonnull String... labels) {
+        com.chromecide.lowtalk.editor.CommandSpecs.register(command, labels);
+    }
+
     /** Register a named list of ids for pickers and Asset Editor autocomplete. The supplier is called when needed. */
     public void registerDataSet(@Nonnull String id, @Nonnull java.util.function.Supplier<List<String>> names) {
         com.chromecide.lowtalk.hytale.json.JsonDialogues.registerDataSet(plugin, id, names);

@@ -30,7 +30,9 @@ public final class DialogueParser {
     private static final Pattern OPTION = Pattern.compile("^->\\s*(.*)$");
     private static final Pattern COMMAND = Pattern.compile("^<<\\s*(.*?)\\s*>>$");
     /** The last <<...>> on an option line, when it is a modifier; greedy group 1 leaves earlier ones for the next pass. */
-    private static final Pattern TRAILING_MODIFIER = Pattern.compile("^(.*)<<\\s*(if|show if|once)\\b\\s*([^<>]*?)\\s*>>\\s*$");
+    // The condition may contain < and > (a comparison), so the argument is "anything but a closing >>".
+    private static final Pattern TRAILING_MODIFIER =
+            Pattern.compile("^(.*)<<\\s*(if|show if|once)\\b\\s*((?:[^>]|>(?!>))*?)\\s*>>\\s*$");
     /** {@code text => Go on}: the label of the Continue button after a line. */
     private static final Pattern BUTTON_LABEL = Pattern.compile("^(.*?)\\s*=>\\s*(\\S.*?)\\s*$");
     private static final Set<String> CLOSERS = Set.of("endif", "elseif", "else", "endonce", "or", "endrandom");
