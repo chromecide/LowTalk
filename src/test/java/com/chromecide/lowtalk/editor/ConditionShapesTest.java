@@ -101,6 +101,34 @@ class ConditionShapesTest {
     }
 
     @Test
+    void aComparisonSurvivesBeingPickedBeforeTheValueIsFilledIn() {
+        // choosing "is" from the comparison menu used to be thrown away, because a blank value made it write the
+        // condition back as a plain yes, which read back as "yes" and snapped the menu shut again
+        ConditionShapes.Shape half = new ConditionShapes.Shape(ConditionShapes.Kind.OBJECTIVE, "Find_The_Elder", "==", "");
+        String written = ConditionShapes.write(half);
+        assertEquals("objective(\"Find_The_Elder\") == \"\"", written);
+        ConditionShapes.Shape back = shape(written);
+        assertNotNull(back);
+        assertEquals("==", back.op());
+        assertEquals("", back.value());
+    }
+
+    @Test
+    void aKindThatNeedsAValueStartsWithOne() {
+        ConditionShapes.Shape hour = new ConditionShapes.Shape(ConditionShapes.Kind.HOUR, "", "<", "");
+        assertEquals("hour() < 0", ConditionShapes.write(hour));
+        assertNotNull(shape(ConditionShapes.write(hour)));
+    }
+
+    @Test
+    void turningAComparisonBackIntoAPlainYes() {
+        ConditionShapes.Shape yes = new ConditionShapes.Shape(ConditionShapes.Kind.VARIABLE, "$met", "", "3");
+        assertEquals("$met", ConditionShapes.write(yes), "with no comparison there is nothing to compare with");
+        ConditionShapes.Shape no = new ConditionShapes.Shape(ConditionShapes.Kind.VARIABLE, "$met", "not", "");
+        assertEquals("not $met", ConditionShapes.write(no));
+    }
+
+    @Test
     void whatIsWrittenBackIsQuotedTheWayTheLanguageWantsIt() {
         ConditionShapes.Shape objective = new ConditionShapes.Shape(
                 ConditionShapes.Kind.OBJECTIVE, "Find_The_Elder", "==", "complete");

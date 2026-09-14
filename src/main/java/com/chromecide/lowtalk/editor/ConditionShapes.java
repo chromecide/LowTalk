@@ -168,9 +168,10 @@ public final class ConditionShapes {
             case CHANCE -> "chance(" + (s.arg().isBlank() ? "0.5" : s.arg().trim()) + ")";
             default -> s.kind().function() + "(" + quote(s.arg()) + ")";
         };
-        if (s.value().isBlank()) return "not".equals(s.op()) ? "not " + subject : subject;
-        String op = s.op().isBlank() || "not".equals(s.op()) ? "==" : s.op();
-        return subject + " " + op + " " + literal(s.kind(), s.value());
+        // what is written follows the comparison the creator chose, not whether they have filled the value in yet:
+        // deciding on the value instead threw the comparison away the moment it was picked
+        if (!comparesWithValue(s.op())) return "not".equals(s.op()) ? "not " + subject : subject;
+        return subject + " " + s.op() + " " + literal(s.kind(), s.value());
     }
 
     /** The comparisons this kind may use: yes and no, a real comparison, or (for a variable) both. */
