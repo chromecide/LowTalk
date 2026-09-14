@@ -149,7 +149,8 @@ public final class CommandSpecs {
         spec("learn", asset("recipe", RECIPES));
         // ---- feedback
         spec("notify", text("text"), optionalText("detail"), optionalChoice("style", NOTIFY_STYLES));
-        spec("title", text("text"), optionalText("under it"), optionalChoice("size", TITLE_SIZES), optionalNumber("seconds"));
+        // the game draws the second line small and above the main one, the way it announces a zone
+        spec("title", text("main"), optionalText("above it"), optionalChoice("size", TITLE_SIZES), optionalNumber("seconds"));
         // ---- the player's body
         spec("effect", asset("effect", ENTITY_EFFECTS));
         spec("cure", asset("effect", ENTITY_EFFECTS));

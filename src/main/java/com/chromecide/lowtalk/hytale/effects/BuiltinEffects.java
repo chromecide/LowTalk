@@ -268,8 +268,10 @@ public final class BuiltinEffects {
         });
 
         effects.register("title", (session, effect) -> {
-            // <<title "Primary" ["Secondary"] [major] [seconds]>>: "major"/"minor" and a number are recognised
-            // wherever they sit; the remaining token is the secondary text.
+            // <<title "Main" ["Small"] [major] [seconds]>>: "major"/"minor" and a number are recognised wherever
+            // they sit; the remaining token is the second line, which the client draws small and ABOVE the main
+            // one, the way it announces a zone. The game's own helper calls it "secondary"; where it lands is the
+            // client's business, so the editor and the docs name it by where a creator will see it.
             String primary = effect.args().get(0);
             String secondary = null;
             boolean major = false;

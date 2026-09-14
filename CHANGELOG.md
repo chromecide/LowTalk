@@ -49,6 +49,13 @@
 - Other mods can name their own commands' arguments with `registerCommandArgs`, and get the same named fields and
   pickers as the built-in commands.
 
+### Names that match what you see
+
+- `<<title>>`'s second line is named for where it lands. The game draws it small and above the main line, the way
+  it announces a zone, but the editor called it "under it" and the reference called it a secondary title. The
+  field now reads "above it", and the reference and the format guide say where it goes. Nothing about what the
+  command does has changed.
+
 ### Where things happen
 
 - A dialogue bound to a block now knows where that block is, so what it does happens there. `<<vfx>>` played its
