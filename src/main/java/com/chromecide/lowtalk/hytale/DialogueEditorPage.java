@@ -2,6 +2,7 @@ package com.chromecide.lowtalk.hytale;
 
 import com.chromecide.lowtalk.LowTalkPlugin;
 import com.chromecide.lowtalk.editor.CommandSpecs;
+import com.chromecide.lowtalk.editor.ConditionShapes;
 import com.chromecide.lowtalk.editor.DialogueDraft;
 import com.chromecide.lowtalk.editor.DialogueDraft.Kind;
 import com.chromecide.lowtalk.editor.DialogueDraft.Scope;
@@ -61,6 +62,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
     private static final String ROW_LINE = "Pages/LowTalk/EditLine.ui";
     private static final String ROW_OPTION = "Pages/LowTalk/EditOption.ui";
     private static final String ROW_OPTION_COND = "Pages/LowTalk/EditOptionCond.ui";
+    private static final String ROW_COND = "Pages/LowTalk/EditCond.ui";
     private static final String ROW_COMMAND = "Pages/LowTalk/EditCommand.ui";
     private static final String ROW_SET = "Pages/LowTalk/EditSet.ui";
     private static final String ROW_JUMP = "Pages/LowTalk/EditJump.ui";
@@ -71,6 +73,14 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
     private static final String HEADER = "Pages/LowTalk/EditHeader.ui";
     private static final int MAX_CRUMBS = 5;
     private static final String NONE = "$none";
+    /** A condition written by hand, kept as text because it is none of the shapes the fields can show. */
+    private static final String RAW = "$raw";
+    /** The comparison that asks for nothing but a yes; the empty string cannot be a dropdown's value. */
+    private static final String OP_YES = "$yes";
+    /** Which condition a row's events are about: an option's two, and an if-block's one. */
+    private static final int COND_IF = 0;
+    private static final int COND_SHOW = 1;
+    private static final int COND_BRANCH = 2;
     /** How many named argument fields a command row has room for; longer commands fall back to plain text. */
     private static final int ARG_SLOTS = 4;
     /**
@@ -109,9 +119,10 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
 
     public enum Action {
         LINE_TEXT, LINE_SPEAKER, LINE_BUTTON,
-        OPT_TEXT, OPT_TARGET, OPT_GO, OPT_MORE, OPT_IF, OPT_SHOW, OPT_ONCE, OPT_BODY, OPT_IF_PICK, OPT_SHOW_PICK,
+        OPT_TEXT, OPT_TARGET, OPT_GO, OPT_MORE, OPT_IF, OPT_SHOW, OPT_ONCE, OPT_BODY,
+        COND_KIND, COND_ARG, COND_ARG_PICK, COND_ARG_FIND, COND_OP, COND_VAL, COND_VAL_PICK, COND_VAL_FIND, COND_RAW,
         CMD_NAME, CMD_ARGS, CMD_SLOT, CMD_SLOT_PICK, CMD_SLOT_FIND, CMD_PICK, SET, JUMP_NODE, JUMP_GO, INPUT, WAIT,
-        BRANCH_COND, BRANCH_COND_PICK, BRANCH_BODY, BRANCH_ADD, BRANCH_DEL, BLOCK_BODY, ALT_ADD, ALT_DEL,
+        BRANCH_BODY, BRANCH_ADD, BRANCH_DEL, BLOCK_BODY, ALT_ADD, ALT_DEL,
         UP, DOWN, DEL, ADD_KIND, ADD, ADD_NODE, RENAME, JUMP, BACK, HEADER, DELETE_NODE,
         H_BINDINGS, H_NPC_PICK, H_SPEAKER, H_TITLE, H_START, H_ON, H_PORTRAIT, H_SCOPE, H_LAYOUT, H_HISTORY,
         SAVE, TEST, DISCARD, CLOSE
@@ -450,18 +461,16 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                         rowClick(evt, sel + " #More", Action.OPT_MORE, row);
                         row = standard(evt, sel, row, new RowRef(i, o));
                         if (expanded.contains(i + ":" + o)) {
+                            String ifSel = append(cmd, ROW_COND, row);
+                            renderCondition(cmd, evt, ifSel, row, COND_IF, opt.guard(), "only if");
+                            rows.add(new RowRef(i, o));
+                            row++;
+                            String showSel = append(cmd, ROW_COND, row);
+                            renderCondition(cmd, evt, showSel, row, COND_SHOW, opt.showGuard(), "grey unless");
+                            rows.add(new RowRef(i, o));
+                            row++;
                             String sel2 = append(cmd, ROW_OPTION_COND, row);
-                            cmd.set(sel2 + " #If.Value", opt.guard() == null ? "" : Printer.expr(opt.guard()));
-                            cmd.set(sel2 + " #ShowIf.Value", opt.showGuard() == null ? "" : Printer.expr(opt.showGuard()));
                             cmd.set(sel2 + " #Once.Text", opt.once() ? "once: yes" : "once: no");
-                            rowChange(evt, sel2 + " #If", Action.OPT_IF, row);
-                            rowChange(evt, sel2 + " #ShowIf", Action.OPT_SHOW, row);
-                            cmd.set(sel2 + " #IfHelp.Entries", conditionEntries());
-                            cmd.set(sel2 + " #IfHelp.Value", NONE);
-                            cmd.set(sel2 + " #ShowHelp.Entries", conditionEntries());
-                            cmd.set(sel2 + " #ShowHelp.Value", NONE);
-                            rowChange(evt, sel2 + " #IfHelp", Action.OPT_IF_PICK, row);
-                            rowChange(evt, sel2 + " #ShowHelp", Action.OPT_SHOW_PICK, row);
                             rowClick(evt, sel2 + " #Once", Action.OPT_ONCE, row);
                             rowClick(evt, sel2 + " #Body", Action.OPT_BODY, row);
                             rows.add(new RowRef(i, o));
@@ -534,17 +543,11 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                         String sel = append(cmd, ROW_BRANCH, row);
                         cmd.set(sel + " #Bad.Text", worse(markBody(br.body()), b == 0 ? markSelf(c) : ""));
                         cmd.set(sel + " #Tag.Text", b == 0 ? "if" : br.condition() == null ? "else" : "else if");
-                        cmd.set(sel + " #Cond.Value", br.condition() == null ? "" : Printer.expr(br.condition()));
-                        cmd.set(sel + " #Cond.Visible", !(b > 0 && br.condition() == null));
                         cmd.set(sel + " #AddBranch.Visible", b == c.branches().size() - 1);
-                        rowChange(evt, sel + " #Cond", Action.BRANCH_COND, row);
-                        boolean takesCondition = !(b > 0 && br.condition() == null);
-                        cmd.set(sel + " #CondHelp.Visible", takesCondition);
-                        if (takesCondition) {
-                            cmd.set(sel + " #CondHelp.Entries", conditionEntries());
-                            cmd.set(sel + " #CondHelp.Value", NONE);
-                            rowChange(evt, sel + " #CondHelp", Action.BRANCH_COND_PICK, row);
-                        }
+                        // the last branch of an if may be a plain else, which asks nothing
+                        boolean asks = !(b > 0 && br.condition() == null);
+                        if (asks) renderCondition(cmd, evt, sel, row, COND_BRANCH, br.condition(), "");
+                        else hideCondition(cmd, sel);
                         rowClick(evt, sel + " #Body", Action.BRANCH_BODY, row);
                         rowClick(evt, sel + " #AddBranch", Action.BRANCH_ADD, row);
                         rowClick(evt, sel + " #Up", Action.UP, row);
@@ -622,35 +625,147 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
     private void renderArg(UICommandBuilder cmd, UIEventBuilder evt, String sel, int row, int slot,
                            CommandSpecs.Spec spec, List<String> values) {
         CommandSpecs.Arg a = spec.arg(slot);
-        String current = values.get(slot);
-        boolean choice = a.type() == CommandSpecs.Type.CHOICE;
-        String dataset = CommandSpecs.datasetFor(spec, slot, values);
-        List<String> all = dataset == null ? List.of() : JsonDialogues.names(dataset);
-        boolean chooseOnly = chooseOnly(spec, slot, values);
-        // a list too long to hand over is found on its own page instead, where typing narrows it on the server
-        boolean find = !choice && !a.open() && all.size() > WHOLE_LIST_MAX;
-        boolean hasList = (choice || dataset != null) && !find;
-        boolean field = !chooseOnly && !find || (find && !current.isEmpty() && !all.contains(current));
         cmd.set(sel + " #L" + slot + ".Text", a.label());
-        cmd.set(sel + " #V" + slot + ".Visible", field);
-        cmd.set(sel + " #C" + slot + ".Visible", hasList);
-        cmd.set(sel + " #B" + slot + ".Visible", find);
-        if (field) {
-            cmd.set(sel + " #V" + slot + ".Value", current);
-            slotChange(evt, sel + " #V" + slot, row, slot);
+        renderField(cmd, evt, sel + " #V" + slot, sel + " #C" + slot, sel + " #B" + slot,
+                a, CommandSpecs.datasetFor(spec, slot, values), values.get(slot),
+                Action.CMD_SLOT, Action.CMD_SLOT_PICK, Action.CMD_SLOT_FIND, row, slot);
+    }
+
+    /**
+     * One value, however it is best chosen: a text box, a list, or a button that opens the picker page. A fixed
+     * set of words is a list; an id is a list when the game's list is short enough to hand over and a button when
+     * it runs to thousands; a value that is not on its list, such as one built from a variable, keeps a text box
+     * so it can still be read and edited.
+     */
+    private void renderField(UICommandBuilder cmd, UIEventBuilder evt, String boxSel, String listSel, String buttonSel,
+                             CommandSpecs.Arg a, @Nullable String dataset, String current,
+                             Action typed, Action picked, Action find, int row, int slot) {
+        boolean choice = a.type() == CommandSpecs.Type.CHOICE;
+        List<String> all = choice ? a.choices() : dataset == null ? List.of() : JsonDialogues.names(dataset);
+        boolean tooLong = !choice && !a.open() && all.size() > WHOLE_LIST_MAX;
+        boolean list = (choice || dataset != null) && !tooLong;
+        boolean known = !all.isEmpty() && (current.isEmpty() || contains(all, current));
+        boolean box = a.open() || !(list && known) && !(tooLong && known);
+        cmd.set(boxSel + ".Visible", box);
+        cmd.set(listSel + ".Visible", list);
+        cmd.set(buttonSel + ".Visible", tooLong);
+        if (box) {
+            cmd.set(boxSel + ".Value", current);
+            bindSlot(evt, boxSel, typed, row, slot);
         }
-        if (find) {
-            cmd.set(sel + " #B" + slot + ".Text", current.isEmpty() ? "choose a " + a.label() + "..." : current);
-            evt.addEventBinding(CustomUIEventBindingType.Activating, sel + " #B" + slot,
-                    rowData(Action.CMD_SLOT_FIND, row).append("Slot", String.valueOf(slot)), false);
+        if (tooLong) {
+            cmd.set(buttonSel + ".Text", current.isEmpty() ? "choose " + a.label() + "..." : current);
+            evt.addEventBinding(CustomUIEventBindingType.Activating, buttonSel,
+                    rowData(find, row).append("Slot", String.valueOf(slot)), false);
         }
-        if (!hasList) return;
-        List<String> offer = choice ? a.choices() : chooseOnly ? all : JsonDialogues.names(dataset, current, PICK_LIMIT);
-        cmd.set(sel + " #C" + slot + ".Entries", listEntries(a, current, offer, all.size(), chooseOnly));
-        cmd.set(sel + " #C" + slot + ".Value", chooseOnly ? chosen(current, offer) : NONE);
-        evt.addEventBinding(CustomUIEventBindingType.ValueChanged, sel + " #C" + slot,
-                rowData(Action.CMD_SLOT_PICK, row).append("Slot", String.valueOf(slot))
-                        .append("@Value", sel + " #C" + slot + ".Value"), false);
+        if (!list) return;
+        List<String> offer = choice || !box ? all : JsonDialogues.names(dataset, current, PICK_LIMIT);
+        cmd.set(listSel + ".Entries", listEntries(a, current, offer, all.size(), !box));
+        cmd.set(listSel + ".Value", box ? NONE : chosen(current, offer));
+        bindSlot(evt, listSel, picked, row, slot);
+    }
+
+    /**
+     * A condition as fields: what it is about, its own argument, a comparison and a value. Most conditions people
+     * write are one of a handful of shapes, and those are shown as lists to choose from. One that is not, with an
+     * "and" or an "or" in it, keeps its text box, which is what every condition used to be.
+     */
+    private void renderCondition(UICommandBuilder cmd, UIEventBuilder evt, String sel, int row, int slot,
+                                 @Nullable com.chromecide.lowtalk.model.Expr cond, String tag) {
+        if (!tag.isEmpty()) cmd.set(sel + " #Tag.Text", tag);
+        ConditionShapes.Shape shape = ConditionShapes.read(cond);
+        boolean byHand = cond != null && shape == null;
+        List<DropdownEntryInfo> kinds = new ArrayList<>();
+        kinds.add(entry("(no condition)", NONE, "always shown"));
+        for (ConditionShapes.Kind k : ConditionShapes.Kind.values()) kinds.add(entry(k.label(), k.name(), null));
+        kinds.add(entry(byHand ? "(written by hand)" : "(write it by hand)", RAW,
+                "for conditions with and, or, brackets or arithmetic in them"));
+        cmd.set(sel + " #Kind.Entries", kinds);
+        cmd.set(sel + " #Kind.Value", byHand ? RAW : shape == null ? NONE : shape.kind().name());
+        bindSlot(evt, sel + " #Kind", Action.COND_KIND, row, slot);
+        cmd.set(sel + " #Raw.Visible", byHand);
+        cmd.set(sel + " #Arg.Visible", shape != null && shape.kind().argument() != null);
+        cmd.set(sel + " #Op.Visible", shape != null);
+        boolean compares = shape != null && ConditionShapes.comparesWithValue(shape.op()) && shape.kind().value() != null;
+        cmd.set(sel + " #Val.Visible", compares);
+        if (byHand) {
+            cmd.set(sel + " #Raw.Value", Printer.expr(cond));
+            bindSlot(evt, sel + " #Raw", Action.COND_RAW, row, slot);
+            return;
+        }
+        if (shape == null) return;
+        CommandSpecs.Arg argSpec = local(shape.kind().argument(), shape.kind());
+        if (argSpec != null) {
+            renderField(cmd, evt, sel + " #V", sel + " #C", sel + " #B", argSpec, argSpec.dataset(), shape.arg(),
+                    Action.COND_ARG, Action.COND_ARG_PICK, Action.COND_ARG_FIND, row, slot);
+        }
+        List<DropdownEntryInfo> ops = new ArrayList<>();
+        for (String[] o : ConditionShapes.comparisons(shape.kind())) ops.add(entry(o[1], o[0].isEmpty() ? OP_YES : o[0], null));
+        cmd.set(sel + " #Op.Entries", ops);
+        cmd.set(sel + " #Op.Value", shape.op().isEmpty() ? OP_YES : shape.op());
+        bindSlot(evt, sel + " #Op", Action.COND_OP, row, slot);
+        if (!compares) return;
+        renderField(cmd, evt, sel + " #VV", sel + " #VC", sel + " #VB", shape.kind().value(),
+                shape.kind().value().dataset(), shape.value(),
+                Action.COND_VAL, Action.COND_VAL_PICK, Action.COND_VAL_FIND, row, slot);
+    }
+
+    /** An else with no condition of its own: nothing to show. */
+    private static void hideCondition(UICommandBuilder cmd, String sel) {
+        for (String part : List.of(" #Kind", " #Arg", " #Op", " #Val", " #Raw")) cmd.set(sel + part + ".Visible", false);
+    }
+
+    /** Two of the condition arguments are lists of this dialogue's own: its variables and its passages. */
+    @Nullable
+    private CommandSpecs.Arg local(@Nullable CommandSpecs.Arg a, ConditionShapes.Kind kind) {
+        if (a == null) return null;
+        return switch (kind) {
+            case VARIABLE -> new CommandSpecs.Arg(a.label(), a.type(), null, variablesInUse(), a.optional(), true);
+            case VISITED -> new CommandSpecs.Arg(a.label(), a.type(), null, draft.nodeNames(), a.optional(), false);
+            default -> a;
+        };
+    }
+
+    /** The condition a row's events are about. */
+    @Nullable
+    private com.chromecide.lowtalk.model.Expr conditionAt(RowRef r, int slot) {
+        Statement s = draft.view(scope).get(r.statement());
+        if (slot == COND_BRANCH) {
+            return s instanceof Statement.Conditional c && r.sub() >= 0 && r.sub() < c.branches().size()
+                    ? c.branches().get(r.sub()).condition() : null;
+        }
+        if (!(s instanceof Statement.Choice c) || r.sub() < 0 || r.sub() >= c.options().size()) return null;
+        Option o = c.options().get(r.sub());
+        return slot == COND_SHOW ? o.showGuard() : o.guard();
+    }
+
+    /** Write a condition back as text; returns what was wrong with it, or null. */
+    @Nullable
+    private String setCondition(RowRef r, int slot, String text) {
+        return switch (slot) {
+            case COND_BRANCH -> draft.setBranchCondition(scope, r.statement(), r.sub(), text);
+            case COND_SHOW -> draft.setOptionShowGuard(scope, r.statement(), r.sub(), text);
+            default -> draft.setOptionGuard(scope, r.statement(), r.sub(), text);
+        };
+    }
+
+    /** Change one part of a condition and write the whole thing back. */
+    private boolean editCondition(RowRef r, int slot, java.util.function.UnaryOperator<ConditionShapes.Shape> change) {
+        ConditionShapes.Shape shape = ConditionShapes.read(conditionAt(r, slot));
+        if (shape == null) return false;
+        ConditionShapes.Shape next = change.apply(shape);
+        problem(setCondition(r, slot, next == null ? "" : ConditionShapes.write(next)));
+        return true;
+    }
+
+    private static void bindSlot(UIEventBuilder evt, String selector, Action action, int row, int slot) {
+        evt.addEventBinding(CustomUIEventBindingType.ValueChanged, selector,
+                rowData(action, row).append("Slot", String.valueOf(slot)).append("@Value", selector + ".Value"), false);
+    }
+
+    private static boolean contains(List<String> all, String value) {
+        for (String s : all) if (s.equalsIgnoreCase(value)) return true;
+        return false;
     }
 
     /**
@@ -794,29 +909,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         return entries;
     }
 
-    /**
-     * Ready-made conditions. The three condition fields are the only places in the editor that ask for an
-     * expression, so the list offers the shapes people actually want, with the dialogue's own variables first.
-     * What it writes is ordinary text the creator can then edit; nothing here is a separate format.
-     */
-    private List<DropdownEntryInfo> conditionEntries() {
-        List<DropdownEntryInfo> out = new ArrayList<>();
-        out.add(entry("use a ready-made condition...", NONE, null));
-        for (String v : variablesInUse()) {
-            out.add(entry("when " + v + " is set", v, "true once something in this dialogue has done <<set " + v + " = true>>"));
-            out.add(entry("when " + v + " is not set", "not " + v, null));
-        }
-        out.add(entry("when the player has an item", "has(\"Food_Bread\")", "put your own item id in place of Food_Bread"));
-        out.add(entry("when the player has no such item", "not has(\"Food_Bread\")", "put your own item id in place of Food_Bread"));
-        out.add(entry("when they have seen a passage", "visited(\"" + draft.startNode() + "\")", "true once this player has reached that passage"));
-        out.add(entry("when an objective is finished", "objective(\"Objective_Id\") == \"complete\"", "also \"active\" and \"none\""));
-        out.add(entry("when this NPC likes them", "attitude() == \"friendly\"", "ignore, hostile, neutral, friendly, revered"));
-        out.add(entry("at night", "hour() < 6 or hour() > 20", "the in-game hour, 0 to 23"));
-        out.add(entry("one time in three", "chance(0.33)", "a number between 0 and 1"));
-        return out;
-    }
-
-    /** Variables this dialogue already sets, newest last, for the condition menu. */
+    /** Variables this dialogue already sets, offered when a condition is about a variable. */
     private List<String> variablesInUse() {
         java.util.LinkedHashSet<String> names = new java.util.LinkedHashSet<>();
         for (String node : draft.nodeNames()) {
@@ -916,6 +1009,62 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 if (spec.arg(slot).type() == CommandSpecs.Type.ASSET) refreshList(row, slot);
                 return false;
             }
+            case COND_KIND -> {
+                if (r == null) return false;
+                if (NONE.equals(value)) { problem(setCondition(r, slot, "")); return true; }
+                if (RAW.equals(value)) {
+                    // keep whatever is there; the text box simply takes over from the fields
+                    com.chromecide.lowtalk.model.Expr had = conditionAt(r, slot);
+                    ConditionShapes.Shape shape = ConditionShapes.read(had);
+                    if (shape != null) problem(setCondition(r, slot, "(" + ConditionShapes.write(shape) + ")"));
+                    else if (had == null) problem(setCondition(r, slot, "$flag"));
+                    return true;
+                }
+                ConditionShapes.Kind kind;
+                try {
+                    kind = ConditionShapes.Kind.valueOf(value);
+                } catch (IllegalArgumentException e) {
+                    return false;
+                }
+                String op = kind.isYesOrNo() ? "" : "==";
+                problem(setCondition(r, slot, ConditionShapes.write(new ConditionShapes.Shape(kind, "", op, ""))));
+                return true;
+            }
+            case COND_ARG, COND_ARG_PICK -> {
+                if (r == null || NONE.equals(value)) return false;
+                boolean shown = editCondition(r, slot, sh -> new ConditionShapes.Shape(sh.kind(), value, sh.op(), sh.value()));
+                return shown && action != Action.COND_ARG;
+            }
+            case COND_VAL, COND_VAL_PICK -> {
+                if (r == null || NONE.equals(value)) return false;
+                boolean shown = editCondition(r, slot, sh -> new ConditionShapes.Shape(sh.kind(), sh.arg(), sh.op(), value));
+                return shown && action != Action.COND_VAL;
+            }
+            case COND_OP -> {
+                if (r == null) return false;
+                String op = OP_YES.equals(value) ? "" : value;
+                editCondition(r, slot, sh -> new ConditionShapes.Shape(sh.kind(), sh.arg(), op,
+                        ConditionShapes.comparesWithValue(op) ? sh.value() : ""));
+                return true;
+            }
+            case COND_RAW -> { if (r != null) problem(setCondition(r, slot, value)); return false; }
+            case COND_ARG_FIND, COND_VAL_FIND -> {
+                if (r == null) return false;
+                ConditionShapes.Shape shape = ConditionShapes.read(conditionAt(r, slot));
+                if (shape == null) return false;
+                boolean forValue = action == Action.COND_VAL_FIND;
+                CommandSpecs.Arg a = forValue ? shape.kind().value() : shape.kind().argument();
+                if (a == null || a.dataset() == null) return false;
+                int statement = r.statement();
+                int sub = r.sub();
+                PickerPage.open(plugin, playerRef, ref, store, "Choose " + (forValue ? "a value" : "the " + a.label()),
+                        a.dataset(), forValue ? shape.value() : shape.arg(),
+                        picked -> editCondition(new RowRef(statement, sub), slot, sh -> forValue
+                                ? new ConditionShapes.Shape(sh.kind(), sh.arg(), sh.op(), picked)
+                                : new ConditionShapes.Shape(sh.kind(), picked, sh.op(), sh.value())),
+                        this);
+                return false;
+            }
             case CMD_SLOT_FIND -> {
                 if (r == null) return false;
                 Statement s = draft.view(scope).get(r.statement());
@@ -927,7 +1076,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 if (dataset == null) return false;
                 int statement = r.statement();
                 PickerPage.open(plugin, playerRef, ref, store,
-                        "Choose a " + spec.arg(slot).label() + " for <<" + c.name() + ">>", dataset, values.get(slot),
+                        "Choose the " + spec.arg(slot).label() + " for <<" + c.name() + ">>", dataset, values.get(slot),
                         picked -> problem(setArg(statement, slot, picked)), this);
                 return false;
             }
@@ -948,7 +1097,6 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             case SET -> { if (r != null) return problem(draft.setSet(scope, r.statement(), value, value2)); return false; }
             case INPUT -> { if (r != null) return problem(draft.setInput(scope, r.statement(), value, value2)); return false; }
             case WAIT -> { if (r != null) return problem(draft.setWait(scope, r.statement(), value)); return false; }
-            case BRANCH_COND -> { if (r != null) return problem(draft.setBranchCondition(scope, r.statement(), r.sub(), value)); return false; }
             case H_BINDINGS -> { draft.setBindings(value); return false; }
             case H_SPEAKER -> { draft.setSpeaker(value); return false; }
             case H_TITLE -> { draft.setTitle(value); return false; }
@@ -994,21 +1142,6 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 return true;
             }
             case OPT_BODY -> { if (r != null) go(scope.into(r.statement(), r.sub())); return true; }
-            case OPT_IF_PICK -> {
-                if (r == null || NONE.equals(value)) return false;
-                problem(draft.setOptionGuard(scope, r.statement(), r.sub(), value));
-                return true;
-            }
-            case OPT_SHOW_PICK -> {
-                if (r == null || NONE.equals(value)) return false;
-                problem(draft.setOptionShowGuard(scope, r.statement(), r.sub(), value));
-                return true;
-            }
-            case BRANCH_COND_PICK -> {
-                if (r == null || NONE.equals(value)) return false;
-                problem(draft.setBranchCondition(scope, r.statement(), r.sub(), value));
-                return true;
-            }
             case CMD_PICK -> {
                 if (r == null || NONE.equals(value)) return false;
                 Statement s = draft.view(scope).get(r.statement());

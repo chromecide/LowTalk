@@ -1,25 +1,27 @@
 $C = "../../Common.ui";
 
-// One branch of an if-block: if / else if / else, its condition, and a button into its body.
+// A condition, as a thing, a comparison and a value: "the player has | Food_Bread | yes", "the objective |
+// Find_The_Elder | is | complete". The same three controls a command's arguments use, so an id is a list or a
+// picker and a fixed set of words is a list.
+//
+// A condition that is none of those shapes, anything with and, or, brackets or arithmetic, is shown in #Raw as
+// plain text instead, which is what it always was.
 Group {
   LayoutMode: Left;
   Anchor: (Height: 38, Bottom: 6);
 
-  // A "!" here means the validator found an error on this row, a "?" a warning; empty when the row is fine.
-  Label #Bad {
-    Anchor: (Width: 16);
-    Style: (FontSize: 15, TextColor: #ff9d8a, VerticalAlignment: Center, HorizontalAlignment: Center);
-    Text: "";
+  Label #Pad {
+    Anchor: (Width: 26);
   }
 
   Label #Tag {
     Anchor: (Width: 90);
-    Style: (FontSize: 12, TextColor: #ffb86b, RenderUppercase: true, VerticalAlignment: Center);
+    Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
     Text: "";
   }
 
   DropdownBox #Kind {
-    Anchor: (Width: 240, Right: 8, Height: $C.@DropdownBoxHeight);
+    Anchor: (Width: 260, Right: 8, Height: $C.@DropdownBoxHeight);
     Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 360);
     ShowSearchInput: true;
   }
@@ -48,7 +50,7 @@ Group {
   }
 
   DropdownBox #Op {
-    Anchor: (Width: 140, Right: 8, Height: $C.@DropdownBoxHeight);
+    Anchor: (Width: 150, Right: 8, Height: $C.@DropdownBoxHeight);
     Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 220);
   }
 
@@ -79,30 +81,5 @@ Group {
     @Anchor = (Right: 8);
     FlexWeight: 6;
     PlaceholderText: %server.lowtalk.editor.conditionHint;
-  }
-
-  $C.@SecondaryTextButton #Body {
-    @Anchor = (Width: 110, Right: 4);
-    @Text = %server.lowtalk.editor.body;
-  }
-
-  $C.@SecondaryTextButton #AddBranch {
-    @Anchor = (Width: 110, Right: 8);
-    @Text = %server.lowtalk.editor.addBranch;
-  }
-
-  $C.@SecondaryTextButton #Up {
-    @Anchor = (Width: 34, Right: 4);
-    @Text = "^";
-  }
-
-  $C.@SecondaryTextButton #Down {
-    @Anchor = (Width: 34, Right: 4);
-    @Text = "v";
-  }
-
-  $C.@SecondaryTextButton #Del {
-    @Anchor = (Width: 34);
-    @Text = "x";
   }
 }

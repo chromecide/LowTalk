@@ -36,9 +36,16 @@
   for something that must be fixed and "?" for a warning, with a count and the first message under the rows. It
   used to check only when Save or Test was pressed, and reported a file and line number that a creator working in
   a window could not act on.
-- Conditions can be chosen rather than written. The "only if", "grey unless" and "if" fields have a menu of ready
-  made conditions, including the variables this dialogue already sets, which writes ordinary condition text that
-  can then be edited by hand.
+- Conditions are chosen rather than written. A condition is now what it is about, its own argument, a comparison
+  and a value: "the player has | Food_Bread | yes", "the objective | Find_The_Elder | is | complete", "this NPC's
+  attitude to them | is | friendly". Sixteen shapes are offered, covering variables, items and how many of them,
+  passages seen, objectives and objective lines, attitude, reputation and rank, stats, effects, recipes,
+  permissions, the hour, the weather and a chance. Each argument gets the same treatment as a command's: a list
+  where the game has one, and the picker page where that list runs to thousands. The dialogue's own variables and
+  passages are offered in their lists.
+- A condition that is none of those shapes, with an "and", an "or", brackets or arithmetic in it, keeps its text
+  box, and "(write it by hand)" in the menu turns any condition back into one. An option's two conditions each
+  have a row of their own now, so they have room for the fields.
 - Other mods can name their own commands' arguments with `registerCommandArgs`, and get the same named fields and
   pickers as the built-in commands.
 

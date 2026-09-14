@@ -1,6 +1,7 @@
 $C = "../../Common.ui";
 
-// The details of the option above it: when it is offered, when it is greyed out, once, and its own body.
+// What an option adds beyond its two conditions, which are rows of their own above this one: whether it can be
+// picked more than once, and a way into the statements it runs.
 Group {
   LayoutMode: Left;
   Anchor: (Height: 38, Bottom: 8);
@@ -9,47 +10,23 @@ Group {
     Anchor: (Width: 26);
   }
 
-  Label #IfLabel {
-    Anchor: (Width: 64);
-    Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
-    Text: %server.lowtalk.editor.onlyIf;
-  }
-
-  $C.@TextField #If {
-    @Anchor = (Right: 8);
-    FlexWeight: 1;
-    PlaceholderText: %server.lowtalk.editor.conditionHint;
-  }
-
-  DropdownBox #IfHelp {
-    Anchor: (Width: 170, Right: 8, Height: $C.@DropdownBoxHeight);
-    Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 420, EntryTooltipStyle: $C.@DefaultTextTooltipStyle);
-  }
-
-  Label #ShowLabel {
+  Label #Tag {
     Anchor: (Width: 90);
     Style: (FontSize: 12, TextColor: #96a9be, RenderUppercase: true, VerticalAlignment: Center);
-    Text: %server.lowtalk.editor.greyUnless;
-  }
-
-  $C.@TextField #ShowIf {
-    @Anchor = (Right: 8);
-    FlexWeight: 1;
-    PlaceholderText: %server.lowtalk.editor.conditionHint;
-  }
-
-  DropdownBox #ShowHelp {
-    Anchor: (Width: 170, Right: 8, Height: $C.@DropdownBoxHeight);
-    Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 420, EntryTooltipStyle: $C.@DefaultTextTooltipStyle);
+    Text: %server.lowtalk.editor.optionExtras;
   }
 
   $C.@SecondaryTextButton #Once {
-    @Anchor = (Width: 90, Right: 8);
+    @Anchor = (Width: 150, Right: 8);
     @Text = "";
   }
 
   $C.@SecondaryTextButton #Body {
-    @Anchor = (Width: 130);
+    @Anchor = (Width: 200, Right: 8);
     @Text = %server.lowtalk.editor.optionBody;
+  }
+
+  Label #Fill {
+    FlexWeight: 1;
   }
 }
