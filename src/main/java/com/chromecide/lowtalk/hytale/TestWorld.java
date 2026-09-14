@@ -4,6 +4,7 @@ import com.chromecide.lowtalk.LowTalkPlugin;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.RemoveReason;
 import com.hypixel.hytale.component.Store;
+import com.hypixel.hytale.component.query.Query;
 import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
@@ -141,7 +142,9 @@ public final class TestWorld {
                 try {
                     int placed = placeBlocks(world);
                     out.accept("Placed " + placed + " blocks.");
-                    for (Ref<EntityStore> ref : corridorNpcs(store)) store.removeEntity(ref, RemoveReason.REMOVE);
+                    List<Ref<EntityStore>> stale = corridorNpcs(store);
+                    for (Ref<EntityStore> ref : stale) store.removeEntity(ref, RemoveReason.REMOVE);
+                    if (!stale.isEmpty()) out.accept("Removed " + stale.size() + " NPC(s) left by an earlier build.");
                     int spawned = spawnStations(plugin, world, store, out);
                     plugin.getStore().set(plugin.getStore().world(), WORLD_NAME, "built", true);
                     plugin.getStore().set(plugin.getStore().world(), WORLD_NAME, "end", (double) CORRIDOR_END);
@@ -398,12 +401,29 @@ public final class TestWorld {
         }));
     }
 
+    /**
+     * Every NPC standing in the corridor.
+     *
+     * This walks the world's entity store rather than asking for entities in a sphere. The spatial index a sphere
+     * query reads is filled by a ticking system, so it is still empty for entities that have only just been loaded
+     * with their chunks; a build run straight after a server start therefore found nothing to clean up and spawned a
+     * second set of stations on top of the first. Walking the store sees them the moment they exist.
+     */
     private static List<Ref<EntityStore>> corridorNpcs(Store<EntityStore> store) {
-        Vector3d centre = new Vector3d((CORRIDOR_START + CORRIDOR_END) / 2.0, FLOOR_Y + 1.0, 0.5);
         List<Ref<EntityStore>> out = new ArrayList<>();
-        for (Ref<EntityStore> ref : new ArrayList<>(TargetUtil.getAllEntitiesInSphere(centre, (CORRIDOR_END - CORRIDOR_START), store))) {
-            if (ref.isValid() && store.getComponent(ref, NPCEntity.getComponentType()) != null) out.add(ref);
-        }
+        store.forEachChunk(Query.and(NPCEntity.getComponentType(), TransformComponent.getComponentType()), (chunk, commandBuffer) -> {
+            for (int i = 0; i < chunk.size(); i++) {
+                Ref<EntityStore> ref = chunk.getReferenceTo(i);
+                if (ref == null || !ref.isValid()) continue;
+                TransformComponent transform = store.getComponent(ref, TransformComponent.getComponentType());
+                if (transform == null) continue;
+                Vector3d p = transform.getPosition();
+                boolean inCorridor = p.x() >= CORRIDOR_START - 2 && p.x() <= CORRIDOR_END + 2
+                        && Math.abs(p.z()) <= HALF_WIDTH + 2
+                        && p.y() >= FLOOR_Y - 2 && p.y() <= FLOOR_Y + WALL_HEIGHT + 2;
+                if (inCorridor) out.add(ref);
+            }
+        });
         return out;
     }
 

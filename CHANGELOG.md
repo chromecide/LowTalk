@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- `/lowtalk testworld build` no longer spawns a second set of station NPCs on top of the first. It looked for the
+  old ones in the spatial index, which is filled by a ticking system and is still empty for entities that have
+  just been loaded with their chunks, so a build straight after a server start found nothing to clean up. It now
+  walks the world's entity store instead, and says how many it removed. `/lowtalk testworld respawn` used the
+  same lookup and is fixed with it.
+
 ## 0.3.1 (2026-09-14)
 
 - New screenshots throughout, taken on 0.6.5 with the current UI: the old ones still showed the centre window
