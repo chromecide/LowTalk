@@ -128,11 +128,6 @@ $C.@PageOverlay {
         Text: "";
       }
 
-      // takes up whatever room the hidden rows would have used, so the buttons stay at the bottom
-      Label #Spacer {
-        FlexWeight: 1;
-      }
-
       Group {
         LayoutMode: Left;
         Anchor: (Top: 8, Height: 38);

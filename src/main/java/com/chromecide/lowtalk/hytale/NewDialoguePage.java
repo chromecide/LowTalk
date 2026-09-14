@@ -76,6 +76,8 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
     @Nullable
     private final java.util.function.Consumer<Dialogue> onCreated;
     private String status = "";
+    /** Typed into the pack name field; kept here because the field is hidden unless a new pack is being made. */
+    private String packName = "";
 
     public NewDialoguePage(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef playerRef, @Nonnull Ref<EntityStore> playerEntity, @Nullable NpcInfo npc) {
         this(plugin, playerRef, playerEntity, npc, null, null);
@@ -157,7 +159,9 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
         String chosen = preferred.isEmpty() ? (targets.size() > 1 ? "$server" : NEW_PACK) : preferred;
         cmd.set("#Where.Value", chosen);
         cmd.set("#PackRow.Visible", NEW_PACK.equals(chosen));
-        cmd.set("#PackName.Value", "");
+        cmd.set("#PackName.Value", packName);
+        evt.addEventBinding(CustomUIEventBindingType.ValueChanged, "#PackName",
+                new EventData().append("Action", "PACKNAME").append("@Pack", "#PackName.Value"), false);
         evt.addEventBinding(CustomUIEventBindingType.ValueChanged, "#Where",
                 new EventData().append("Action", "WHERE").append("@Where", "#Where.Value"), false);
         List<DropdownEntryInfo> formats = new ArrayList<>();
@@ -170,13 +174,14 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
         cmd.set("#Status.Text", status);
         evt.addEventBinding(CustomUIEventBindingType.Activating, "#CreateButton", new EventData().append("Action", "CREATE")
                 .append("@Id", "#Id.Value").append("@Speaker", "#Speaker.Value").append("@Bind", "#Bind.Value")
-                .append("@Where", "#Where.Value").append("@Format", "#Format.Value").append("@Pack", "#PackName.Value"), false);
+                .append("@Where", "#Where.Value").append("@Format", "#Format.Value"), false);
         evt.addEventBinding(CustomUIEventBindingType.Activating, "#CancelButton", new EventData().append("Action", "CANCEL"), false);
     }
 
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Data data) {
         if ("CANCEL".equals(data.action)) { close(); return; }
+        if ("PACKNAME".equals(data.action)) { packName = data.pack == null ? "" : data.pack; return; }
         if ("WHERE".equals(data.action)) {
             UICommandBuilder cmd = new UICommandBuilder();
             cmd.set("#PackRow.Visible", NEW_PACK.equals(data.where));
@@ -193,7 +198,7 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
         String madePack = null;
         if (makePack) {
             try {
-                root = plugin.getRegistry().createPack(playerRef.getUsername(), data.pack == null ? "" : data.pack);
+                root = plugin.getRegistry().createPack(playerRef.getUsername(), packName);
                 madePack = root.getParent() == null ? "the new pack" : root.getParent().getParent().getFileName().toString();
             } catch (IOException e) {
                 fail(e.getMessage() == null ? "Could not make the pack." : e.getMessage());
