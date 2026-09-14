@@ -40,7 +40,6 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
     private static final String BIND_ROLE = "role";
     private static final String BIND_TAG = "tag";
     private static final String BIND_NONE = "none";
-    private static final String NEW_PACK = "$newpack";
     private static final String FORMAT_JSON = "json";
     private static final String FORMAT_TALK = "talk";
 
@@ -52,7 +51,6 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
                 .append(new KeyedCodec<>("@Bind", Codec.STRING, false), (d, s) -> d.bind = s, d -> d.bind).add()
                 .append(new KeyedCodec<>("@Where", Codec.STRING, false), (d, s) -> d.where = s, d -> d.where).add()
                 .append(new KeyedCodec<>("@Format", Codec.STRING, false), (d, s) -> d.format = s, d -> d.format).add()
-                .append(new KeyedCodec<>("@Pack", Codec.STRING, false), (d, s) -> d.pack = s, d -> d.pack).add()
                 .build();
         private String action;
         private String id;
@@ -60,7 +58,6 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
         private String bind;
         private String where;
         private String format;
-        private String pack;
     }
 
     private final LowTalkPlugin plugin;
@@ -76,8 +73,6 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
     @Nullable
     private final java.util.function.Consumer<Dialogue> onCreated;
     private String status = "";
-    /** Typed into the pack name field; kept here because the field is hidden unless a new pack is being made. */
-    private String packName = "";
 
     public NewDialoguePage(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef playerRef, @Nonnull Ref<EntityStore> playerEntity, @Nullable NpcInfo npc) {
         this(plugin, playerRef, playerEntity, npc, null, null);
@@ -152,18 +147,9 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
                             ? "this server only: the Asset Editor and the Node Editor cannot see it, and it does not travel with a pack"
                             : "part of the pack, so it ships with it and opens in the Asset Editor and the Node Editor too")));
         }
-        where.add(new DropdownEntryInfo(LocalizableString.fromString("+ a new asset pack of my own"), NEW_PACK,
-                LocalizableString.fromString("makes a pack in the server's mods folder and puts this dialogue in it")));
         cmd.set("#Where.Entries", where);
         String preferred = plugin.getRegistry().defaultCreationTarget();
-        String chosen = preferred.isEmpty() ? (targets.size() > 1 ? "$server" : NEW_PACK) : preferred;
-        cmd.set("#Where.Value", chosen);
-        cmd.set("#PackRow.Visible", NEW_PACK.equals(chosen));
-        cmd.set("#PackName.Value", packName);
-        evt.addEventBinding(CustomUIEventBindingType.ValueChanged, "#PackName",
-                new EventData().append("Action", "PACKNAME").append("@Pack", "#PackName.Value"), false);
-        evt.addEventBinding(CustomUIEventBindingType.ValueChanged, "#Where",
-                new EventData().append("Action", "WHERE").append("@Where", "#Where.Value"), false);
+        cmd.set("#Where.Value", preferred.isEmpty() ? "$server" : preferred);
         List<DropdownEntryInfo> formats = new ArrayList<>();
         formats.add(new DropdownEntryInfo(LocalizableString.fromString("an asset (.json)"), FORMAT_JSON,
                 LocalizableString.fromString("a form in the Asset Editor, a graph in the Node Editor, and fields in here")));
@@ -181,13 +167,6 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
     @Override
     public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Data data) {
         if ("CANCEL".equals(data.action)) { close(); return; }
-        if ("PACKNAME".equals(data.action)) { packName = data.pack == null ? "" : data.pack; return; }
-        if ("WHERE".equals(data.action)) {
-            UICommandBuilder cmd = new UICommandBuilder();
-            cmd.set("#PackRow.Visible", NEW_PACK.equals(data.where));
-            sendUpdate(cmd, new UIEventBuilder(), false);
-            return;
-        }
         if (!"CREATE".equals(data.action)) return;
         String id = data.id == null ? "" : data.id.trim();
         if (!id.matches("[A-Za-z0-9_-]+")) { fail("The id needs letters, digits, _ or - only."); return; }
@@ -204,31 +183,10 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
 
     /** Write the new dialogue, making its pack first when that is what was asked for. World thread. */
     private void create(String id, String where, String format, String bind, String speaker, Store<EntityStore> store) {
-        boolean makePack = NEW_PACK.equals(where);
-        Path packRoot = null;
-        Path root;
-        try {
-            if (makePack) {
-                DialogueRegistry.NewPack made = plugin.getRegistry().createPack(playerRef.getUsername(), packName);
-                if (!made.usableNow()) {
-                    // the pack is written and correct, but this server will only pick it up when it next starts
-                    fail("Made the pack " + made.root().getFileName() + ", but this server cannot use it until it is "
-                            + "restarted. Restart it, then make the dialogue again and choose that pack.");
-                    return;
-                }
-                packRoot = made.root();
-                root = packRoot.resolve(DialogueRegistry.PACK_DIR);
-            } else {
-                root = targets.get(where);
-            }
-        } catch (IOException | RuntimeException e) {
-            plugin.getLogger().at(java.util.logging.Level.WARNING).withCause(e).log("Could not make the pack %s", packName);
-            fail("Could not make the pack: " + (e.getMessage() == null ? e.toString() : e.getMessage()));
-            return;
-        }
+        Path root = targets.get(where);
         if (root == null) { fail("That place is not available."); return; }
         // the server's own folder is not an asset pack, so an asset cannot live in it
-        boolean asJson = !FORMAT_TALK.equals(format) && (makePack || !where.isEmpty());
+        boolean asJson = !FORMAT_TALK.equals(format) && !where.isEmpty();
         boolean byTag = npc != null && BIND_TAG.equals(bind);
         String tag = byTag ? id : null;
         String binding = npc == null ? "none" : (byTag ? "@" + tag : npc.role());
@@ -255,14 +213,10 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
                 if (!report.ok() || d == null) throw new IOException("the new file did not load: " + String.join(" ", report.messages()));
             }
         } catch (IOException | RuntimeException e) {
-            // a pack made a moment ago for a dialogue that could not be written is of no use to anyone
-            if (packRoot != null) plugin.getRegistry().removeEmptyPack(packRoot);
             plugin.getLogger().at(java.util.logging.Level.WARNING).withCause(e).log("Could not create dialogue %s", id);
             fail("Could not make the dialogue: " + (e.getMessage() == null ? e.toString() : e.getMessage()));
             return;
         }
-        if (packRoot != null) playerRef.sendMessage(com.hypixel.hytale.server.core.Message.raw(
-                "Made the asset pack " + packRoot.getFileName() + " in the server's mods folder."));
         if (byTag) {
             VariableStore vs = plugin.getStore();
             vs.addTag(vs.npc(npc.id()), tag);

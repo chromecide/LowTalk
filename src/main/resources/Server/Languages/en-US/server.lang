@@ -171,5 +171,3 @@ lowtalk.picker.clear = Leave it empty
 lowtalk.picker.cancel = Cancel
 lowtalk.editor.optionExtras = this option
 lowtalk.newdialog.format = Saved as
-lowtalk.newdialog.packName = Pack name
-lowtalk.newdialog.packNameHint = letters, digits, _ and - (no colons)

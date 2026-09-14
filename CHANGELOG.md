@@ -56,10 +56,9 @@
   travelled with nothing. It is now written as JSON into an asset pack, which gives it a form in the Asset Editor,
   a graph in the Node Editor, fields in here, and a home that ships. The New page keeps `.talk` as a choice for
   people who write by hand, and still offers the server's folder, which takes text files only.
-- The New page can make an asset pack for you. A pack made by hand needs a manifest, and a name with a colon in
-  it produces a mod id the server cannot read, which stops it starting; the new-pack option writes a correct
-  manifest, refuses a name that would break it, and registers the pack with the running server so the dialogue
-  can go straight in without a restart.
+  The page lists the packs the server started with. A pack made while the server is running, in the Asset Editor
+  or anywhere else, is only picked up on the next start, which is the game's own rule: registering one with a
+  running server takes a lock held for the server's lifetime.
 
 ### Names that match what you see
 
