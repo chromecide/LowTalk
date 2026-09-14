@@ -74,11 +74,14 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
     /** How many named argument fields a command row has room for; longer commands fall back to plain text. */
     private static final int ARG_SLOTS = 4;
     /**
-     * How many entries one list may carry. The client's own search box filters what it is given, so the whole list
-     * goes over: the cap is only a guard against a data set that is somehow enormous, since every entry is sent
-     * again whenever the rows are redrawn.
+     * How long a list may be and still be handed to the client whole, for its own search box to filter. Longer
+     * ones keep a text box and are narrowed here as the creator types: there are thousands of items and sounds,
+     * and every entry would be sent again on every redraw. The game's own pages do the same, never putting more
+     * than a few hundred entries in a dropdown.
      */
-    private static final int MAX_ENTRIES = 5000;
+    private static final int WHOLE_LIST_MAX = 300;
+    /** How many entries a narrowed list offers at once. */
+    private static final int PICK_LIMIT = 50;
 
     /** Which game list feeds the picker for a command's arguments, by argument position. */
     private static final Map<String, String[]> PICKERS = new java.util.concurrent.ConcurrentHashMap<>(Map.ofEntries(
@@ -633,7 +636,9 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             slotChange(evt, sel + " #V" + slot, row, slot);
         }
         if (!hasList) return;
-        List<String> offer = choice ? a.choices() : all.size() <= MAX_ENTRIES ? all : all.subList(0, MAX_ENTRIES);
+        List<String> offer = choice ? a.choices()
+                : chooseOnly ? all
+                : JsonDialogues.names(dataset, current, PICK_LIMIT);
         cmd.set(sel + " #C" + slot + ".Entries", listEntries(a, current, offer, all.size(), chooseOnly));
         cmd.set(sel + " #C" + slot + ".Value", chooseOnly ? chosen(current, offer) : NONE);
         evt.addEventBinding(CustomUIEventBindingType.ValueChanged, sel + " #C" + slot,
@@ -655,16 +660,15 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         if (dataset == null) return false;
         List<String> all = JsonDialogues.names(dataset);
         String current = values.get(slot);
-        return !all.isEmpty() && (current.isEmpty() || all.contains(current));
+        return !all.isEmpty() && all.size() <= WHOLE_LIST_MAX && (current.isEmpty() || all.contains(current));
     }
 
     /** The entries of one argument's list, with a first line that says what the list is for. */
     private List<DropdownEntryInfo> listEntries(CommandSpecs.Arg a, String current, List<String> offer,
                                                 int total, boolean chooseOnly) {
         List<DropdownEntryInfo> entries = new ArrayList<>();
-        entries.add(entry(!chooseOnly ? "pick the " + a.label() + "..."
+        entries.add(entry(!chooseOnly ? offer.size() + " of " + total + ", type beside it to narrow..."
                 : a.optional() ? "(not set)"
-                : total > offer.size() ? "choose a " + a.label() + " (" + offer.size() + " of " + total + ")..."
                 : "choose a " + a.label() + "...", NONE, null));
         boolean seen = false;
         for (String o : offer) {
@@ -688,14 +692,35 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         List<DropdownEntryInfo> picks = new ArrayList<>();
         if (dataset != null) {
             int slot = pickerArg(c.name());
-            List<String> all = JsonDialogues.names(dataset);
-            List<String> offer = all.size() <= MAX_ENTRIES ? all : all.subList(0, MAX_ENTRIES);
+            String typed = slot >= 0 && c.args().size() > slot ? Printer.text(c.args().get(slot)) : "";
+            List<String> offer = JsonDialogues.names(dataset, typed, PICK_LIMIT);
             picks.add(entry(slot == 0 ? "pick..." : "pick argument " + (slot + 1) + "...", NONE, null));
             for (String n : offer) picks.add(entry(n, n, null));
         }
         cmd.set(sel + " #Pick.Entries", picks);
         cmd.set(sel + " #Pick.Value", NONE);
         cmd.set(sel + " #Pick.Visible", dataset != null);
+    }
+
+    /** Re-send one argument's list as it is typed into, so a long one narrows without the caret moving. */
+    private void refreshList(int row, int slot) {
+        RowRef r = rowRef(String.valueOf(row));
+        if (r == null) return;
+        Statement s = draft.view(scope).get(r.statement());
+        if (!(s instanceof Statement.Command c)) return;
+        CommandSpecs.Spec spec = CommandSpecs.of(c.name());
+        List<String> values = CommandSpecs.values(c);
+        if (spec == null || values == null || slot < 0 || slot >= spec.size()) return;
+        if (chooseOnly(spec, slot, values)) return;   // a short list is already there in full
+        String dataset = CommandSpecs.datasetFor(spec, slot, values);
+        if (dataset == null) return;
+        String current = values.get(slot);
+        List<String> offer = JsonDialogues.names(dataset, current, PICK_LIMIT);
+        UICommandBuilder cmd = new UICommandBuilder();
+        String sel = "#Rows[" + row + "] #C" + slot;
+        cmd.set(sel + ".Entries", listEntries(spec.arg(slot), current, offer, JsonDialogues.size(dataset), false));
+        cmd.set(sel + ".Value", NONE);
+        sendUpdate(cmd, new UIEventBuilder(), false);
     }
 
     /** Write one named argument back, keeping the others where they are. */
@@ -881,6 +906,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 // a fixed choice can change what the rest of the command means, so redraw; typing must not, or
                 // the caret would jump, and it no longer has to: the list beside it searches itself
                 if (spec.arg(slot).type() == CommandSpecs.Type.CHOICE) return true;
+                if (spec.arg(slot).type() == CommandSpecs.Type.ASSET) refreshList(row, slot);
                 return false;
             }
             case CMD_SLOT_PICK -> {

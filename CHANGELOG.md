@@ -21,8 +21,10 @@
   argument that is an id is one control: a list that searches as you type, using the search box the game's own
   dropdowns have. There is no separate text box to type into, and no picker sitting at the far end of the row.
   A text box appears only where a list cannot be the whole answer: an argument whose list is a suggestion rather
-  than the truth, such as the time of day, and one whose value is not a plain id, such as one built from a
-  variable, so it can still be read and edited.
+  than the truth, such as the time of day, one whose value is not a plain id, such as one built from a variable,
+  and one whose list is too long to hand over whole. There are thousands of items and sounds, so those keep a text
+  box and their list is narrowed as it is typed into; the game's own pages never put more than a few hundred
+  entries in a dropdown either.
 - The lists of passages, of NPC roles and tags, and of command names search as you type too.
 - The Add menu says what each kind of row does, and offers the commands people reach for by name: give an item,
   start an objective, open the shop, play an animation, play a sound, show a title, show a notification, play a
