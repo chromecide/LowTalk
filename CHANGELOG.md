@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Installing the mod no longer puts words in vanilla NPCs' mouths. `CopyExamplesOnFirstRun` now defaults to
+  false, so a fresh server has no bound dialogue until someone writes or copies one. The examples still ship
+  inside the asset pack, bound to nothing, ready to open in the Asset Editor or through `/lowtalk browse`.
+  Set it to true in `lowtalk.json` before first run to get the old behaviour.
 - `/lowtalk testworld build` no longer spawns a second set of station NPCs on top of the first. It looked for the
   old ones in the spatial index, which is filled by a ticking system and is still empty for entities that have
   just been loaded with their chunks, so a build straight after a server start found nothing to clean up. It now

@@ -201,7 +201,12 @@ log line appears before the error.
 - `HoldNpcDuringDialogue` (default true): freeze and face the NPC while talking.
 - `ClearSkyWeather` (default `Default_Flat`): what `<<weather clear>>` shows in
   worlds that have no natural weather.
-- `DialoguesFolder`, `CopyExamplesOnFirstRun`, `LogConversations`, `InfoColor`.
+- `CopyExamplesOnFirstRun` (default false): when true, the example dialogues are copied into the plugin's
+  dialogues folder on first run, bound to vanilla NPC roles, so Kweebec Merchants, Kweebec Elders and Klops
+  Merchants start talking straight away. Off by default so installing the mod changes nothing until you say so.
+  The same examples ship inside LowTalk's asset pack bound to nothing: open them in the Asset Editor, or
+  `/lowtalk browse`, and copy one into your own pack to start from.
+- `DialoguesFolder`, `LogConversations`, `InfoColor`.
 
 ## Translating
 

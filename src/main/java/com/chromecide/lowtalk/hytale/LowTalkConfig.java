@@ -45,7 +45,7 @@ public class LowTalkConfig {
     public static final String MODE_REPLACE = "replace";
 
     private String dialoguesFolder = "dialogues";
-    private boolean copyExamples = true;
+    private boolean copyExamples = false;   // a fresh install binds nothing to vanilla NPCs until an owner asks
     private String roleBindingMode = MODE_REPLACE;
     private String tagBindingMode = MODE_REPLACE;
     private String infoColor = "#A0A0A0";
