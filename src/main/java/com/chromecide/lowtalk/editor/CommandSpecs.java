@@ -39,8 +39,15 @@ public final class CommandSpecs {
      * @param dataset  for {@link Type#ASSET}, the data set the picker reads
      * @param choices  for {@link Type#CHOICE}, the values offered; the first is not a default, just a list
      * @param optional true when leaving it empty is fine
+     * @param open     true when the data set is a suggestion rather than the whole truth, so the editor always
+     *                 leaves room to type something that is not on it, such as any hour of the day
      */
-    public record Arg(String label, Type type, @Nullable String dataset, List<String> choices, boolean optional) {}
+    public record Arg(String label, Type type, @Nullable String dataset, List<String> choices, boolean optional,
+                      boolean open) {
+        public Arg(String label, Type type, @Nullable String dataset, List<String> choices, boolean optional) {
+            this(label, type, dataset, choices, optional, false);
+        }
+    }
 
     public record Spec(String command, List<Arg> args) {
         public int size() {
@@ -109,6 +116,11 @@ public final class CommandSpecs {
         return new Arg(label, Type.ASSET, dataset, List.of(), true);
     }
 
+    /** An id with a list of suggestions that is not the whole truth: anything else may still be typed. */
+    private static Arg suggested(String label, String dataset) {
+        return new Arg(label, Type.ASSET, dataset, List.of(), false, true);
+    }
+
     private static Arg choice(String label, List<String> choices) {
         return new Arg(label, Type.CHOICE, null, choices, false);
     }
@@ -145,7 +157,7 @@ public final class CommandSpecs {
         // ---- the world
         spec("teleport", asset("warp", WARPS));
         spec("weather", asset("weather", WEATHERS), optionalChoice("for", List.of("player")));
-        spec("time", asset("time", TIMES));
+        spec("time", suggested("time", TIMES));
         spec("run", text("command"));
         // ---- media
         spec("music", asset("music", MUSIC));

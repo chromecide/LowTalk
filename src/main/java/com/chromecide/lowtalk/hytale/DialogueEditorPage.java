@@ -75,6 +75,8 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
     private static final int ARG_SLOTS = 4;
     /** How many entries a picker offers at once. The game has thousands of items, so the list has to narrow. */
     private static final int PICK_LIMIT = 50;
+    /** A list this short is simply chosen from: the argument gets no text box, just the list. */
+    private static final int WHOLE_LIST_MAX = 60;
 
     /** Which game list feeds the picker for a command's arguments, by argument position. */
     private static final Map<String, String[]> PICKERS = new java.util.concurrent.ConcurrentHashMap<>(Map.ofEntries(
@@ -103,7 +105,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
     public enum Action {
         LINE_TEXT, LINE_SPEAKER, LINE_BUTTON,
         OPT_TEXT, OPT_TARGET, OPT_GO, OPT_MORE, OPT_IF, OPT_SHOW, OPT_ONCE, OPT_BODY, OPT_IF_PICK, OPT_SHOW_PICK,
-        CMD_NAME, CMD_ARGS, CMD_SLOT, CMD_PICK, SET, JUMP_NODE, JUMP_GO, INPUT, WAIT,
+        CMD_NAME, CMD_ARGS, CMD_SLOT, CMD_SLOT_PICK, CMD_PICK, SET, JUMP_NODE, JUMP_GO, INPUT, WAIT,
         BRANCH_COND, BRANCH_COND_PICK, BRANCH_BODY, BRANCH_ADD, BRANCH_DEL, BLOCK_BODY, ALT_ADD, ALT_DEL,
         UP, DOWN, DEL, ADD_KIND, ADD, ADD_NODE, RENAME, JUMP, BACK, HEADER, DELETE_NODE,
         H_BINDINGS, H_NPC_PICK, H_SPEAKER, H_TITLE, H_START, H_ON, H_PORTRAIT, H_SCOPE, H_LAYOUT, H_HISTORY,
@@ -582,41 +584,17 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
 
     /**
      * A command row: the command's name, then one named field per argument it takes, so that a creator reading the
-     * row can see that the number after a particle is its scale and the one after that is a count of seconds.
-     * Arguments picked from one of the game's lists get the picker at the end of the row, which narrows as they
-     * type because there are thousands of items. A command with no argument names, or one whose arguments do not
-     * fit them, keeps the plain box of text this row used to be.
+     * row can see that the number after a particle is its scale and the one after that is a count of seconds. A
+     * command with no argument names, or one whose arguments do not fit them, keeps the plain box of text this row
+     * used to be, with the picker it used to have.
      */
     private void renderCommand(UICommandBuilder cmd, UIEventBuilder evt, String sel, int row, Statement.Command c) {
         CommandSpecs.Spec spec = CommandSpecs.of(c.name());
         List<String> values = CommandSpecs.values(c);
         int slots = values == null ? 0 : spec.size();
         for (int slot = 0; slot < ARG_SLOTS; slot++) {
-            String at = sel + " #Arg" + slot;
-            cmd.set(at + ".Visible", slot < slots);
-            if (slot >= slots) continue;
-            CommandSpecs.Arg a = spec.arg(slot);
-            String current = values.get(slot);
-            boolean choice = a.type() == CommandSpecs.Type.CHOICE;
-            cmd.set(sel + " #L" + slot + ".Text", a.label());
-            cmd.set(sel + " #V" + slot + ".Visible", !choice);
-            cmd.set(sel + " #C" + slot + ".Visible", choice);
-            if (choice) {
-                List<DropdownEntryInfo> entries = new ArrayList<>();
-                entries.add(entry(a.optional() ? "(not set)" : "choose...", NONE, null));
-                boolean seen = false;
-                for (String o : a.choices()) {
-                    entries.add(entry(o, o, null));
-                    if (o.equalsIgnoreCase(current)) seen = true;
-                }
-                if (!current.isEmpty() && !seen) entries.add(entry(current, current, null));
-                cmd.set(sel + " #C" + slot + ".Entries", entries);
-                cmd.set(sel + " #C" + slot + ".Value", current.isEmpty() ? NONE : current);
-                slotChange(evt, sel + " #C" + slot, row, slot);
-            } else {
-                cmd.set(sel + " #V" + slot + ".Value", current);
-                slotChange(evt, sel + " #V" + slot, row, slot);
-            }
+            cmd.set(sel + " #Arg" + slot + ".Visible", slot < slots);
+            if (slot < slots) renderArg(cmd, evt, sel, row, slot, spec, values);
         }
         boolean plain = values == null;
         cmd.set(sel + " #Args.Visible", plain);
@@ -625,28 +603,95 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             evt.addEventBinding(CustomUIEventBindingType.ValueChanged, sel + " #Args",
                     rowData(Action.CMD_ARGS, row).append("@Value", sel + " #Name.Value").append("@Value2", sel + " #Args.Value"), false);
         }
-        renderPick(cmd, sel, c, spec, values);
+        // the row-level picker belongs to the plain text box, which is all a command with no named arguments has
+        renderLegacyPick(cmd, sel, c, plain && spec == null);
         rowChange(evt, sel + " #Pick", Action.CMD_PICK, row);
     }
 
-    /** The picker at the end of a command row: the game's list for whichever argument is an id, narrowed by what
-     *  has been typed into that argument so far. Hidden when the command has no such argument. */
-    private void renderPick(UICommandBuilder cmd, String sel, Statement.Command c,
-                            @Nullable CommandSpecs.Spec spec, @Nullable List<String> values) {
-        int slot = values == null ? pickerArg(c.name()) : CommandSpecs.assetSlot(spec);
-        // in plain-text mode the arguments are not in known places, so a picker could only overwrite the wrong one;
-        // it is offered for a command with no named arguments at all, where it is all the help there is
-        String dataset = values == null ? (spec == null ? pickerFor(c.name()) : null)
-                : CommandSpecs.datasetFor(spec, slot, values);
+    /**
+     * One named argument. A short list is simply chosen from, with no text box at all: there is nothing to type
+     * when the game has thirty particles. A long one (there are thousands of items and sounds) keeps a text box,
+     * because typing into it is what narrows the list beside it, and so does a value that is not a plain id, such
+     * as one built from a variable.
+     */
+    private void renderArg(UICommandBuilder cmd, UIEventBuilder evt, String sel, int row, int slot,
+                           CommandSpecs.Spec spec, List<String> values) {
+        CommandSpecs.Arg a = spec.arg(slot);
+        String current = values.get(slot);
+        boolean choice = a.type() == CommandSpecs.Type.CHOICE;
+        String dataset = CommandSpecs.datasetFor(spec, slot, values);
+        List<String> all = dataset == null ? List.of() : JsonDialogues.names(dataset);
+        boolean chooseOnly = chooseOnly(spec, slot, values);
+        boolean hasList = choice || dataset != null;
+        cmd.set(sel + " #L" + slot + ".Text", a.label());
+        cmd.set(sel + " #V" + slot + ".Visible", !chooseOnly);
+        cmd.set(sel + " #C" + slot + ".Visible", hasList);
+        if (!chooseOnly) {
+            cmd.set(sel + " #V" + slot + ".Value", current);
+            slotChange(evt, sel + " #V" + slot, row, slot);
+        }
+        if (!hasList) return;
+        List<String> offer = choice ? a.choices()
+                : chooseOnly ? all
+                : JsonDialogues.names(dataset, current, PICK_LIMIT);
+        cmd.set(sel + " #C" + slot + ".Entries", listEntries(a, current, offer, all.size(), chooseOnly));
+        cmd.set(sel + " #C" + slot + ".Value", chooseOnly ? chosen(current, offer) : NONE);
+        evt.addEventBinding(CustomUIEventBindingType.ValueChanged, sel + " #C" + slot,
+                rowData(Action.CMD_SLOT_PICK, row).append("Slot", String.valueOf(slot))
+                        .append("@Value", sel + " #C" + slot + ".Value"), false);
+    }
+
+    /**
+     * Whether an argument is simply chosen from a list, with no text box: every fixed choice, and any of the
+     * game's lists short enough to read through, as long as what is written is one of its entries. A value that
+     * is not (one built from a variable, or an id from a pack that is not loaded) keeps its text box, so it can
+     * still be read and edited.
+     */
+    private boolean chooseOnly(CommandSpecs.Spec spec, int slot, List<String> values) {
+        CommandSpecs.Arg a = spec.arg(slot);
+        if (a.type() == CommandSpecs.Type.CHOICE) return true;
+        if (a.open()) return false;
+        String dataset = CommandSpecs.datasetFor(spec, slot, values);
+        if (dataset == null) return false;
+        List<String> all = JsonDialogues.names(dataset);
+        String current = values.get(slot);
+        return !all.isEmpty() && all.size() <= WHOLE_LIST_MAX && (current.isEmpty() || all.contains(current));
+    }
+
+    /** The entries of one argument's list, with a first line that says what the list is for. */
+    private List<DropdownEntryInfo> listEntries(CommandSpecs.Arg a, String current, List<String> offer,
+                                                int total, boolean chooseOnly) {
+        List<DropdownEntryInfo> entries = new ArrayList<>();
+        entries.add(entry(chooseOnly ? (a.optional() ? "(not set)" : "choose a " + a.label() + "...")
+                : total > offer.size() ? offer.size() + " of " + total + ", type to narrow..."
+                : "pick the " + a.label() + "...", NONE, null));
+        boolean seen = false;
+        for (String o : offer) {
+            entries.add(entry(o, o, null));
+            if (o.equalsIgnoreCase(current)) seen = true;
+        }
+        if (chooseOnly && !current.isEmpty() && !seen) entries.add(entry(current, current, null));
+        return entries;
+    }
+
+    /** The entry value that stands for what is written, so a list shows the argument's own value as chosen. */
+    private static String chosen(String current, List<String> offer) {
+        if (current.isEmpty()) return NONE;
+        for (String o : offer) if (o.equalsIgnoreCase(current)) return o;
+        return current;
+    }
+
+    /** The picker beside the plain text box, for a command whose arguments have no names of their own. */
+    private void renderLegacyPick(UICommandBuilder cmd, String sel, Statement.Command c, boolean wanted) {
+        String dataset = wanted ? pickerFor(c.name()) : null;
         List<DropdownEntryInfo> picks = new ArrayList<>();
         if (dataset != null) {
-            String typed = values != null ? values.get(slot)
-                    : slot >= 0 && c.args().size() > slot ? Printer.text(c.args().get(slot)) : "";
+            int slot = pickerArg(c.name());
+            String typed = slot >= 0 && c.args().size() > slot ? Printer.text(c.args().get(slot)) : "";
             List<String> matches = JsonDialogues.names(dataset, typed, PICK_LIMIT);
             int total = JsonDialogues.size(dataset);
-            String label = spec != null && slot >= 0 && slot < spec.size() ? spec.arg(slot).label() : "value";
-            picks.add(entry(total <= PICK_LIMIT ? "pick the " + label + "..."
-                    : matches.size() + " of " + total + ", type to narrow...", NONE, null));
+            picks.add(entry(total > matches.size() ? matches.size() + " of " + total + ", type to narrow..."
+                    : slot == 0 ? "pick..." : "pick argument " + (slot + 1) + "...", NONE, null));
             for (String n : matches) picks.add(entry(n, n, null));
         }
         cmd.set(sel + " #Pick.Entries", picks);
@@ -654,14 +699,23 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         cmd.set(sel + " #Pick.Visible", dataset != null);
     }
 
-    /** Re-send only one command row's picker, so its list narrows as the creator types without moving the caret. */
-    private void refreshPick(int row) {
+    /** Re-send one argument's list as it is typed into, so it narrows without the caret moving. */
+    private void refreshList(int row, int slot) {
         RowRef r = rowRef(String.valueOf(row));
         if (r == null) return;
         Statement s = draft.view(scope).get(r.statement());
         if (!(s instanceof Statement.Command c)) return;
+        CommandSpecs.Spec spec = CommandSpecs.of(c.name());
+        List<String> values = CommandSpecs.values(c);
+        if (spec == null || values == null || slot < 0 || slot >= spec.size()) return;
+        String dataset = CommandSpecs.datasetFor(spec, slot, values);
+        if (dataset == null) return;
+        String current = values.get(slot);
+        List<String> offer = JsonDialogues.names(dataset, current, PICK_LIMIT);
         UICommandBuilder cmd = new UICommandBuilder();
-        renderPick(cmd, "#Rows[" + row + "]", c, CommandSpecs.of(c.name()), CommandSpecs.values(c));
+        String sel = "#Rows[" + row + "] #C" + slot;
+        cmd.set(sel + ".Entries", listEntries(spec.arg(slot), current, offer, JsonDialogues.size(dataset), false));
+        cmd.set(sel + ".Value", NONE);
         sendUpdate(cmd, new UIEventBuilder(), false);
     }
 
@@ -846,8 +900,22 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 // a fixed choice can change what the rest of the command means, so redraw; typing must not, or the
                 // caret would jump, so only the picker beside the field is re-sent
                 if (spec.arg(slot).type() == CommandSpecs.Type.CHOICE) return true;
-                if (spec.arg(slot).type() == CommandSpecs.Type.ASSET) refreshPick(row);
+                if (spec.arg(slot).type() == CommandSpecs.Type.ASSET) refreshList(row, slot);
                 return false;
+            }
+            case CMD_SLOT_PICK -> {
+                if (r == null) return false;
+                Statement s = draft.view(scope).get(r.statement());
+                if (!(s instanceof Statement.Command c)) return false;
+                CommandSpecs.Spec spec = CommandSpecs.of(c.name());
+                if (spec == null || slot < 0 || slot >= spec.size()) return false;
+                List<String> before = CommandSpecs.values(c);
+                // "(not set)" at the top of a short list clears the argument; "type to narrow..." at the top of a
+                // long one is not a value at all, so choosing it leaves what is written alone
+                if (NONE.equals(value) && (before == null || !chooseOnly(spec, slot, before))) return false;
+                String failed = setArg(r.statement(), slot, value);
+                if (failed != null) status = failed;
+                return true;
             }
             case SET -> { if (r != null) return problem(draft.setSet(scope, r.statement(), value, value2)); return false; }
             case INPUT -> { if (r != null) return problem(draft.setInput(scope, r.statement(), value, value2)); return false; }
