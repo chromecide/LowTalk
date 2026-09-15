@@ -118,9 +118,12 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
         LowTalkConfig cfg = config.get();
         if (!runs.isEmpty()) {
             getLogger().at(Level.WARNING).log(
-                    "%d dialogue(s) use <<run>>, which executes server commands as the console: %s.%s",
+                    "%d dialogue(s) use <<run>>, which executes server commands as the console: %s. %s",
                     runs.size(), String.join(", ", runs),
-                    cfg.isAllowRun() ? " Set AllowRunCommand to false to refuse them." : " AllowRunCommand is off, so they are refused.");
+                    cfg.isAllowRun()
+                            ? "AllowRunCommand is on, so they may do anything an operator can."
+                            : "AllowRunCommand is off by default, so those commands are refused; set it to true in "
+                              + getDataDirectory().resolve("lowtalk.json") + " if you trust them.");
         }
         if (!asks.isEmpty() && !cfg.isAllowInput()) {
             getLogger().at(Level.INFO).log("%d dialogue(s) ask players to type something, which AllowPlayerInput turns off: %s",

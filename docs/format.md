@@ -450,9 +450,9 @@ prints the results to the console.
 ### `<<run>>` acts as the console
 
 `<<run>>` executes a server command with the console's authority, which is every permission there is. A dialogue
-that uses it is as powerful as an operator, and dialogues arrive in asset packs that can come from anybody. The
-server lists the dialogues that use it at startup, and `AllowRunCommand: false` in `lowtalk.json` refuses them
-outright.
+that uses it is as powerful as an operator, and dialogues arrive in asset packs that can come from anybody, so
+**it is off unless you turn it on**: set `AllowRunCommand: true` in `lowtalk.json`. The server names the
+dialogues that use it at startup, so the decision is an informed one rather than a guess.
 
 Nothing a player typed can reach `<<run>>`. A variable that was ever filled by `<<input>>` is marked as holding
 the player's text, the mark is saved with the variable, and `<<run>>` refuses it for ever after, in that dialogue

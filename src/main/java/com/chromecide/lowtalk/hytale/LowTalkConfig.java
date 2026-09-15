@@ -61,25 +61,29 @@ public class LowTalkConfig {
      * Open bound dialogues when a player uses an NPC, by intercepting the game's use event. Turn off to route every
      * conversation through NPC roles (the LowTalkOpenDialogue action) and interaction JSON instead.
      */
-    /**
-     * Whether dialogues may use {@code <<run>>}, which executes a server command as the console.
-     *
-     * <p>It is on, because it is what makes a dialogue able to do anything the server can do. It is also the one
-     * thing in a dialogue file that is as powerful as the console itself, so a server that installs dialogue
-     * packs written by other people can turn it off here and lose nothing else.
-     */
+    private boolean useHook = true;
+
     /**
      * Whether dialogues may ask players to type something with {@code <<input>>}.
      *
-     * <p>It is on, because being asked your name is half of what makes a dialogue feel like a conversation. It
-     * is also the only way anything a player wrote enters the server, so an owner who would rather not keep
+     * <p>On, because being asked your name is half of what makes a dialogue feel like a conversation. It is also
+     * the only way anything a player wrote enters the server, so an owner who would rather not keep
      * player-written text at all can switch it off here.
      */
     private boolean allowInput = true;
 
-    private boolean allowRun = true;
-
-    private boolean useHook = true;
+    /**
+     * Whether dialogues may use {@code <<run>>}, which executes a server command as the console.
+     *
+     * <p>Off, and deliberately. It is the one thing in a dialogue file that is as powerful as an operator, and
+     * dialogues arrive in asset packs that can come from anybody: a file downloaded to add a shopkeeper should
+     * not be able to hand its author the server. An owner who wants it turns it on, having decided they trust
+     * the dialogues they installed.
+     *
+     * <p>Dialogues that use it are named in the log at startup, so turning it on is an informed choice rather
+     * than a guess.
+     */
+    private boolean allowRun = false;
     /** Show the game's interaction prompt on bound NPCs; HintKey is the translation key of its text. */
     private boolean showHint = true;
     private String hintKey = "server.lowtalk.hint.talk";
@@ -95,7 +99,8 @@ public class LowTalkConfig {
     private String history = "full";
     private String[] hideHud = new String[] {"Reticle", "Hotbar"};
 
-    private LowTalkConfig() {}
+    /** Package-private rather than private so a test can read what a server gets before anyone edits anything. */
+    LowTalkConfig() {}
 
     public String getDialoguesFolder() { return dialoguesFolder; }
     public boolean isCopyExamples() { return copyExamples; }

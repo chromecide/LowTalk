@@ -18,8 +18,13 @@
   has no selector syntax for it to mean.
 - **An answer to `<<input>>` is cut to 256 characters.** It is saved in a variable that is written to disk, and
   what arrives is whatever the client sent, so there was no limit on how much a player could store.
-- **`AllowRunCommand` and `AllowPlayerInput`** in `lowtalk.json` switch off the two features that carry risk, for
-  owners who install dialogue packs written by other people or would rather not keep player-written text.
+- **`<<run>>` is now off unless a server owner turns it on.** *This is a breaking change for anyone using it.* It
+  executes a server command with the console's authority, and dialogues arrive in asset packs that can come from
+  anybody; a file downloaded to add a shopkeeper should not be able to hand its author the server. Set
+  `AllowRunCommand: true` in `lowtalk.json` to allow it. The server names the dialogues that use it at startup,
+  and refusing one says so in the conversation rather than failing quietly.
+- **`AllowPlayerInput`** switches off `<<input>>` for an owner who would rather not keep player-written text at
+  all. It stays on by default.
 - The server now lists at startup which dialogues use `<<run>>`, since those act with the console's authority.
 - A reward whose name the player typed — `<<give {$their_answer}>>` and the like — is warned about rather than
   refused, since an author may mean to give a reward the player picked from a list.
