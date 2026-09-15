@@ -180,7 +180,7 @@ time. Any statements are allowed inside, not just lines.
 | `<<attitude friendly>>` | Set this NPC's attitude toward the player: ignore, hostile, neutral, friendly, revered. |
 | `<<objective Objective_Id>>`, `<<objective cancel Id>>`, `<<objective line Line_Id>>`, `<<objective task Task_Id>>` | Start a native objective; abandon one; start an objective line (a chain of objectives); or advance a "talk to this NPC" task of an active objective, which plays the task's animation and may open the game's own completion dialog. |
 | `<<anim Id>>`, `<<anim Id Slot>>`, `<<sound Id>>` | Play an animation on the NPC (slot Emote by default; Status is what the game uses for its own greetings) or a sound at the NPC. |
-| `<<run "/command args">>` | Run a server command as the console. `{player}` is expanded. |
+| `<<run "/command args">>` | Run a server command as the console. `{player}` is expanded. **See the warning below.** |
 | `<<input $var "Prompt">>` | Show a text box and store what the player types. |
 | `<<once>>` ... `<<endonce>>` | The block between runs at most once per player. |
 | `<<random>>` ... `<<or>>` ... `<<endrandom>>` | One alternative runs, chosen at random. |
@@ -444,3 +444,25 @@ and [examples/village_elder.talk](../examples/village_elder.talk).
 errors with line numbers, without starting a server. `/lowtalk reload` on a
 running server does the same for every file in the dialogues folder and
 prints the results to the console.
+
+## Two settings worth knowing about
+
+### `<<run>>` acts as the console
+
+`<<run>>` executes a server command with the console's authority, which is every permission there is. A dialogue
+that uses it is as powerful as an operator, and dialogues arrive in asset packs that can come from anybody. The
+server lists the dialogues that use it at startup, and `AllowRunCommand: false` in `lowtalk.json` refuses them
+outright.
+
+Nothing a player typed can reach `<<run>>`. A variable that was ever filled by `<<input>>` is marked as holding
+the player's text, the mark is saved with the variable, and `<<run>>` refuses it for ever after, in that dialogue
+or any other. If the author later sets the variable themselves the mark is cleared, because the value is theirs
+again. Anything else interpolated into a `<<run>>` has to look like a plain name or id: no spaces, no quotes, and
+nothing starting with `-`, since the game reads `--name` as an optional argument and `--all` would aim a command
+at everybody.
+
+### `<<input>>` is the only way player-written text enters the server
+
+An answer is cut to 256 characters and saved in the variable the author named. A server that would rather not
+hold text its players wrote can set `AllowPlayerInput: false`; dialogues that ask for it then stop, with the
+reason given, and everything else about them keeps working.

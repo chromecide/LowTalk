@@ -4,6 +4,24 @@
 
 ## 0.3.1 (2026-09-14)
 
+### Security review before release
+
+- **Text a player typed can no longer reach `<<run>>` by way of a saved variable.** The guard that kept player
+  input out of console commands lived on the conversation, so walking away and starting another one laundered it:
+  text typed into a saved variable in one dialogue was no longer recognised as the player's in the next, and the
+  validator could not see it either, because it reads one file at a time. The mark now belongs to the variable,
+  is saved with it, and survives restarts; an ordinary `<<set>>` by the author clears it, so a variable the author
+  takes back is theirs again.
+- **An interpolated `<<run>>` value may no longer start with a dash.** The game reads `--name` and `--name=value`
+  as an optional argument, and `AbstractTargetPlayersCommand` has `--all`; a player who typed `--all` into a
+  variable used by `<<run>>` would have aimed a console command at everybody. `@` is refused too, since the game
+  has no selector syntax for it to mean.
+- **An answer to `<<input>>` is cut to 256 characters.** It is saved in a variable that is written to disk, and
+  what arrives is whatever the client sent, so there was no limit on how much a player could store.
+- **`AllowRunCommand` and `AllowPlayerInput`** in `lowtalk.json` switch off the two features that carry risk, for
+  owners who install dialogue packs written by other people or would rather not keep player-written text.
+- The server now lists at startup which dialogues use `<<run>>`, since those act with the console's authority.
+
 Built against Hytale 0.6.6. That release changes only the QUIC transport, NAT traversal and singleplayer; the
 objective, asset, language and UI systems this mod uses are byte-identical to 0.6.5, and the supported range is
 unchanged at >=0.6.3 <0.7.0.

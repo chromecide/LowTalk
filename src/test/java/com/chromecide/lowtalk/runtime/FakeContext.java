@@ -30,6 +30,28 @@ public class FakeContext implements Context {
         return vars.get(scope + "." + name);
     }
 
+    /** Which variables hold text a player typed, kept the way the real context keeps it: against the variable. */
+    public final java.util.Set<String> playerText = new java.util.HashSet<>();
+
+    /** Set false to stand in for a server that has switched input off. */
+    public boolean allowInput = true;
+
+    @Override
+    public boolean allowsPlayerInput() {
+        return allowInput;
+    }
+
+    @Override
+    public void markPlayerText(String scope, String name, boolean typed) {
+        if (typed) playerText.add(scope + "." + name);
+        else playerText.remove(scope + "." + name);
+    }
+
+    @Override
+    public boolean isPlayerText(String scope, String name) {
+        return playerText.contains(scope + "." + name);
+    }
+
     @Override
     public void setVar(String scope, String name, Object value) {
         vars.put(scope + "." + name, value);

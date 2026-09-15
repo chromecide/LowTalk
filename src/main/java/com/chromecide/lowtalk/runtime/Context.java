@@ -32,6 +32,31 @@ public interface Context {
     /** Report something the author should know about (logged by the server, ignored in tests). */
     default void warn(String message) {}
 
+    /**
+     * Remember whether a variable holds text a player typed at an input prompt.
+     *
+     * <p>The mark belongs to the variable, not to the conversation that set it. A player types into
+     * {@code $player.name} while talking to one NPC and walks away; the text is still theirs when another
+     * dialogue reads it tomorrow, and {@code <<run>>} has to keep refusing it. An ordinary {@code <<set>>} by
+     * the author clears the mark, because the value is then the author's and not the player's.
+     */
+    default void markPlayerText(String scope, String name, boolean typed) {}
+
+    /** True when this variable holds text a player typed, whenever and wherever they typed it. */
+    default boolean isPlayerText(String scope, String name) {
+        return false;
+    }
+
+    /**
+     * Whether players may be asked to type anything at all.
+     *
+     * <p>A server that would rather not hold text its players wrote can switch input off, and dialogues that ask
+     * for it stop asking. Everything else about them keeps working.
+     */
+    default boolean allowsPlayerInput() {
+        return true;
+    }
+
     void markVisited(String node);
 
     boolean onceDone(String key);

@@ -45,8 +45,17 @@ public final class Conversation {
     private boolean finished = false;
     /** Variables that received text typed by the player during this conversation. */
     private final java.util.Set<String> typedVars = new java.util.HashSet<>();
-    /** What an interpolated value may look like inside <<run>>: names, ids, numbers. */
-    private static final java.util.regex.Pattern SAFE_RUN_VALUE = java.util.regex.Pattern.compile("[A-Za-z0-9_.:@-]{0,64}");
+    /**
+     * What an interpolated value may look like inside {@code <<run>>}: a name, an id or a number, and nothing
+     * that the command parser would read as anything else.
+     *
+     * <p>A leading dash is refused because the game reads {@code --name} and {@code --name=value} as an optional
+     * argument: a value of {@code --all} would turn a command aimed at one player into one aimed at everybody,
+     * and the console runs with every permission. {@code @} is refused because the game has no selector syntax
+     * for it to mean, so nothing legitimate needs it in a command argument.
+     */
+    private static final java.util.regex.Pattern SAFE_RUN_VALUE =
+            java.util.regex.Pattern.compile("(?!-)[A-Za-z0-9_.:-]{0,64}");
 
     public Conversation(@Nonnull Dialogue dialogue, @Nonnull Context ctx) {
         this.dialogue = dialogue;
@@ -123,13 +132,26 @@ public final class Conversation {
     }
 
     /** Called after an Ask with what the player typed. */
+    /**
+     * The longest answer kept from an input prompt. A prompt asks for a name or a word or two, but what arrives
+     * is whatever the client sent, and a variable in the player scope is written to disk: without a limit anyone
+     * who can talk to an NPC could grow that file without end. Longer answers are cut rather than refused, so a
+     * player who pastes something silly still gets on with the conversation.
+     */
+    public static final int MAX_ANSWER = 256;
+
     public Result answer(String text) {
         if (finished) return new Result(new Step.Finish(), List.of());
         if (pendingInput == null) throw new RuntimeError("no input is pending");
         Statement.Input in = pendingInput;
         pendingInput = null;
-        ctx.setVar(in.target().scope(), in.target().name(), text == null ? "" : text);
+        String answer = text == null ? "" : text;
+        if (answer.length() > MAX_ANSWER) answer = answer.substring(0, MAX_ANSWER);
+        text = answer;
+        ctx.setVar(in.target().scope(), in.target().name(), answer);
         typedVars.add(in.target().scope() + "." + in.target().name());
+        // the mark outlives this conversation: the text is the player's wherever it is read next
+        ctx.markPlayerText(in.target().scope(), in.target().name(), true);
         stack.peek().index++;
         return advance();
     }
@@ -209,6 +231,9 @@ public final class Conversation {
                     case Statement.Set set -> {
                         f.index++;
                         ctx.setVar(set.target().scope(), set.target().name(), Evaluator.eval(set.value(), ctx));
+                        // the author has overwritten it, so whatever a player once typed here is gone
+                        typedVars.remove(set.target().scope() + "." + set.target().name());
+                        ctx.markPlayerText(set.target().scope(), set.target().name(), false);
                     }
                     case Statement.Jump j -> jumpTo(j.node(), j.pos());
                     case Statement.End e -> {
@@ -219,6 +244,9 @@ public final class Conversation {
                         return finish();
                     }
                     case Statement.Input in -> {
+                        if (!ctx.allowsPlayerInput()) {
+                            throw new RuntimeError(in.pos(), "<<input>> is switched off on this server (AllowPlayerInput)");
+                        }
                         if (held != null) {
                             return result(held);
                         }
@@ -250,7 +278,7 @@ public final class Conversation {
         for (Text.Part p : t.parts()) {
             if (p instanceof Text.Part.Interp in) {
                 for (Expr.Var v : varsIn(in.expr())) {
-                    if (typedVars.contains(v.scope() + "." + v.name())) {
+                    if (typedVars.contains(v.scope() + "." + v.name()) || ctx.isPlayerText(v.scope(), v.name())) {
                         throw new RuntimeError("<<run>> may not include $" + v.name() + ", which holds text the player typed");
                     }
                 }

@@ -91,6 +91,9 @@ public class HytaleContext implements Context, DialogueContext {
         };
     }
 
+    /** Marks for the tmp scope, which lives only as long as this conversation and never reaches disk. */
+    private final java.util.Set<String> typedTmp = new java.util.HashSet<>();
+
     @Override
     public Object getVar(String scope, String name) {
         if (scope.equals("tmp")) return tmp.get(name);
@@ -104,6 +107,34 @@ public class HytaleContext implements Context, DialogueContext {
             return;
         }
         store.set(recordFor(scope), dialogue.scope(), name, value);
+    }
+
+    /**
+     * Where the marks live. A dialogue's own scope is its name, so a key the parser can never produce keeps
+     * these apart from anything an author wrote, and it is saved and loaded with the rest of the record.
+     */
+    private static final String TYPED_SCOPE = "!playerText";
+
+    @Override
+    public boolean allowsPlayerInput() {
+        return com.chromecide.lowtalk.LowTalkPlugin.get() == null
+                || com.chromecide.lowtalk.LowTalkPlugin.get().getSettings().isAllowInput();
+    }
+
+    @Override
+    public void markPlayerText(String scope, String name, boolean typed) {
+        if (scope.equals("tmp")) {
+            if (typed) typedTmp.add(name);
+            else typedTmp.remove(name);
+            return;
+        }
+        store.set(recordFor(scope), TYPED_SCOPE, scope + "." + name, typed ? Boolean.TRUE : null);
+    }
+
+    @Override
+    public boolean isPlayerText(String scope, String name) {
+        if (scope.equals("tmp")) return typedTmp.contains(name);
+        return Boolean.TRUE.equals(store.get(recordFor(scope), TYPED_SCOPE, scope + "." + name));
     }
 
     @Override

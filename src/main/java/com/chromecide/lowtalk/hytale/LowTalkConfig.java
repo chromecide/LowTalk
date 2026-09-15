@@ -24,6 +24,10 @@ public class LowTalkConfig {
                     (c, v, e) -> c.holdNpc = v, (c, e) -> c.holdNpc).add()
             .append(new KeyedCodec<>("ClearSkyWeather", Codec.STRING),
                     (c, v, e) -> c.clearSkyWeather = v, (c, e) -> c.clearSkyWeather).add()
+            .append(new KeyedCodec<>("AllowPlayerInput", Codec.BOOLEAN),
+                    (c, v, e) -> c.allowInput = v, (c, e) -> c.allowInput).add()
+            .append(new KeyedCodec<>("AllowRunCommand", Codec.BOOLEAN),
+                    (c, v, e) -> c.allowRun = v, (c, e) -> c.allowRun).add()
             .append(new KeyedCodec<>("UseHook", Codec.BOOLEAN),
                     (c, v, e) -> c.useHook = v, (c, e) -> c.useHook).add()
             .append(new KeyedCodec<>("ShowHint", Codec.BOOLEAN),
@@ -57,6 +61,24 @@ public class LowTalkConfig {
      * Open bound dialogues when a player uses an NPC, by intercepting the game's use event. Turn off to route every
      * conversation through NPC roles (the LowTalkOpenDialogue action) and interaction JSON instead.
      */
+    /**
+     * Whether dialogues may use {@code <<run>>}, which executes a server command as the console.
+     *
+     * <p>It is on, because it is what makes a dialogue able to do anything the server can do. It is also the one
+     * thing in a dialogue file that is as powerful as the console itself, so a server that installs dialogue
+     * packs written by other people can turn it off here and lose nothing else.
+     */
+    /**
+     * Whether dialogues may ask players to type something with {@code <<input>>}.
+     *
+     * <p>It is on, because being asked your name is half of what makes a dialogue feel like a conversation. It
+     * is also the only way anything a player wrote enters the server, so an owner who would rather not keep
+     * player-written text at all can switch it off here.
+     */
+    private boolean allowInput = true;
+
+    private boolean allowRun = true;
+
     private boolean useHook = true;
     /** Show the game's interaction prompt on bound NPCs; HintKey is the translation key of its text. */
     private boolean showHint = true;
@@ -83,6 +105,10 @@ public class LowTalkConfig {
     public boolean isLogConversations() { return logConversations; }
     public boolean isHoldNpcDuringDialogue() { return holdNpc; }
     public String getClearSkyWeather() { return clearSkyWeather; }
+    public boolean isAllowInput() { return allowInput; }
+
+    public boolean isAllowRun() { return allowRun; }
+
     public boolean isUseHook() { return useHook; }
     public boolean isShowHint() { return showHint; }
     public String getHintKey() { return hintKey == null || hintKey.isBlank() ? "server.lowtalk.hint.talk" : hintKey; }

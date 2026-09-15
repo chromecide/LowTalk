@@ -27,6 +27,74 @@ class SafetyTest {
     }
 
     @Test
+    void runRefusesTextTypedInAnEarlierConversation() {
+        // the guard used to live on the conversation, so walking away and coming back laundered the text:
+        // a player typed into a saved variable in one dialogue and <<run>> in the next would interpolate it
+        Conversation first = conv("== a\n<<input $player.name \"Name?\">>\nDone.\n");
+        first.start();
+        first.answer("--all");
+        assertEquals("--all", ctx.getVar("player", "name"));
+
+        Conversation later = conv("== a\n<<run \"/kick {$player.name}\">>\nDone.\n");
+        RuntimeError e = assertThrows(RuntimeError.class, later::start);
+        assertTrue(e.getMessage().contains("typed"), e.getMessage());
+    }
+
+    @Test
+    void theAuthorCanTakeTheVariableBack() {
+        // once the author overwrites it the value is theirs again, so the mark must not poison it for ever
+        Conversation first = conv("== a\n<<input $player.name \"Name?\">>\nDone.\n");
+        first.start();
+        first.answer("Griefer");
+        Conversation later = conv("== a\n<<set $player.name = \"Elder\">>\n<<run \"/kick {$player.name}\">>\nDone.\n");
+        assertDoesNotThrow(later::start);
+    }
+
+    @Test
+    void runRefusesAnOptionalArgument() {
+        // --name and --name=value are how the game spells an optional argument, and the console has every
+        // permission: a value of --all turns a command aimed at one player into one aimed at everybody
+        for (String flag : new String[] {"--all", "--all=true", "-a"}) {
+            ctx.vars.put("player.target", flag);
+            Conversation c = conv("== a\n<<run \"/kick {$player.target}\">>\nDone.\n");
+            RuntimeError e = assertThrows(RuntimeError.class, c::start, flag + " should be refused");
+            assertTrue(e.getMessage().contains("plain name or id"), e.getMessage());
+        }
+    }
+
+    @Test
+    void runStillAcceptsAnOrdinaryName() {
+        ctx.vars.put("player.target", "Chromecide");
+        Conversation c = conv("== a\n<<run \"/kick {$player.target}\">>\nDone.\n");
+        assertDoesNotThrow(c::start);
+    }
+
+    @Test
+    void anAnswerIsCutToALengthWorthSaving() {
+        // a variable in the player scope is written to disk, and what arrives is whatever the client sent
+        Conversation c = conv("== a\n<<input $player.name \"Name?\">>\nDone.\n");
+        c.start();
+        c.answer("x".repeat(5000));
+        String saved = String.valueOf(ctx.getVar("player", "name"));
+        assertEquals(Conversation.MAX_ANSWER, saved.length());
+    }
+
+    @Test
+    void aServerCanRefuseToAskPlayersForText() {
+        // input is the only way text a player wrote enters the server, so an owner can switch it off
+        ctx.allowInput = false;
+        Conversation c = conv("== a\n<<input $player.name \"Name?\">>\nDone.\n");
+        RuntimeError e = assertThrows(RuntimeError.class, c::start);
+        assertTrue(e.getMessage().contains("AllowPlayerInput"), e.getMessage());
+    }
+
+    @Test
+    void withInputOnTheDialogueStillAsks() {
+        Conversation c = conv("== a\n<<input $player.name \"Name?\">>\nDone.\n");
+        assertInstanceOf(Step.Ask.class, c.start().step());
+    }
+
+    @Test
     void runRefusesValuesThatAreNotPlainIds() {
         ctx.vars.put("player.title", "x /op add me");
         Conversation c = conv("== a\n<<run \"/say {$player.title}\">>\nDone.\n");

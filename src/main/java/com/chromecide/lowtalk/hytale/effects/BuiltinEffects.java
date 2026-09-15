@@ -59,6 +59,9 @@ public final class BuiltinEffects {
 
     public static void register(@Nonnull EffectRegistry effects, @Nonnull LowTalkPlugin plugin) {
         effects.register("run", (session, effect) -> {
+            if (!plugin.getSettings().isAllowRun()) {
+                throw new RuntimeError(effect.pos(), "<<run>> is switched off on this server (AllowRunCommand)");
+            }
             String command = effect.args().get(0).trim();
             if (command.startsWith("/")) command = command.substring(1);
             if (command.isEmpty()) return null;
