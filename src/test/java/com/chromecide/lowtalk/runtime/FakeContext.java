@@ -33,6 +33,14 @@ public class FakeContext implements Context {
     /** Which variables hold text a player typed, kept the way the real context keeps it: against the variable. */
     public final java.util.Set<String> playerText = new java.util.HashSet<>();
 
+    /** What the runtime told the author about, so tests can read it back. */
+    public final java.util.List<String> warnings = new java.util.ArrayList<>();
+
+    @Override
+    public void warn(String message) {
+        warnings.add(message);
+    }
+
     /** Set false to stand in for a server that has switched input off. */
     public boolean allowInput = true;
 

@@ -95,6 +95,16 @@ class SafetyTest {
     }
 
     @Test
+    void aRewardThePlayerNamesIsWarnedAbout() {
+        // not refused: an author may mean to give a reward the player picked from a list. But a reward whose
+        // name the player typed is an item vending machine, and they should hear about it before their economy does
+        Conversation c = conv("== a\n<<input $tmp.item \"Which?\">>\n<<give {$tmp.item}>>\nDone.\n");
+        c.start();
+        c.answer("Weapon_Legendary_Sword");
+        assertTrue(ctx.warnings.stream().anyMatch(w -> w.contains("choosing what they get")), ctx.warnings.toString());
+    }
+
+    @Test
     void runRefusesValuesThatAreNotPlainIds() {
         ctx.vars.put("player.title", "x /op add me");
         Conversation c = conv("== a\n<<run \"/say {$player.title}\">>\nDone.\n");

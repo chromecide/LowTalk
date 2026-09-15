@@ -21,6 +21,8 @@
 - **`AllowRunCommand` and `AllowPlayerInput`** in `lowtalk.json` switch off the two features that carry risk, for
   owners who install dialogue packs written by other people or would rather not keep player-written text.
 - The server now lists at startup which dialogues use `<<run>>`, since those act with the console's authority.
+- A reward whose name the player typed — `<<give {$their_answer}>>` and the like — is warned about rather than
+  refused, since an author may mean to give a reward the player picked from a list.
 
 Built against Hytale 0.6.6. That release changes only the QUIC transport, NAT traversal and singleplayer; the
 objective, asset, language and UI systems this mod uses are byte-identical to 0.6.5, and the supported range is

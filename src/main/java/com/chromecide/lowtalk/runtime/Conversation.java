@@ -258,6 +258,7 @@ public final class Conversation {
                         List<String> args = new ArrayList<>(cmd.args().size());
                         for (Text t : cmd.args()) {
                             if (cmd.name().equals("run")) guardRunArgument(t);
+                            else if (HANDS_SOMETHING_OVER.contains(cmd.name())) warnIfPlayerChoosesTheReward(cmd.name(), t);
                             args.add(Evaluator.render(t, ctx));
                         }
                         effects.add(new Effect(cmd.pos(), cmd.name(), List.copyOf(args)));
@@ -274,6 +275,26 @@ public final class Conversation {
      * value must look like a plain name or id. The validator catches the static cases; this is the
      * runtime backstop for values that arrive from other files or plugins.
      */
+    /**
+     * Commands that hand the player something worth having. Unlike {@code <<run>>} these are not refused, because
+     * an author may well mean to give a reward the player chose from a list; but a reward whose name the player
+     * typed is nearly always a mistake, and one worth saying out loud rather than discovering in an economy.
+     */
+    private static final java.util.Set<String> HANDS_SOMETHING_OVER =
+            java.util.Set.of("give", "reputation", "learn", "objective", "stat", "teleport");
+
+    private void warnIfPlayerChoosesTheReward(String command, Text t) {
+        for (Text.Part p : t.parts()) {
+            if (!(p instanceof Text.Part.Interp in)) continue;
+            for (Expr.Var v : varsIn(in.expr())) {
+                if (typedVars.contains(v.scope() + "." + v.name()) || ctx.isPlayerText(v.scope(), v.name())) {
+                    ctx.warn("<<" + command + ">> uses $" + v.name() + ", which holds text the player typed:"
+                            + " they are choosing what they get");
+                }
+            }
+        }
+    }
+
     private void guardRunArgument(Text t) {
         for (Text.Part p : t.parts()) {
             if (p instanceof Text.Part.Interp in) {
