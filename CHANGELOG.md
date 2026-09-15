@@ -4,6 +4,10 @@
 
 ## 0.3.1 (2026-09-14)
 
+Built against Hytale 0.6.6. That release changes only the QUIC transport, NAT traversal and singleplayer; the
+objective, asset, language and UI systems this mod uses are byte-identical to 0.6.5, and the supported range is
+unchanged at >=0.6.3 <0.7.0.
+
 ### The in-game editor explains itself
 
 - Commands are edited as named fields instead of one box of text. A `vfx` row now reads "particle", "scale" and
