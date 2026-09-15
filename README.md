@@ -232,6 +232,15 @@ Requires Java 25. The Gradle wrapper is included.
 See [CONTRIBUTING.md](CONTRIBUTING.md). Contributors accept a short
 [CLA](CLA.md) so the project stays easy to relicense as a whole.
 
+## What it sends
+
+Nothing. LowTalk makes no network connections of any kind: there is no analytics, no telemetry, no update check,
+no crash reporting and nothing sent to its author. The source contains no HTTP or socket code at all, the jar
+bundles no third-party libraries, and the only thing it writes is files on your own server — dialogues in your
+asset packs, and per-player variables in the plugin's data folder.
+
+The server's own telemetry and crash reporting belong to Hytale, not to this mod, and are outside its reach.
+
 ## License
 
 MIT. See [LICENSE](LICENSE). That covers the code, the documentation, and the frame textures the repository draws

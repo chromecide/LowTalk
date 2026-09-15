@@ -35,6 +35,10 @@ hytaleTools {
     injectServerJavadocsIntoSources = property("injectServerJavadocsIntoSources").toString().toBoolean()
     generateAssetsBinary = property("generateAssetsBinary").toString().toBoolean()
     hytaleHomeOverride = property("hytaleHomeOverride").toString()
+    // The plugin otherwise adds com.azuredoom.hytale:hytale-asset-editor-runtime to runtimeClasspath, which packs
+    // five classes into the shipped jar. Nothing here calls them, and a jar that holds only this mod's own code is
+    // a claim that can be checked by anyone who unzips it.
+    bundleAssetEditorRuntime = false
 }
 
 repositories {

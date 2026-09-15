@@ -6,6 +6,11 @@
 
 ### Security review before release
 
+- **The jar contains this mod's code and nothing else.** The build plugin was adding a five-class asset-editor
+  runtime to every jar; nothing here ever called it, and a jar anyone can unzip and check is worth more than an
+  assurance that the extra code is harmless. It is no longer bundled.
+- LowTalk makes no network connections of any kind, and the README now says so plainly.
+
 - **Text a player typed can no longer reach `<<run>>` by way of a saved variable.** The guard that kept player
   input out of console commands lived on the conversation, so walking away and starting another one laundered it:
   text typed into a saved variable in one dialogue was no longer recognised as the player's in the next, and the
