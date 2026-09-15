@@ -4,6 +4,15 @@
 
 ## 0.3.1 (2026-09-14)
 
+### Fixed
+
+- **Dropdowns that stretched wider than their own panel would not open at all.** Choosing a passage for a
+  "they have seen the passage" condition showed a list with nothing in it: the control was the only visible
+  field in its slot, so it grew to the width of the whole row while the panel it was told to draw stayed 300
+  wide, and the client silently declined to open it. Every dropdown in the editor now has a width that matches
+  its panel. The same fault was waiting in the command rows, where `<<attitude>>` — whose only argument is a
+  choice — would have behaved identically.
+
 ### Security review before release
 
 - **The jar contains this mod's code and nothing else.** The build plugin was adding a five-class asset-editor

@@ -33,9 +33,10 @@ Group {
       FlexWeight: 1;
     }
 
+    // Width rather than FlexWeight: as the only visible child of the group this stretched to the whole row,
+    // and a dropdown far wider than its own PanelWidth never opened its panel at all.
     DropdownBox #C {
-      Anchor: (Right: 8, Height: $C.@DropdownBoxHeight);
-      FlexWeight: 1;
+      Anchor: (Width: 300, Right: 8, Height: $C.@DropdownBoxHeight);
       Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
       ShowSearchInput: true;
     }
@@ -62,8 +63,7 @@ Group {
     }
 
     DropdownBox #VC {
-      Anchor: (Right: 8, Height: $C.@DropdownBoxHeight);
-      FlexWeight: 1;
+      Anchor: (Width: 300, Right: 8, Height: $C.@DropdownBoxHeight);
       Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
       ShowSearchInput: true;
     }
