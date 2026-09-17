@@ -345,7 +345,12 @@ public final class TestWorld {
                 return;
             }
             com.hypixel.hytale.server.core.universe.world.spawn.ISpawnProvider spawns = target.getWorldConfig().getSpawnProvider();
-            com.hypixel.hytale.math.vector.Transform spawn = spawns == null ? null : spawns.getSpawnPoint(ref, store);
+            // getSpawnPoints() rather than getSpawnPoint(ref, store): the single-point call became
+            // getSpawnPointAsync in 0.7.0-pre.3, and returning a CompletableFuture, while the list has the same
+            // shape on both lines. One source tree builds for both, and for going home to the main world the
+            // world's first spawn point is what we want anyway.
+            com.hypixel.hytale.math.vector.Transform[] points = spawns == null ? null : spawns.getSpawnPoints();
+            com.hypixel.hytale.math.vector.Transform spawn = points == null || points.length == 0 ? null : points[0];
             if (spawn == null) {
                 out.accept("The main world has no spawn point set; use /tp back instead.");
                 return;
