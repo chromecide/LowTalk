@@ -293,9 +293,16 @@ public final class BuiltinEffects {
                     throw new RuntimeError(effect.pos(), "title takes a secondary text, 'major' and a number of seconds; got an extra '" + a + "'");
                 }
             }
-            // The game's own helper, so the packet layout (which changed between 0.6 and 0.7) is its concern, not ours.
-            com.hypixel.hytale.server.core.util.EventTitleUtil.showEventTitleToPlayer(session.getPlayer(),
-                    Message.raw(primary), Message.raw(secondary == null ? "" : secondary), major, null, seconds, 0.5f, 0.5f);
+            // Via the compat helper: 0.7.0-pre.3 replaced the boolean with an EventTitleStyle and marked the
+            // boolean overload for removal, and the enum does not exist on the release line, so which call to
+            // make is decided at runtime. Everything else about the packet stays the game's concern.
+            try {
+                com.chromecide.lowtalk.hytale.compat.EventTitles.showToPlayer(session.getPlayer(),
+                        Message.raw(primary), Message.raw(secondary == null ? "" : secondary), major, null,
+                        seconds, 0.5f, 0.5f);
+            } catch (IllegalStateException e) {
+                throw new RuntimeError(effect.pos(), "this server cannot show titles: " + e.getMessage());
+            }
             return null;
         });
 

@@ -65,6 +65,8 @@ import java.util.logging.Level;
 public final class TestWorld {
 
     public static final String WORLD_NAME = "lowtalk_test";
+    /** The world generator the test corridor is built on; a flat world keeps the stations findable. */
+    private static final String GENERATOR = "Flat";
 
     /**
      * A test station: where it stands, what NPC role plays it, the tag its dialogue binds to, and the nameplate.
@@ -446,7 +448,7 @@ public final class TestWorld {
                 future = universe.loadWorld(WORLD_NAME);
             } else {
                 out.accept("Creating flat world " + WORLD_NAME + "...");
-                future = universe.addWorld(WORLD_NAME, "Flat", null);
+                future = createFlatWorld(universe);
             }
         } catch (RuntimeException e) {
             out.accept("Could not create the world: " + e.getMessage());
@@ -459,6 +461,28 @@ public final class TestWorld {
                 return;
             }
             then.accept(world);
+        });
+    }
+
+    /**
+     * Create the test world with the flat generator.
+     *
+     * <p>This is what {@code Universe.addWorld(name, "Flat", null)} did, written out. That overload is deprecated
+     * on both Hytale lines and ends at {@code makeWorld}, which is not; every call used here is public and current
+     * on 0.6.7 and on 0.7.0-pre.3 alike. The two guards {@code addWorld} opens with, that the world is neither
+     * already loaded nor already on disk, are the branch {@link #withWorld} took to get here.
+     */
+    private static CompletableFuture<World> createFlatWorld(Universe universe) {
+        java.nio.file.Path savePath = universe.validateWorldPath(WORLD_NAME);
+        return universe.getWorldConfigProvider().load(savePath, WORLD_NAME).thenCompose(config -> {
+            com.hypixel.hytale.codec.builder.BuilderCodec<? extends com.hypixel.hytale.server.core.universe.world.worldgen.provider.IWorldGenProvider> codec =
+                    com.hypixel.hytale.server.core.universe.world.worldgen.provider.IWorldGenProvider.CODEC.getCodecFor(GENERATOR);
+            if (codec == null) {
+                throw new IllegalStateException("this server has no '" + GENERATOR + "' world generator");
+            }
+            config.setWorldGenProvider(codec.getDefaultValue());
+            config.markChanged();
+            return universe.makeWorld(WORLD_NAME, savePath, config);
         });
     }
 
