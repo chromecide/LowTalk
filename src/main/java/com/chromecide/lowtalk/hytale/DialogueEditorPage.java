@@ -121,7 +121,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         LINE_TEXT, LINE_SPEAKER, LINE_BUTTON,
         OPT_TEXT, OPT_TARGET, OPT_GO, OPT_MORE, OPT_IF, OPT_SHOW, OPT_ONCE, OPT_BODY,
         COND_KIND, COND_ARG, COND_ARG_PICK, COND_ARG_FIND, COND_OP, COND_VAL, COND_VAL_PICK, COND_VAL_FIND, COND_RAW,
-        CMD_NAME, CMD_ARGS, CMD_SLOT, CMD_SLOT_PICK, CMD_SLOT_FIND, CMD_PICK, SET, JUMP_NODE, JUMP_GO, INPUT, WAIT,
+        CMD_ARGS, CMD_SLOT, CMD_SLOT_PICK, CMD_SLOT_FIND, CMD_PICK, SET, JUMP_NODE, JUMP_GO, INPUT, WAIT,
         BRANCH_BODY, BRANCH_ADD, BRANCH_DEL, BLOCK_BODY, ALT_ADD, ALT_DEL,
         UP, DOWN, DEL, ADD_KIND, ADD, ADD_NODE, RENAME, JUMP, BACK, HEADER, DELETE_NODE,
         H_BINDINGS, H_NPC_PICK, H_SPEAKER, H_TITLE, H_START, H_ON, H_PORTRAIT, H_SCOPE, H_LAYOUT, H_HISTORY,
@@ -202,26 +202,11 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         bind(evt, "#DiscardButton", Action.DISCARD, null);
         bind(evt, "#CloseButton", Action.CLOSE, null);
         List<DropdownEntryInfo> kinds = new ArrayList<>();
-        kinds.add(kind("Line (something said)", Kind.LINE, null, "A line the NPC says. Leave the speaker empty and it is the NPC's own voice."));
-        kinds.add(kind("Option (something the player can say)", Kind.OPTION, null, "A choice in the list at the bottom. Edit what happens when it is picked."));
-        kinds.add(kind("Give the player an item", Kind.COMMAND, "give", null));
-        kinds.add(kind("Take an item away", Kind.COMMAND, "take", null));
-        kinds.add(kind("Start an objective", Kind.COMMAND, "objective", null));
-        kinds.add(kind("Open this NPC's shop", Kind.COMMAND, "shop", null));
-        kinds.add(kind("Play an animation", Kind.COMMAND, "anim", null));
-        kinds.add(kind("Play a sound", Kind.COMMAND, "sound", null));
-        kinds.add(kind("Show a title across the screen", Kind.COMMAND, "title", null));
-        kinds.add(kind("Show a notification in the corner", Kind.COMMAND, "notify", null));
-        kinds.add(kind("Play a particle effect", Kind.COMMAND, "vfx", null));
-        kinds.add(kind("Any other command...", Kind.COMMAND, null, "Every command, with its arguments named: attitude, teleport, weather, reputation and the rest."));
-        kinds.add(kind("Set a variable", Kind.SET, null, "Remember something about this player, such as $met = true."));
-        kinds.add(kind("If / else block", Kind.IF, null, "Show different lines depending on a variable, an item, an objective or the time."));
-        kinds.add(kind("Once block (first time only)", Kind.ONCE, null, "Runs the first time this player reaches it and never again."));
-        kinds.add(kind("Random block (one of several)", Kind.RANDOM, null, "Picks one of its alternatives each time, so an NPC does not repeat itself."));
-        kinds.add(kind("Ask the player to type something", Kind.INPUT, null, "Opens a text box and stores what they type in a variable."));
-        kinds.add(kind("Wait a few seconds", Kind.WAIT, null, "Pauses before the next line, with no Continue button."));
-        kinds.add(kind("Jump to a passage", Kind.JUMP, null, "Continue at another passage of this dialogue."));
-        kinds.add(kind("End the conversation", Kind.END, null, "Closes the window."));
+        for (com.chromecide.lowtalk.editor.AddMenu.Item i : com.chromecide.lowtalk.editor.AddMenu.items()) {
+            kinds.add(i.tooltip() != null
+                    ? entry(i.label(), i.value(), i.tooltip())
+                    : kindEntry(i.label(), i.value(), i.command()));
+        }
         cmd.set("#AddKind.Entries", kinds);
         cmd.set("#AddKind.Value", addKind);
         render(cmd, evt);
@@ -241,13 +226,14 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
 
     /** One entry of the Add menu. A command entry carries the command it inserts, and borrows its own one-line
      *  description from the reference so the menu explains itself. */
-    private static DropdownEntryInfo kind(String label, Kind kind, @Nullable String command, @Nullable String tooltip) {
-        String tip = tooltip;
-        if (tip == null && command != null) {
+    /** A menu entry whose tooltip is the command's own usage and description from the reference. */
+    private static DropdownEntryInfo kindEntry(String label, String value, @Nullable String command) {
+        String tip = null;
+        if (command != null) {
             Reference.Entry ref = Reference.lookup(command);
             if (ref != null) tip = ref.usage() + "  -  " + ref.description();
         }
-        return entry(label, command == null ? kind.name() : kind.name() + ":" + command, tip);
+        return entry(label, value, tip);
     }
 
     private static DropdownEntryInfo entry(String label, String value, @Nullable String tooltip) {
@@ -481,11 +467,8 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                 case Statement.Command c -> {
                     String sel = append(cmd, ROW_COMMAND, row);
                     cmd.set(sel + " #Bad.Text", mark(c));
-                    cmd.set(sel + " #Name.Entries", commandEntries());
-                    cmd.set(sel + " #Name.Value", c.name());
+                    cmd.set(sel + " #Name.Text", c.name());
                     renderCommand(cmd, evt, sel, row, c);
-                    evt.addEventBinding(CustomUIEventBindingType.ValueChanged, sel + " #Name",
-                            rowData(Action.CMD_NAME, row).append("@Value", sel + " #Name.Value"), false);
                     row = standard(evt, sel, row, new RowRef(i, -1));
                 }
                 case Statement.Set st -> {
@@ -609,7 +592,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         if (plain) {
             cmd.set(sel + " #Args.Value", DialogueDraft.argsText(c));
             evt.addEventBinding(CustomUIEventBindingType.ValueChanged, sel + " #Args",
-                    rowData(Action.CMD_ARGS, row).append("@Value", sel + " #Name.Value").append("@Value2", sel + " #Args.Value"), false);
+                    rowData(Action.CMD_ARGS, row).append("@Value", sel + " #Args.Value"), false);
         }
         // the row-level picker belongs to the plain text box, which is all a command with no named arguments has
         renderLegacyPick(cmd, sel, c, plain && spec == null);
@@ -921,17 +904,6 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         return names.size() <= 8 ? new ArrayList<>(names) : new ArrayList<>(names).subList(0, 8);
     }
 
-    private List<DropdownEntryInfo> commandEntries() {
-        Set<String> names = new TreeSet<>(Validator.BUILTIN_COMMANDS.keySet());
-        names.addAll(plugin.getEffects().names());
-        List<DropdownEntryInfo> out = new ArrayList<>();
-        for (String n : names) {
-            Reference.Entry ref = Reference.lookup(n);
-            out.add(entry(n, n, ref == null ? null : ref.usage() + "  -  " + ref.description()));
-        }
-        return out;
-    }
-
     @Nullable
     private static String pickerFor(String command) {
         String[] p = PICKERS.get(command);
@@ -993,7 +965,13 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             case OPT_TEXT -> { if (r != null) draft.setOptionText(scope, r.statement(), r.sub(), value); return false; }
             case OPT_IF -> { if (r != null) return problem(draft.setOptionGuard(scope, r.statement(), r.sub(), value)); return false; }
             case OPT_SHOW -> { if (r != null) return problem(draft.setOptionShowGuard(scope, r.statement(), r.sub(), value)); return false; }
-            case CMD_ARGS -> { if (r != null) return problem(draft.setCommand(scope, r.statement(), value, value2)); return false; }
+            case CMD_ARGS -> {
+                // the name is no longer a field on the row, so it comes from the statement being edited
+                if (r == null) return false;
+                Statement s = draft.view(scope).get(r.statement());
+                if (!(s instanceof Statement.Command c)) return false;
+                return problem(draft.setCommand(scope, r.statement(), c.name(), value));
+            }
             case CMD_SLOT -> {
                 if (r == null) return false;
                 Statement s = draft.view(scope).get(r.statement());
@@ -1103,17 +1081,6 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             case H_TITLE -> { draft.setTitle(value); return false; }
             case H_PORTRAIT -> { draft.setDirective("portrait", value); return false; }
             case H_SCOPE -> { draft.setScope(value); return false; }
-
-            case CMD_NAME -> {
-                if (r == null) return false;
-                Statement s = draft.view(scope).get(r.statement());
-                if (!(s instanceof Statement.Command c) || c.name().equals(value)) return false;
-                boolean had = !DialogueDraft.argsText(c).isBlank();
-                String err = draft.setCommand(scope, r.statement(), value, CommandSpecs.defaults(value));
-                if (err != null) { status = err; return true; }
-                status = had ? "Changed to " + value + "; its own arguments are shown, the old ones are gone." : "";
-                return true;
-            }
 
             case OPT_TARGET -> {
                 if (r == null) return false;

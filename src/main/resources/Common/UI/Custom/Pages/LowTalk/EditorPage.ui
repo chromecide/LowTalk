@@ -82,9 +82,16 @@ $C.@PageOverlay {
           Text: %server.lowtalk.editor.add;
         }
 
+        // Every command has its own named entry, so this list is long on purpose; the search box is what keeps
+        // it usable. Width stays inside PanelWidth or the panel never opens (see DropdownWidthTest).
+        //
+        // This row is the last child after a FlexWeight #Rows, so it is pinned to the bottom of the page and a
+        // panel ten entries tall runs off the screen. PanelAlign: Bottom opens it upward into the rows instead,
+        // which is what the game's own Point and Trigger Volume inspectors do with their bottom-of-panel fields.
         DropdownBox #AddKind {
           Anchor: (Width: 300, Right: 6, Height: $C.@DropdownBoxHeight);
-          Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 420, EntryTooltipStyle: $C.@DefaultTextTooltipStyle);
+          Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 420, PanelAlign: Bottom, EntryTooltipStyle: $C.@DefaultTextTooltipStyle);
+          ShowSearchInput: true;
         }
 
         $C.@SecondaryTextButton #AddButton {

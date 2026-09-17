@@ -25,10 +25,13 @@ Group {
     Text: "<<";
   }
 
-  DropdownBox #Name {
-    Anchor: (Width: 150, Right: 8, Height: $C.@DropdownBoxHeight);
-    Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 420, EntryTooltipStyle: $C.@DefaultTextTooltipStyle);
-    ShowSearchInput: true;
+  // The command's own name, shown and not editable. Every command has its own entry in the Add menu, so changing
+  // one line into another is deleting the row and adding what you wanted; a second list of all the commands here
+  // only offered a worse way to do the same thing.
+  Label #Name {
+    Anchor: (Width: 150, Right: 8);
+    Style: (FontSize: 14, TextColor: #8fd0ff, RenderBold: true, VerticalAlignment: Center);
+    Text: "";
   }
 
   Group #Arg0 {
