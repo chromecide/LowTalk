@@ -178,7 +178,7 @@ time. Any statements are allowed inside, not just lines.
 | `<<take Item_Id [count]>>` | Remove items. Fails the option if the player lacks them; guard with `has()`. |
 | `<<shop>>` | Open this NPC's native barter shop, or `<<shop Shop_Id>>` for a named one. The shop's Back button (or Escape) returns to the conversation, which continues with whatever follows the command; put nothing after it and the conversation ends when the shop opens. |
 | `<<attitude friendly>>` | Set this NPC's attitude toward the player: ignore, hostile, neutral, friendly, revered. |
-| `<<objective Objective_Id>>`, `<<objective cancel Id>>`, `<<objective line Line_Id>>`, `<<objective task Task_Id>>` | Start a native objective; abandon one; start an objective line (a chain of objectives); or advance a "talk to this NPC" task of an active objective, which plays the task's animation and may open the game's own completion dialog. |
+| `<<objective Objective_Id>>`, `<<objective cancel Id>>`, `<<objective line Line_Id>>`, `<<objective task Task_Id>>` | Start a native objective; abandon one; start an objective line (a chain of objectives); or advance a "talk to this NPC" task of an active objective, which plays the task's animation and may open the game's own completion dialog. **Hytale's objective system is not currently maintained and the client has been seen to crash while updating the tracker; see [Objectives are assets](#objectives-are-assets-and-you-write-your-own).** |
 | `<<anim Id>>`, `<<anim Id Slot>>`, `<<sound Id>>` | Play an animation on the NPC (slot Emote by default; Status is what the game uses for its own greetings) or a sound at the NPC. |
 | `<<run "/command args">>` | Run a server command as the console. `{player}` is expanded. **See the warning below.** |
 | `<<input $var "Prompt">>` | Show a text box and store what the player types. |
@@ -327,6 +327,14 @@ game names assets, `Capitalised_Words.json`, or the asset store logs a
 format warning (harmless, but noisy).
 
 ## Objectives are assets, and you write your own
+
+> **Hytale's objective system is rough ground.** The code ships with the game and LowTalk drives it through the
+> official API, but the system is not currently being actively developed, and it shows. We have seen the client
+> crash with an index error while it updated the objective tracker — on plain objectives LowTalk had nothing to do
+> with, so it is a game bug rather than this mod's, but it will find you the same way. Multi-stage objectives
+> (several `TaskSets`) have been the least reliable in our testing. Everything below works today and is here for
+> anyone who wants it; just do not build a map's critical path on it yet, and test a finished quest end to end
+> before you ship it.
 
 `<<objective Some_Id>>` starts an objective that already exists. It does not describe one: what the player is
 asked to do lives in the objective asset, not in the dialogue. Hytale ships about a dozen sample objectives and

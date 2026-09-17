@@ -4,6 +4,16 @@
 
 ## 0.3.1 (2026-09-14)
 
+### Said out loud: objectives are rough ground
+
+- **The docs now warn that Hytale's objective system is not currently being developed, and behaves like it.**
+  Support stays exactly as it was — LowTalk's job is to expose what the game has, and the objective code still
+  ships with the game, so anyone who wants to build on it still can. But we have watched the client crash with an
+  index error while it updated the objective tracker, on plain objectives this mod had no part in, and multi-stage
+  objectives were the least reliable of the lot. That is a game bug rather than ours, and it will find a creator
+  the same way it found us — so the format guide says so where `<<objective>>` is documented, and the testing
+  guide says so against stations 7 and 12, which start real objectives.
+
 ### Fixed
 
 - **Dropdowns that stretched wider than their own panel would not open at all.** Choosing a passage for a

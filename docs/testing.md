@@ -57,14 +57,20 @@ Walk east. Stations, in order:
 | 4 | Items | `give`, `take`, `has()`, `count()`, narration lines |
 | 5 | Feedback | `notify` styles, minor and major `title`, `sound`, `anim` |
 | 6 | Body | `heal`, `stat` set and add, `effect`, `cure`, `stat()`, `max_stat()`, `effect()` |
-| 7 | Progress | `objective` start and `objective()` state, `reputation` and `rank()`. The base game defines no reputation groups or ranks, so LowTalk ships a `LowTalk_Testers` group (only the `LowTalk_Tester` role) and three ranks, `LowTalk_Disliked` (below 0), `LowTalk_Neutral` (0-19) and `LowTalk_Liked` (20+), under `Server/NPC/Reputation/`. Ranks are global in Hytale, so remove these files if your server defines its own ranks. |
+| 7 | Progress | `objective` start and `objective()` state (see the objective warning below), `reputation` and `rank()`. The base game defines no reputation groups or ranks, so LowTalk ships a `LowTalk_Testers` group (only the `LowTalk_Tester` role) and three ranks, `LowTalk_Disliked` (below 0), `LowTalk_Neutral` (0-19) and `LowTalk_Liked` (20+), under `Server/NPC/Reputation/`. Ranks are global in Hytale, so remove these files if your server defines its own ranks. |
 | 8 | Shop and travel | `<<shop>>` hand-off on a real merchant, `<<teleport>>` |
 | 9 | Random and time | `chance()`, `random()`, `ordinal()`, `hour()`, `$npc.` counters |
 | 10 | Format extras | `[a|b]` text variation, `<<random>>` blocks, `<<once>>` options, `? :` in text, `<<wait>>`, `include:` of `_shared.talk` |
 | 11 | Weather, time, translation | `<<weather>>` for the world and for one player, `<<time>>` by name, with a fade, pause and resume, `weather()`, `hour()`, `t()` from the pack's language file |
 | 13 | Music, effects, camera | `<<music>>`, `<<vfx>>`, `<<camera>>` |
 | 14 | Opened by the role | the `LowTalk_Talker` role's own interaction instruction uses the `LowTalkOpenDialogue` action; LowTalk's use hook is not involved (`npc: none`) |
-| 12 | NPC control and objectives | `<<npc_name>>`, `<<spawn>>`, `<<despawn>>`, `<<objective cancel>>`, `<<objective line>>`, `objective_line()`, and the `LowTalkNode` task type: start `Objective_LowTalk_Talk` here, then talk to station 1 to complete it |
+| 12 | NPC control and objectives | `<<npc_name>>`, `<<spawn>>`, `<<despawn>>`, `<<objective cancel>>`, `<<objective line>>`, `objective_line()`, and the `LowTalkNode` task type: start `Objective_LowTalk_Talk` here, then talk to station 1 to complete it (see the objective warning below) |
+
+> **Stations 7 and 12 start real objectives, and Hytale's objective system is rough.** We have seen the client
+> crash with an index error while it updated the objective tracker, including on objectives LowTalk had no part
+> in, so it is a game bug rather than this mod's. If the client drops during those two stations, that is the most
+> likely cause: rejoin, run `/lowtalk testworld respawn` to cancel any active objectives, and carry on with the
+> other stations. Nothing else in the test world depends on them.
 
 The station dialogues live in `examples/tests/` and are copied to
 `dialogues/tests/` by the build command, overwriting, so they always match the
