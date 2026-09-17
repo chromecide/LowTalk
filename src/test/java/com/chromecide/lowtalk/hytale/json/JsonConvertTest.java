@@ -51,7 +51,7 @@ class JsonConvertTest {
             <<weather clear>>
             <<notify "Hi {player}" "d" success>>
             <<notify "Plain" success>>
-            <<title "Big" major 5>>
+            <<title "Big" Major 5>>
             <<input $tmp.name "Name?">>
             <<wait 1.5>>
             -> Trade <<if has("Food_Bread")>> <<once>>
@@ -101,7 +101,9 @@ class JsonConvertTest {
         assertNull(plain.detail);
         assertEquals("success", plain.style);
         JsonStatement.Title big = assertInstanceOf(JsonStatement.Title.class, body.get(16));
-        assertTrue(big.major);
+        // written as the game spells it, whatever the dialogue said, and the old boolean is no longer set
+        assertEquals("Major", big.style);
+        assertFalse(big.major);
         assertEquals(5.0, big.seconds);
         assertNull(big.secondary);
         JsonStatement.Choice choice = assertInstanceOf(JsonStatement.Choice.class, body.get(19));

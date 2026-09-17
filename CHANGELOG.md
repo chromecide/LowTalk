@@ -4,6 +4,16 @@
 
 ## 0.3.1 (2026-09-14)
 
+### Titles use the game's own styles
+
+- **`<<title>>` takes a style, not a yes-or-no.** Hytale 0.7 replaced the `IsMajor` flag with an `EventTitleStyle`,
+  and shipped two more styles with it: `GoblinBreach` and `VoidEviction` alongside `Default` and `Major`. A
+  boolean cannot say which, so the style is now named: `<<title "Chapter One" Major 5>>`. The styles offered are
+  read off the game's own enum when the server starts, so a version that adds one needs no change here and no
+  release of this mod. `minor` still reads as `Default`, and a style a server does not have is refused by name
+  rather than guessed at. JSON dialogues gain a `Style` key; the old `Major` boolean still decodes, so assets
+  written before this keep working.
+
 ### Said out loud: objectives are rough ground
 
 - **The docs now warn that Hytale's objective system is not currently being developed, and behaves like it.**

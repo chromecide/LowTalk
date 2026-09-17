@@ -51,7 +51,7 @@ public final class Reference {
         cmd("learn", "Recipe_Id", "Teach the player a crafting recipe.");
         // ---- feedback
         cmd("notify", "\"Text\" [\"Detail\"] [success|warning|danger]", "A toast notification in the corner of the screen.");
-        cmd("title", "\"Main\" [\"Small\"] [major] [seconds]", "A cinematic title across the screen. The game draws the second line small, above the main one, the way it names a zone.");
+        cmd("title", "\"Main\" [\"Small\"] [Style] [seconds]", "A cinematic title across the screen. The game draws the second line small, above the main one, the way it names a zone. Style is the game's own: Default, Major, and whatever else this version has.");
         // ---- body
         cmd("effect", "Effect_Id", "Apply an entity effect such as regeneration or poison.");
         cmd("cure", "Effect_Id", "Remove an entity effect.");

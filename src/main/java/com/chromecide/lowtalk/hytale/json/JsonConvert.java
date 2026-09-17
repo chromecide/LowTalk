@@ -140,7 +140,9 @@ public final class JsonConvert {
                 List<String> args = new ArrayList<>();
                 args.add(t.primary == null ? "" : t.primary);
                 if (!blank(t.secondary)) args.add(t.secondary);
-                if (t.major) args.add("major");
+                // Style if it has one, else the old boolean, so an asset written either way prints the same way
+                if (!blank(t.style)) args.add(t.style);
+                else if (t.major) args.add("Major");
                 if (t.seconds > 0) args.add(Printer.expr(new Expr.Literal(t.seconds)));
                 yield commandText(p, "title", args);
             }
@@ -541,10 +543,10 @@ public final class JsonConvert {
                     JsonStatement.Title t = new JsonStatement.Title();
                     t.primary = printed.get(0);
                     for (String a : printed.subList(1, printed.size())) {
-                        if (a.equalsIgnoreCase("major")) t.major = true;
-                        else if (a.equalsIgnoreCase("minor")) t.major = false;
-                        else if (a.matches("\\d+(\\.\\d+)?")) t.seconds = Double.parseDouble(a);
-                        else if (t.secondary == null && !a.isEmpty()) t.secondary = a;
+                        if (a.matches("\\d+(\\.\\d+)?")) t.seconds = Double.parseDouble(a);
+                        else if (t.style == null && com.chromecide.lowtalk.editor.CommandSpecs.isTitleStyle(a)) {
+                            t.style = com.chromecide.lowtalk.editor.CommandSpecs.canonicalTitleStyle(a);
+                        } else if (t.secondary == null && !a.isEmpty()) t.secondary = a;
                     }
                     return t;
                 }

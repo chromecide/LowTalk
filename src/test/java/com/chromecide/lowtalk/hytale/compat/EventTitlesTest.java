@@ -3,7 +3,9 @@ package com.chromecide.lowtalk.hytale.compat;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -41,6 +43,41 @@ class EventTitlesTest {
     void theStyledCallIsPreferredWhereItExists() {
         if (!styleEnumOnClasspath()) return;
         assertEquals(EventTitles.Flavour.STYLED, EventTitles.flavour());
+    }
+
+    /** The styles reported are the game's own spelling, whichever call this server has. */
+    @Test
+    void theStylesReportedAreTheGamesOwn() {
+        assertTrue(EventTitles.styleNames().contains("Default"));
+        assertTrue(EventTitles.styleNames().contains("Major"));
+        assertEquals("Default", EventTitles.defaultStyle());
+        assertEquals("Major", EventTitles.resolveName("major"), "however a creator capitalised it");
+        assertEquals("Default", EventTitles.resolveName("minor"), "what dialogues wrote before styles existed");
+        assertEquals("Default", EventTitles.resolveName(null), "no style named means the default");
+        assertEquals("Default", EventTitles.resolveName(""));
+    }
+
+    /**
+     * A word that is not a style must not be taken for one. The style and the second line share a slot in
+     * <<title>>, so a word waved through here would be read as the style and the line the creator wrote would
+     * vanish: on the boolean call every unknown word once resolved to Major, which ate the second line of every
+     * two-line title.
+     */
+    @Test
+    void aWordThatIsNotAStyleIsRefused() {
+        assertNull(EventTitles.resolveName("nonsense"));
+        assertFalse(EventTitles.knows("nonsense"));
+        assertNull(EventTitles.resolveName("you have entered"), "a second line is not a style");
+        assertFalse(EventTitles.knows("you have entered"));
+    }
+
+    /** The themed styles belong to the versions that have them, and are refused where they do not. */
+    @Test
+    void aStyleThisServerDoesNotHaveIsRefusedRatherThanGuessed() {
+        boolean has = EventTitles.styleNames().stream().anyMatch(n -> n.equalsIgnoreCase("GoblinBreach"));
+        assertEquals(has, EventTitles.knows("GoblinBreach"));
+        assertEquals(has, EventTitles.knows("goblinbreach"), "case must not change the answer");
+        if (!has) assertNull(EventTitles.resolveName("GoblinBreach"));
     }
 
     /** Whichever way it resolved, the constants it needs have to have resolved with it. */

@@ -271,26 +271,29 @@ public final class BuiltinEffects {
         });
 
         effects.register("title", (session, effect) -> {
-            // <<title "Main" ["Small"] [major] [seconds]>>: "major"/"minor" and a number are recognised wherever
-            // they sit; the remaining token is the second line, which the client draws small and ABOVE the main
-            // one, the way it announces a zone. The game's own helper calls it "secondary"; where it lands is the
-            // client's business, so the editor and the docs name it by where a creator will see it.
+            // <<title "Main" ["Small"] [style] [seconds]>>: a style the server knows and a number are recognised
+            // wherever they sit; the remaining token is the second line, which the client draws small and ABOVE
+            // the main one, the way it announces a zone. The game's own helper calls it "secondary"; where it
+            // lands is the client's business, so the editor and the docs name it by where a creator will see it.
+            //
+            // The styles are the game's own: Default and Major on every server, and whatever else the version
+            // adds (0.7 has GoblinBreach and VoidEviction). "minor" still reads as Default.
             String primary = effect.args().get(0);
             String secondary = null;
-            boolean major = false;
+            String style = null;
             float seconds = 3.0f;
             for (String a : effect.args().subList(1, effect.args().size())) {
                 String t = a.trim();
-                if (t.equalsIgnoreCase("major")) {
-                    major = true;
-                } else if (t.equalsIgnoreCase("minor")) {
-                    major = false;
-                } else if (t.matches("\\d+(\\.\\d+)?")) {
+                if (t.matches("\\d+(\\.\\d+)?")) {
                     seconds = Float.parseFloat(t);
+                } else if (style == null && com.chromecide.lowtalk.hytale.compat.EventTitles.knows(t) && !t.isBlank()) {
+                    style = t;
                 } else if (secondary == null) {
                     secondary = a;
                 } else {
-                    throw new RuntimeError(effect.pos(), "title takes a secondary text, 'major' and a number of seconds; got an extra '" + a + "'");
+                    throw new RuntimeError(effect.pos(), "title takes a secondary text, a style ("
+                            + String.join(", ", com.chromecide.lowtalk.hytale.compat.EventTitles.styleNames())
+                            + ") and a number of seconds; got an extra '" + a + "'");
                 }
             }
             // Via the compat helper: 0.7.0-pre.3 replaced the boolean with an EventTitleStyle and marked the
@@ -298,10 +301,12 @@ public final class BuiltinEffects {
             // make is decided at runtime. Everything else about the packet stays the game's concern.
             try {
                 com.chromecide.lowtalk.hytale.compat.EventTitles.showToPlayer(session.getPlayer(),
-                        Message.raw(primary), Message.raw(secondary == null ? "" : secondary), major, null,
+                        Message.raw(primary), Message.raw(secondary == null ? "" : secondary), style, null,
                         seconds, 0.5f, 0.5f);
             } catch (IllegalStateException e) {
                 throw new RuntimeError(effect.pos(), "this server cannot show titles: " + e.getMessage());
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeError(effect.pos(), e.getMessage());
             }
             return null;
         });

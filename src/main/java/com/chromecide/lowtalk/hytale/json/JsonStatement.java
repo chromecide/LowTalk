@@ -136,6 +136,9 @@ public abstract class JsonStatement {
     public static final class Title extends JsonStatement {
         public String primary = "";
         public String secondary;
+        /** The game's own style name, e.g. "Default", "Major", "GoblinBreach". Empty means the default. */
+        public String style;
+        /** What the style used to be, before the game had more than two. Read, never written. */
         public boolean major;
         public double seconds;
     }

@@ -227,7 +227,11 @@ public final class JsonCodecs {
                 b.append(new KeyedCodec<>("Primary", Codec.STRING), (t, v) -> t.primary = v, t -> t.primary).addValidator(Validators.nonNull())
                         .documentation("Big text." + TEXT_DOC).add();
                 b.append(new KeyedCodec<>("Secondary", Codec.STRING), (t, v) -> t.secondary = v, t -> t.secondary).documentation("Smaller text underneath.").add();
-                b.append(new KeyedCodec<>("Major", Codec.BOOLEAN), (t, v) -> t.major = v, t -> t.major).documentation("The larger title style.").add();
+                b.append(new KeyedCodec<>("Style", Codec.STRING), (t, v) -> t.style = v, t -> t.style)
+                        .documentation("The game's title style: Default, Major, and whatever else this version has.").add();
+                // Kept so assets written before styles existed still decode; Style is what gets written now.
+                b.append(new KeyedCodec<>("Major", Codec.BOOLEAN), (t, v) -> t.major = v, t -> false)
+                        .documentation("Deprecated: the old two-way style. Use Style instead.").add();
                 b.append(new KeyedCodec<>("Seconds", Codec.DOUBLE), (t, v) -> t.seconds = v, t -> t.seconds).documentation("How long it stays; 0 for the default (3).").add();
             });
 

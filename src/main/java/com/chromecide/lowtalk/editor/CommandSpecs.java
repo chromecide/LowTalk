@@ -83,11 +83,53 @@ public final class CommandSpecs {
     private static final List<String> ATTITUDES = List.of("ignore", "hostile", "neutral", "friendly", "revered");
     private static final List<String> ANIMATION_SLOTS = List.of("Emote", "Status", "Action", "Movement", "Face", "ServerAction");
     private static final List<String> NOTIFY_STYLES = List.of("default", "success", "warning", "danger");
-    private static final List<String> TITLE_SIZES = List.of("minor", "major");
+    /**
+     * The title styles the editor offers. Hytale's own vocabulary, so it grows with the game: the plugin replaces
+     * this with the style names the running server reports, and what is written here is only what every version
+     * has, for the editor and the tests when no server has spoken yet.
+     */
+    private static List<String> titleStyles = List.of("Default", "Major");
     private static final List<String> VFX_PLACES = List.of("npc", "player");
     private static final List<String> OBJECTIVE_VERBS = List.of("start", "cancel", "line", "task");
 
     private static final Map<String, Spec> SPECS = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /**
+     * Offer the styles the running server actually has. Called once at start-up with the names read off the
+     * game's own style enum, so a version that adds a style needs no change here; the title spec is registered
+     * again because it carries the list.
+     */
+    public static synchronized void setTitleStyles(List<String> names) {
+        if (names == null || names.isEmpty()) return;
+        titleStyles = List.copyOf(names);
+        spec("title", text("main"), optionalText("above it"), optionalChoice("style", titleStyles), optionalNumber("seconds"));
+    }
+
+    /** The styles the editor offers for a title. */
+    public static List<String> titleStyles() {
+        return titleStyles;
+    }
+
+    /**
+     * A title style as the game spells it, whatever the creator typed, so what gets written to an asset is the
+     * game's own name. Unknown words come back unchanged; the runtime is what decides whether one is real.
+     */
+    public static String canonicalTitleStyle(String word) {
+        if (word == null || word.isBlank()) return "";
+        String w = word.trim();
+        if (w.equalsIgnoreCase("minor")) w = "Default";
+        for (String n : titleStyles) if (n.equalsIgnoreCase(w)) return n;
+        return w;
+    }
+
+    /** True when this word names a title style, however a creator capitalised it. "minor" is the old Default. */
+    public static boolean isTitleStyle(String word) {
+        if (word == null || word.isBlank()) return false;
+        String w = word.trim();
+        if (w.equalsIgnoreCase("minor")) return true;
+        for (String n : titleStyles) if (n.equalsIgnoreCase(w)) return true;
+        return false;
+    }
 
     private static void spec(String command, Arg... args) {
         SPECS.put(command, new Spec(command, List.of(args)));
@@ -150,7 +192,7 @@ public final class CommandSpecs {
         // ---- feedback
         spec("notify", text("text"), optionalText("detail"), optionalChoice("style", NOTIFY_STYLES));
         // the game draws the second line small and above the main one, the way it announces a zone
-        spec("title", text("main"), optionalText("above it"), optionalChoice("size", TITLE_SIZES), optionalNumber("seconds"));
+        spec("title", text("main"), optionalText("above it"), optionalChoice("style", titleStyles), optionalNumber("seconds"));
         // ---- the player's body
         spec("effect", asset("effect", ENTITY_EFFECTS));
         spec("cure", asset("effect", ENTITY_EFFECTS));
@@ -263,16 +305,16 @@ public final class CommandSpecs {
             case "title" -> {
                 if (raw.isEmpty()) return raw;
                 String under = "";
-                String size = "";
+                String style = "";
                 String seconds = "";
                 for (String a : raw.subList(1, raw.size())) {
                     String t = a.trim();
-                    if (TITLE_SIZES.contains(t.toLowerCase(Locale.ROOT))) size = t.toLowerCase(Locale.ROOT);
+                    if (style.isEmpty() && isTitleStyle(t)) style = t;
                     else if (t.matches("\\d+(\\.\\d+)?")) seconds = t;
                     else if (under.isEmpty()) under = a;
                     else return null;
                 }
-                return List.of(raw.get(0), under, size, seconds);
+                return List.of(raw.get(0), under, style, seconds);
             }
             case "vfx" -> {
                 if (raw.isEmpty()) return raw;

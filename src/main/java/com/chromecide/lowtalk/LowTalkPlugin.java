@@ -155,6 +155,17 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
         } catch (RuntimeException e) {
             getLogger().at(Level.WARNING).log("Could not register the JSON dialogue asset type: %s", e.toString());
         }
+        // The title styles a creator may pick are the game's own, read off its style enum, so a version that adds
+        // one needs no change here. Said out loud because which call the server has decides what <<title>> can do.
+        try {
+            com.chromecide.lowtalk.editor.CommandSpecs.setTitleStyles(
+                    com.chromecide.lowtalk.hytale.compat.EventTitles.styleNames());
+            getLogger().at(Level.INFO).log("Title styles: %s (%s)",
+                    String.join(", ", com.chromecide.lowtalk.hytale.compat.EventTitles.styleNames()),
+                    com.chromecide.lowtalk.hytale.compat.EventTitles.flavour());
+        } catch (RuntimeException e) {
+            getLogger().at(Level.WARNING).log("Could not read the game's title styles: %s", e.toString());
+        }
         try {
             com.hypixel.hytale.builtin.triggervolumes.TriggerVolumesPlugin tv = com.hypixel.hytale.builtin.triggervolumes.TriggerVolumesPlugin.get();
             tv.registerEffectType(
