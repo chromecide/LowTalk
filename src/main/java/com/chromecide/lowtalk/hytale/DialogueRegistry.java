@@ -55,6 +55,18 @@ public class DialogueRegistry {
             // A slash, not a colon: the dialogue id is everything after the last slash of this display name.
             return label.isEmpty() ? rel : label + "/" + rel;
         }
+
+        /**
+         * The inverse of {@link #display}: a path under this root, from a name that may carry the label.
+         *
+         * <p>Needed because an include is resolved against the including file's name, and for a dialogue in an
+         * asset pack that name starts with the pack's label. Resolving it under the root unchanged looked for
+         * the pack inside itself, so include: never worked from within a pack at all.
+         */
+        String relative(String displayed) {
+            String prefix = label + "/";
+            return label.isEmpty() || !displayed.startsWith(prefix) ? displayed : displayed.substring(prefix.length());
+        }
     }
 
     /** One loaded dialogue and where it came from; {@code pack} is the asset pack's name, "" for the server's own folder. */
@@ -215,7 +227,7 @@ public class DialogueRegistry {
     private static DialogueParser.IncludeResolver resolverFor(Source src) {
         return path -> {
             try {
-                Path p = src.root().resolve(path).normalize();
+                Path p = src.root().resolve(src.relative(path)).normalize();
                 if (!p.startsWith(src.root()) || !Files.isRegularFile(p)) return null;
                 return Files.readString(p, StandardCharsets.UTF_8);
             } catch (IOException e) {
