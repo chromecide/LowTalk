@@ -58,6 +58,13 @@ public class BlockUseSystem extends EntityEventSystem<EntityStore, UseBlockEvent
         }
 
         BlockBindings.Binding binding = plugin.getBlockBindings().get(world.getName(), pos.x, pos.y, pos.z);
+        if (binding == null) {
+            // whichever block of a multi-block structure the event named, the binding is on its base
+            org.joml.Vector3i base = BlockReads.baseAt(world, pos.x, pos.y, pos.z);
+            if (base.x != pos.x || base.y != pos.y || base.z != pos.z) {
+                binding = plugin.getBlockBindings().get(world.getName(), base.x, base.y, base.z);
+            }
+        }
         if (binding == null) return;
         Dialogue d = plugin.getRegistry().byId(binding.dialogue());
         if (d == null) {

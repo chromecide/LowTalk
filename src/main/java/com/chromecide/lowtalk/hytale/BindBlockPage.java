@@ -95,7 +95,10 @@ public class BindBlockPage extends InteractiveCustomUIPage<BindBlockPage.Data> {
                     playerRef.sendMessage(LowTalkCommand.msg(plugin, "blockPickDialogue"));
                     return;
                 }
-                bindings.set(worldName, pos.x, pos.y, pos.z, data.dialogue, data.mode == null ? BlockBindings.MODE_INSTEAD : data.mode);
+                // the base block, so a door bound by its top half is the same block the use event reports
+                com.hypixel.hytale.server.core.universe.world.World w = store.getExternalData().getWorld();
+                org.joml.Vector3i at = BlockReads.baseAt(w, pos.x, pos.y, pos.z);
+                bindings.set(worldName, at.x, at.y, at.z, data.dialogue, data.mode == null ? BlockBindings.MODE_INSTEAD : data.mode);
                 bindings.flush();
                 close();
                 playerRef.sendMessage(LowTalkCommand.msg(plugin, "blockBound").param("block", blockId).param("dialogue", data.dialogue)

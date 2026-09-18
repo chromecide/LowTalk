@@ -119,9 +119,7 @@ public class ToolTargetInteraction extends SimpleInstantInteraction {
     private static String usableBlockId(org.joml.Vector3i pos, CommandBuffer<EntityStore> buffer) {
         try {
             com.hypixel.hytale.server.core.universe.world.World world = buffer.getExternalData().getWorld();
-            com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk chunk =
-                    world.getChunkIfLoaded(com.hypixel.hytale.math.util.ChunkUtil.indexChunkFromBlock(pos.x, pos.z));
-            com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType type = chunk == null ? null : chunk.getBlockType(pos.x, pos.y, pos.z);
+            com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType type = BlockReads.typeAt(world, pos.x, pos.y, pos.z);
             if (type == null || type.getInteractions() == null || !type.getInteractions().containsKey(InteractionType.Use)) return null;
             return String.valueOf(type.getId());
         } catch (RuntimeException e) {

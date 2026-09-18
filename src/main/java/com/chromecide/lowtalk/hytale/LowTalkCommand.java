@@ -344,9 +344,8 @@ public class LowTalkCommand extends AbstractCommandCollection {
     static Object[] lookedAtBlock(Ref<EntityStore> playerEntity, Store<EntityStore> store, World world) {
         org.joml.Vector3i pos = com.hypixel.hytale.server.core.util.TargetUtil.getTargetBlock(playerEntity, 6.0, store);
         if (pos == null) return null;
-        com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk chunk =
-                world.getChunkIfLoaded(com.hypixel.hytale.math.util.ChunkUtil.indexChunkFromBlock(pos.x, pos.z));
-        com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType type = chunk == null ? null : chunk.getBlockType(pos.x, pos.y, pos.z);
+        com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType type =
+                com.chromecide.lowtalk.hytale.BlockReads.typeAt(world, pos.x, pos.y, pos.z);
         return new Object[] {pos, type};
     }
 
@@ -386,7 +385,9 @@ public class LowTalkCommand extends AbstractCommandCollection {
                 context.sendMessage(msg(plugin, "blockNoUse").param("block", blockId));
                 return;
             }
-            plugin.getBlockBindings().set(world.getName(), pos.x, pos.y, pos.z, id, mode);
+            // the base block, so a door bound by its top half is the same block the use event reports
+            org.joml.Vector3i at = BlockReads.baseAt(world, pos.x, pos.y, pos.z);
+            plugin.getBlockBindings().set(world.getName(), at.x, at.y, at.z, id, mode);
             plugin.getBlockBindings().flush();
             context.sendMessage(msg(plugin, "blockBound").param("block", blockId).param("dialogue", id).param("mode", mode));
         }
