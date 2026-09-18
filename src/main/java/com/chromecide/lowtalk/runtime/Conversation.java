@@ -40,6 +40,8 @@ public final class Conversation {
     private final Deque<Frame> stack = new ArrayDeque<>();
     private final List<Effect> effects = new ArrayList<>();
     private String currentNode;
+    /** Nodes entered since anyone last asked, oldest first. Drained by the host so listeners hear each one. */
+    private final java.util.List<String> entered = new ArrayList<>();
     private Statement.Choice pendingChoice;
     private Statement.Input pendingInput;
     private boolean finished = false;
@@ -68,6 +70,19 @@ public final class Conversation {
 
     public String getCurrentNode() {
         return currentNode;
+    }
+
+    /**
+     * The nodes entered since this was last called, oldest first, and forget them.
+     *
+     * <p>{@link #getCurrentNode()} answers where the conversation came to rest, which is not the same question:
+     * a passage that does its work and jumps onward is entered and left within one step, and never appears there.
+     */
+    public java.util.List<String> drainEnteredNodes() {
+        if (entered.isEmpty()) return java.util.List.of();
+        java.util.List<String> out = java.util.List.copyOf(entered);
+        entered.clear();
+        return out;
     }
 
     public boolean isFinished() {
@@ -164,6 +179,10 @@ public final class Conversation {
         stack.clear();
         stack.push(new Frame(n.body()));
         currentNode = node;
+        // Every node entered, in order, not just the one the conversation settles on. A passage that runs a
+        // command and jumps straight onward is never the current node by the time anyone looks, so sampling
+        // afterwards loses it entirely.
+        entered.add(node);
         pendingChoice = null;
         pendingInput = null;
         ctx.markVisited(node);

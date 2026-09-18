@@ -282,11 +282,14 @@ public class DialogueSession implements EffectHost {
         }
     }
 
+    /**
+     * Tell listeners about every node the conversation entered, in order. Sampling the current node afterwards
+     * reported only where it came to rest, so a passage that ran a command and jumped onward was never seen.
+     */
     private void nodeChanged() {
-        String now = conversation.getCurrentNode();
-        if (now != null && !now.equals(lastNode)) {
-            lastNode = now;
-            nodeReached(now);
+        for (String node : conversation.drainEnteredNodes()) {
+            lastNode = node;
+            nodeReached(node);
         }
     }
 
@@ -453,6 +456,7 @@ public class DialogueSession implements EffectHost {
             EffectRegistry.Handler h = host.effects().get(e.name());
             if (h == null) {
                 host.logger().at(Level.WARNING).log("%s: no handler for <<%s>> (not implemented yet, or no plugin provides it)", e.pos(), e.name());
+                notify(l -> l.onCommand(context, e.name(), e.args(), "no handler for <<" + e.name() + ">>"));
                 continue;
             }
             try {
@@ -460,14 +464,17 @@ public class DialogueSession implements EffectHost {
                 if (narration != null && !narration.isBlank()) {
                     page.showNarration(narration);
                 }
+                notify(l -> l.onCommand(context, e.name(), e.args(), null));
             } catch (RuntimeException ex) {
                 host.logger().at(Level.WARNING).log("%s: <<%s %s>> failed: %s", e.pos(), e.name(), String.join(" ", e.args()), ex.toString());
+                notify(l -> l.onCommand(context, e.name(), e.args(), String.valueOf(ex.getMessage())));
             }
         }
     }
 
     private void fail(RuntimeError e) {
         host.logger().at(Level.WARNING).log("Dialogue '%s' failed for %s: %s", dialogue.id(), player.getUsername(), e.getMessage());
+        notify(l -> l.onFailed(context, String.valueOf(e.getMessage())));
         player.sendMessage(Message.translation("server.lowtalk.msg.conversationProblem").color(host.config().getInfoColor()));
         finish();
     }
