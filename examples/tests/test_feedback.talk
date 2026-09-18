@@ -11,12 +11,8 @@ TEST 5: Feedback. Each option should produce something visible or audible outsid
 -> Warning toast (expect an orange/warning style)
     <<notify "Careful" "This is the warning style" warning>>
     <<jump start>>
--> Minor title (expect a small title across the screen for 3 seconds)
-    <<title "Minor title" "Secondary line">>
-    <<jump start>>
--> Major title (expect a big cinematic title for 4 seconds)
-    <<title "MAJOR TITLE" "The grove remembers" major 4>>
-    <<jump start>>
+-> Titles, one per style
+    <<jump titles>>
 -> Play a sound at the NPC (expect the item-pickup sound)
     <<sound SFX_Player_Pickup_Item>>
     <<jump start>>
@@ -25,3 +21,29 @@ TEST 5: Feedback. Each option should produce something visible or audible outsid
     <<jump start>>
 -> Leave
     <<end>>
+
+== titles
+Titles. The styles are the game's own, so a server has the ones its version shipped: Default and Major on every
+version, GoblinBreach and VoidEviction from 0.7. Each should look plainly different from the others.
+-> Default (no style named; expect a small title for 3 seconds)
+    <<title "Default title" "Secondary line">>
+    <<jump titles>>
+-> Default, written the old way (expect exactly the same as above: "minor" still means Default)
+    <<title "Written as minor" "Same as the default" minor>>
+    <<jump titles>>
+-> Major (expect a big cinematic title for 4 seconds)
+    <<title "MAJOR TITLE" "The grove remembers" Major 4>>
+    <<jump titles>>
+-> Goblin Breach (0.7 only; expect the game's goblin-breach treatment)
+    <<title "GOBLIN BREACH" "they come through the pass" GoblinBreach 4>>
+    <<jump titles>>
+-> Void Eviction (0.7 only; expect the game's void-eviction treatment)
+    <<title "VOID EVICTION" "the dark lets go" VoidEviction 4>>
+    <<jump titles>>
+-> Back
+    <<jump start>>
+
+# On a server older than 0.7 the last two options close this window with "there was a problem with this
+# conversation", and the log says which style it could not find. That is the refusal working, not a fault in the
+# station: a style the server does not have is named rather than approximated, because approximating it would
+# show the wrong title and say nothing about why.
