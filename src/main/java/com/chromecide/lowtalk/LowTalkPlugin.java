@@ -234,6 +234,15 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
         DialogueRegistry.LoadReport report = registry.reload(false);
         logReport(report);
         getLogger().at(Level.INFO).log("LowTalk ready: %d dialogue(s) from %s", report.loaded(), registry.getFolder());
+        // The corridor is only refreshed by `testworld build`, so a new jar leaves the old stations in place and
+        // whoever walks them is testing the previous build without being told.
+        java.util.List<String> stale = registry.staleTestDialogues();
+        if (!stale.isEmpty()) {
+            getLogger().at(Level.WARNING).log(
+                    "%d test corridor dialogue(s) on disk differ from this build (%s). Run /lowtalk testworld build "
+                            + "to refresh them, or you are testing the previous version of those stations.",
+                    stale.size(), String.join(", ", stale));
+        }
         reportPowerfulDialogues();
         List<String> warnings = registry.checkAssets();
         for (String w : warnings) getLogger().at(Level.WARNING).log("%s", w);

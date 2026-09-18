@@ -111,6 +111,44 @@ public class DialogueRegistry {
         }
     }
 
+    /**
+     * The station dialogues on disk that no longer match the ones in this build.
+     *
+     * <p>They are only copied out by {@code /lowtalk testworld build}, so updating the jar leaves the corridor
+     * as it was and says nothing. Someone then walks a station that has not changed, sees the old behaviour,
+     * and reasonably concludes the new build did not work. That happened three times in one evening before
+     * this existed.
+     */
+    public java.util.List<String> staleTestDialogues() {
+        Path dir = folder.resolve("tests");
+        java.util.List<String> stale = new java.util.ArrayList<>();
+        if (!Files.isDirectory(dir)) return stale;
+        for (String name : TEST_DIALOGUES) {
+            Path onDisk = dir.resolve(name);
+            if (!Files.isRegularFile(onDisk)) continue;
+            try (InputStream in = bundledTestDialogue(name)) {
+                if (in == null) continue;                       // nothing to compare against; say nothing
+                if (!java.util.Arrays.equals(in.readAllBytes(), Files.readAllBytes(onDisk))) stale.add(name);
+            } catch (IOException e) {
+                // unreadable either side is not worth a warning about staleness
+            }
+        }
+        return stale;
+    }
+
+    /** The copy of a station dialogue inside this build, or null when it cannot be found. */
+    @Nullable
+    private InputStream bundledTestDialogue(String name) throws IOException {
+        InputStream in = getClass().getClassLoader().getResourceAsStream("lowtalk-examples/tests/" + name);
+        if (in == null) in = DialogueRegistry.class.getResourceAsStream("/lowtalk-examples/tests/" + name);
+        if (in != null) return in;
+        for (Path dev : new Path[] {Path.of("examples", "tests", name), Path.of("..", "examples", "tests", name),
+                Path.of("..", "..", "examples", "tests", name)}) {
+            if (Files.exists(dev)) return Files.newInputStream(dev);
+        }
+        return null;
+    }
+
     /** Copy the test-corridor dialogues into dialogues/tests/, overwriting, so they match this build. */
     public void copyTestDialogues() {
         Path dir = folder.resolve("tests");
