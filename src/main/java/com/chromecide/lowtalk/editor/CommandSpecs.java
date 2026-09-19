@@ -179,6 +179,9 @@ public final class CommandSpecs {
         spec("shop", optionalAsset("shop", SHOPS));
         // ---- the npc
         spec("attitude", choice("attitude", ATTITUDES));
+        // No arguments, and saying so matters: a command with no spec at all falls back to the plain text box,
+        // so the editor offered a field for an argument <<calm>> does not take.
+        spec("calm");
         spec("anim", asset("animation", ANIMATIONS), optionalChoice("slot", ANIMATION_SLOTS));
         spec("sound", asset("sound", SOUNDS));
         spec("npc_name", text("name"));

@@ -29,7 +29,7 @@ Group {
   // one line into another is deleting the row and adding what you wanted; a second list of all the commands here
   // only offered a worse way to do the same thing.
   Label #Name {
-    Anchor: (Width: 150, Right: 8);
+    Anchor: (Width: 120, Right: 8);
     Style: (FontSize: 14, TextColor: #8fd0ff, RenderBold: true, VerticalAlignment: Center);
     Text: "";
   }
@@ -39,7 +39,7 @@ Group {
     LayoutMode: Left;
 
     Label #L0 {
-      Anchor: (Width: 62);
+      Anchor: (Width: 56);
       Style: (FontSize: 12, TextColor: #8fa3b8, VerticalAlignment: Center);
       Text: "";
     }
@@ -52,8 +52,13 @@ Group {
     DropdownBox #C0 {
       // Width rather than FlexWeight: as the only visible control in its slot this stretched to the whole row,
       // and a dropdown far wider than its own PanelWidth never opens its panel at all.
-      Anchor: (Width: 300, Right: 8, Height: $C.@DropdownBoxHeight);
-      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
+      //
+      // 300 was too wide for a slot that has to share the row with three others. On a four-argument command
+      // it overran into the next slot and the next slot's label was drawn on top of it -- "seconds" over the
+      // style box on <<title>>, and the "at" box under the row buttons on <<vfx>>. The panel stays wider than
+      // the control, which is the rule that matters for it opening at all.
+      Anchor: (Width: 200, Right: 8, Height: $C.@DropdownBoxHeight);
+      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 320);
       ShowSearchInput: true;
     }
 
@@ -69,7 +74,7 @@ Group {
     LayoutMode: Left;
 
     Label #L1 {
-      Anchor: (Width: 62);
+      Anchor: (Width: 56);
       Style: (FontSize: 12, TextColor: #8fa3b8, VerticalAlignment: Center);
       Text: "";
     }
@@ -80,8 +85,8 @@ Group {
     }
 
     DropdownBox #C1 {
-      Anchor: (Width: 300, Right: 8, Height: $C.@DropdownBoxHeight);
-      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
+      Anchor: (Width: 200, Right: 8, Height: $C.@DropdownBoxHeight);
+      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 320);
       ShowSearchInput: true;
     }
 
@@ -97,7 +102,7 @@ Group {
     LayoutMode: Left;
 
     Label #L2 {
-      Anchor: (Width: 62);
+      Anchor: (Width: 56);
       Style: (FontSize: 12, TextColor: #8fa3b8, VerticalAlignment: Center);
       Text: "";
     }
@@ -108,8 +113,8 @@ Group {
     }
 
     DropdownBox #C2 {
-      Anchor: (Width: 300, Right: 8, Height: $C.@DropdownBoxHeight);
-      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
+      Anchor: (Width: 200, Right: 8, Height: $C.@DropdownBoxHeight);
+      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 320);
       ShowSearchInput: true;
     }
 
@@ -125,7 +130,7 @@ Group {
     LayoutMode: Left;
 
     Label #L3 {
-      Anchor: (Width: 62);
+      Anchor: (Width: 56);
       Style: (FontSize: 12, TextColor: #8fa3b8, VerticalAlignment: Center);
       Text: "";
     }
@@ -136,8 +141,8 @@ Group {
     }
 
     DropdownBox #C3 {
-      Anchor: (Width: 300, Right: 8, Height: $C.@DropdownBoxHeight);
-      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 300);
+      Anchor: (Width: 200, Right: 8, Height: $C.@DropdownBoxHeight);
+      Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 320);
       ShowSearchInput: true;
     }
 
@@ -158,6 +163,14 @@ Group {
     Anchor: (Width: 210, Right: 8, Height: $C.@DropdownBoxHeight);
     Style: DropdownBoxStyle(...$C.@DefaultDropdownBoxStyle, PanelWidth: 360);
     ShowSearchInput: true;
+  }
+
+  // A command that takes no arguments has nothing flexible in its row, so the buttons packed up against the
+  // name instead of sitting at the right with every other row's. This fills the gap, and only then: when a
+  // row has fields of its own they take the space and this is hidden.
+  Label #Spacer {
+    FlexWeight: 1;
+    Text: "";
   }
 
   $C.@SecondaryTextButton #Up {

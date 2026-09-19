@@ -11,6 +11,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The in-game editor shows a command as named fields; these are the rules for getting between the two. */
 class CommandSpecsTest {
@@ -110,5 +111,24 @@ class CommandSpecsTest {
     @Test
     void aCommandWithNoArgumentsShowsNoFields() {
         assertEquals(List.of(), CommandSpecs.values(cmd("despawn")));
+    }
+
+    /**
+     * A command that takes no arguments must say so, not say nothing.
+     *
+     * <p>{@code of()} returning null means "the editor has no argument names for this", and the editor then
+     * falls back to the plain text box — which offers a field for an argument the command does not take.
+     * {@code <<calm>>} shipped that way for an hour and a tester asked whether it had a parameter.
+     */
+    @Test
+    void aCommandWithNoArgumentsHasAnEmptySpecRatherThanNone() {
+        CommandSpecs.Spec spec = CommandSpecs.of("calm");
+        assertNotNull(spec, "calm has no arguments, which is not the same as having no spec");
+        assertEquals(0, spec.size());
+
+        Statement.Command calm = cmd("calm");
+        List<String> values = CommandSpecs.values(calm);
+        assertNotNull(values, "an empty argument list fits an empty spec");
+        assertTrue(values.isEmpty(), "so the row draws no argument fields at all");
     }
 }

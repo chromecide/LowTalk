@@ -589,6 +589,9 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         }
         boolean plain = values == null;
         cmd.set(sel + " #Args.Visible", plain);
+        // Nothing else in this row stretches, so without a spacer the row buttons sit next to the command name
+        // rather than at the right edge with every other row's.
+        cmd.set(sel + " #Spacer.Visible", !plain && slots == 0);
         if (plain) {
             cmd.set(sel + " #Args.Value", DialogueDraft.argsText(c));
             evt.addEventBinding(CustomUIEventBindingType.ValueChanged, sel + " #Args",
