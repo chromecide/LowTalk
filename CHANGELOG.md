@@ -28,6 +28,22 @@ version nobody can download. The last published version is 0.3.0.
 
 ### Fixed
 
+- **A renamed NPC went back to its old name at the next restart.** `<<npc_name>>` changed the nameplate in
+  front of you and the documentation said the name was kept with the NPC, and it was not: the game only writes
+  an entity out when its `Dirty` component says to, spawning marks an entity but changing a component does not,
+  so a name given at spawn survived and a name given later was dropped. The rename now marks the entity, and
+  after a restart the nameplate, the persisted name and the live name all read the new one. This had been
+  wrong since the feature shipped, because nothing had ever restarted a server and looked.
+
+- **Rebuilding the test corridor left block bindings pointing into it.** `/lowtalk testworld build` replaces
+  every block in the corridor and already removed the NPCs an earlier build left behind, but a binding is a
+  position: a door knocked into the corridor wall and bound, then built back over, left its binding in
+  `blocks.json` aimed at solid stone. Silent, and misleading enough that the next server restart looked exactly
+  like block bindings no longer surviving restarts. The build now clears bindings inside the volume it rewrites
+  and says how many went. Relatedly, using a block that has a binding elsewhere in its own column now logs what
+  was used, where its base resolved to and what is bound there, so a binding that has drifted off its block
+  says so instead of the block quietly going silent.
+
 - **Dropdowns that stretched wider than their own panel would not open at all.** Choosing a passage for a
   "they have seen the passage" condition showed a list with nothing in it: the control was the only visible
   field in its slot, so it grew to the width of the whole row while the panel it was told to draw stayed 300

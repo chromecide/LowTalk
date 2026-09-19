@@ -9,6 +9,7 @@ import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.server.core.entity.Frozen;
 import com.hypixel.hytale.math.vector.Rotation3f;
 import com.hypixel.hytale.server.core.modules.entity.component.TransformComponent;
+import com.hypixel.hytale.server.core.entity.Dirty;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.NPCPlugin;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
@@ -39,6 +40,7 @@ public final class NpcEffects {
             } else {
                 DisplayNameSupport.setDisplayName(npcRef, name, store);
             }
+            markForSaving(npcRef, store);
             return null;
         });
 
@@ -104,5 +106,26 @@ public final class NpcEffects {
         } catch (NumberFormatException e) {
             throw new RuntimeError(effect.pos(), "<<spawn>> offsets must be numbers, got " + effect.args().get(index));
         }
+    }
+
+    /**
+     * Tell the game an entity has changed, so the change is still there after a restart.
+     *
+     * <p>An entity is written out only when its {@code Dirty} component says so: {@code EntitySavingSystem}
+     * and {@code EntitySection} both skip anything not marked, and a component written straight into the store
+     * marks nothing. Spawning marks the entity ({@code new Dirty(section, reason == AddReason.SPAWN)}), which
+     * is why a name given to an NPC as it is created survives and a name given to it later did not.
+     *
+     * <p>That is what made {@code <<npc_name>>} lie: the nameplate changed in front of you and reverted at the
+     * next restart, while the comment above it said "persists with the NPC". It had been that way since the
+     * feature shipped, because nothing had ever restarted a server and looked.
+     *
+     * <p>{@code Entity.markNeedsSave()} does the same thing and is deprecated for removal, so this goes
+     * through the component.
+     */
+    private static void markForSaving(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
+        if (!ref.isValid()) return;
+        Dirty dirty = store.getComponent(ref, Dirty.getComponentType());
+        if (dirty != null) dirty.markDirty();
     }
 }
