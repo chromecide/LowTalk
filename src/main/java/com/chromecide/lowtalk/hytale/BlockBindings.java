@@ -100,6 +100,57 @@ public final class BlockBindings {
 
     public synchronized int size() { return byKey.size(); }
 
+    /**
+     * Forget every binding inside a box, and say how many went.
+     *
+     * <p>For anything that rewrites a region of the world wholesale. A binding is a position, so a block
+     * replaced under it leaves a binding pointing at whatever now stands there — silent, and misleading in the
+     * worst way: the test corridor's rebuild removed a bound door and left its binding behind, and the next
+     * restart looked like block bindings had stopped surviving restarts.
+     */
+    public synchronized int removeWithin(String world, int x0, int x1, int y0, int y1, int z0, int z1) {
+        int removed = 0;
+        var it = byKey.entrySet().iterator();
+        while (it.hasNext()) {
+            String[] k = it.next().getKey().split("\\|", 4);
+            if (k.length != 4 || !k[0].equals(world)) continue;
+            try {
+                int x = Integer.parseInt(k[1]), y = Integer.parseInt(k[2]), z = Integer.parseInt(k[3]);
+                if (x < x0 || x > x1 || y < y0 || y > y1 || z < z0 || z > z1) continue;
+            } catch (NumberFormatException e) {
+                continue;   // a key we did not write; leave it exactly where it is
+            }
+            it.remove();
+            removed++;
+        }
+        if (removed > 0) dirty = true;
+        return removed;
+    }
+
+    /**
+     * Every binding in one column of the world, by height.
+     *
+     * <p>For telling a creator that the block they used has a binding one block away from where the game says
+     * its base is. That gap is not a creator's mistake: it means the base resolved differently now from when
+     * the binding was made, which is a fault in this mod and used to be invisible — the use event simply found
+     * nothing and the block behaved normally.
+     */
+    public synchronized Map<Integer, Binding> inColumn(String world, int x, int z) {
+        Map<Integer, Binding> out = new LinkedHashMap<>();
+        String prefix = world + "|" + x + "|";
+        String suffix = "|" + z;
+        for (Map.Entry<String, Binding> e : byKey.entrySet()) {
+            String k = e.getKey();
+            if (!k.startsWith(prefix) || !k.endsWith(suffix)) continue;
+            try {
+                out.put(Integer.parseInt(k.substring(prefix.length(), k.length() - suffix.length())), e.getValue());
+            } catch (NumberFormatException ignored) {
+                // a key we did not write; nothing sensible to report about it
+            }
+        }
+        return out;
+    }
+
     /** The ids of every dialogue some block opens. */
     public synchronized java.util.Set<String> dialogues() {
         java.util.Set<String> out = new java.util.HashSet<>();

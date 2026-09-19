@@ -147,6 +147,18 @@ public final class TestWorld {
                     List<Ref<EntityStore>> stale = corridorNpcs(store);
                     for (Ref<EntityStore> ref : stale) store.removeEntity(ref, RemoveReason.REMOVE);
                     if (!stale.isEmpty()) out.accept("Removed " + stale.size() + " NPC(s) left by an earlier build.");
+                    // The blocks under any binding in here have just been replaced, so the binding now points at
+                    // whatever the build put there. Left behind, it is worse than useless: a bound door knocked
+                    // into the wall and then rebuilt over left its binding in the file, and the next restart
+                    // looked exactly like block bindings no longer surviving a restart.
+                    int orphaned = plugin.getBlockBindings().removeWithin(WORLD_NAME,
+                            CORRIDOR_START - 2, CORRIDOR_END + 2,
+                            FLOOR_Y - 2, FLOOR_Y + WALL_HEIGHT + 2,
+                            -HALF_WIDTH - 2, HALF_WIDTH + 2);
+                    if (orphaned > 0) {
+                        plugin.getBlockBindings().flush();
+                        out.accept("Removed " + orphaned + " block binding(s) whose blocks this build replaced.");
+                    }
                     int spawned = spawnStations(plugin, world, store, out);
                     plugin.getStore().set(plugin.getStore().world(), WORLD_NAME, "built", true);
                     plugin.getStore().set(plugin.getStore().world(), WORLD_NAME, "end", (double) CORRIDOR_END);

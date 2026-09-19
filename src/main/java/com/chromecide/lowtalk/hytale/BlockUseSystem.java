@@ -58,14 +58,18 @@ public class BlockUseSystem extends EntityEventSystem<EntityStore, UseBlockEvent
         }
 
         BlockBindings.Binding binding = plugin.getBlockBindings().get(world.getName(), pos.x, pos.y, pos.z);
+        org.joml.Vector3i base = pos;
         if (binding == null) {
             // whichever block of a multi-block structure the event named, the binding is on its base
-            org.joml.Vector3i base = BlockReads.baseAt(world, pos.x, pos.y, pos.z);
+            base = BlockReads.baseAt(world, pos.x, pos.y, pos.z);
             if (base.x != pos.x || base.y != pos.y || base.z != pos.z) {
                 binding = plugin.getBlockBindings().get(world.getName(), base.x, base.y, base.z);
             }
         }
-        if (binding == null) return;
+        if (binding == null) {
+            reportNearMiss(world, pos, base, blockId);
+            return;
+        }
         Dialogue d = plugin.getRegistry().byId(binding.dialogue());
         if (d == null) {
             plugin.getLogger().at(java.util.logging.Level.WARNING).log("Block at %s %d %d %d is bound to '%s', which is not loaded",
@@ -75,6 +79,23 @@ public class BlockUseSystem extends EntityEventSystem<EntityStore, UseBlockEvent
         if (binding.suppressesBlock()) event.setCancelled(true);
         // the block itself is where this conversation is, so a particle or a sound happens at the block
         plugin.getSessions().openFor(d, player, playerEntity, store, world, NpcInfo.atBlock(d, pos));
+    }
+
+    /**
+     * Using a block that has no binding is the ordinary case and says nothing. Using one that has a binding
+     * somewhere in its own column, but not where the base resolved to, is a fault worth a line in the log: the
+     * base block is being resolved differently now from when the binding was recorded, and the only thing the
+     * creator sees is a door that has quietly stopped talking.
+     */
+    private void reportNearMiss(@Nonnull World world, @Nonnull Vector3i pos, @Nonnull Vector3i base, @Nonnull String blockId) {
+        var column = plugin.getBlockBindings().inColumn(world.getName(), pos.x, pos.z);
+        if (column.isEmpty()) return;
+        StringBuilder where = new StringBuilder();
+        column.forEach((y, b) -> where.append(where.isEmpty() ? "" : ", ").append("y=").append(y)
+                .append(" -> ").append(b.dialogue()));
+        plugin.getLogger().at(java.util.logging.Level.WARNING).log(
+                "Used %s at %s %d %d %d (base resolved to %d %d %d) and found no binding, but this column has: %s",
+                blockId, world.getName(), pos.x, pos.y, pos.z, base.x, base.y, base.z, where);
     }
 
     @Nullable
