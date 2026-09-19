@@ -5,6 +5,18 @@
 0.3.1 was built and tested but never published, so its changes are folded in here rather than listed under a
 version nobody can download. The last published version is 0.3.0.
 
+### Read this first: `<<run>>` is off by default
+
+**If any of your dialogues use `<<run>>`, they will stop running that command until you allow it.** Set
+`AllowRunCommand: true` in `lowtalk.json`.
+
+`<<run>>` executes a server command with the console's authority, and dialogues arrive in asset packs that can
+come from anybody. A file downloaded to add a shopkeeper should not be able to hand its author the server, so
+it is now off unless an owner says otherwise. The server names every dialogue that uses it at startup, and a
+refusal is said out loud in the conversation rather than failing quietly, so you will know rather than
+wonder.
+
+Nothing else in this release needs anything from you.
 
 ### Titles use the game's own styles
 
@@ -28,10 +40,13 @@ version nobody can download. The last published version is 0.3.0.
 
 ### Added
 
-- **The Node Editor workspace installs on Windows.** The only script a creator has to run was `install.sh`,
-  and Windows has no `sh`. There is an `install.ps1` beside it now, doing the same thing —
+- **A Windows installer for the Node Editor workspace.** The only script a creator has to run was
+  `install.sh`, and Windows has no `sh`, so the workspace was no use to anyone who could not install it.
+  There is an `install.ps1` beside it now:
   `powershell -ExecutionPolicy Bypass -File tools\nodeeditor\install.ps1`, with an optional path to the
-  Workspaces folder if it cannot find the client. The workspace was no use to anyone who could not install it.
+  Workspaces folder. **It has not been run on Windows yet** — it mirrors the shell script line for line and
+  tells you what to pass it if it cannot find your client, but it is the one thing in this release that has
+  been written rather than tried. If it fails for you, please say so and it will be fixed quickly.
 
 - **`<<calm>>` makes an NPC forget what it was fighting.** An attitude decides who an NPC will start on, and
   nothing more: set a goblin friendly while it is mid-swing and it keeps swinging, which makes "the guard
@@ -79,6 +94,9 @@ version nobody can download. The last published version is 0.3.0.
 
 ### Security review before release
 
+The largest change here is `<<run>>` being off by default, which is at the top of these notes because it is
+the one thing that can change how an existing server behaves.
+
 - **The jar contains this mod's code and nothing else.** The build plugin was adding a five-class asset-editor
   runtime to every jar; nothing here ever called it, and a jar anyone can unzip and check is worth more than an
   assurance that the extra code is harmless. It is no longer bundled.
@@ -96,11 +114,6 @@ version nobody can download. The last published version is 0.3.0.
   has no selector syntax for it to mean.
 - **An answer to `<<input>>` is cut to 256 characters.** It is saved in a variable that is written to disk, and
   what arrives is whatever the client sent, so there was no limit on how much a player could store.
-- **`<<run>>` is now off unless a server owner turns it on.** *This is a breaking change for anyone using it.* It
-  executes a server command with the console's authority, and dialogues arrive in asset packs that can come from
-  anybody; a file downloaded to add a shopkeeper should not be able to hand its author the server. Set
-  `AllowRunCommand: true` in `lowtalk.json` to allow it. The server names the dialogues that use it at startup,
-  and refusing one says so in the conversation rather than failing quietly.
 - **`AllowPlayerInput`** switches off `<<input>>` for an owner who would rather not keep player-written text at
   all. It stays on by default.
 - The server now lists at startup which dialogues use `<<run>>`, since those act with the console's authority.
