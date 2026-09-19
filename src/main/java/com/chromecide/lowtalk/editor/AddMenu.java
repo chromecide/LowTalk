@@ -70,6 +70,7 @@ public final class AddMenu {
             command("NPC", "Play an animation", "anim"),
             command("NPC", "Play a sound", "sound"),
             command("NPC", "Change how this NPC feels about the player", "attitude"),
+            command("NPC", "Make this NPC stop fighting", "calm"),
             command("NPC", "Rename this NPC", "npc_name"),
             command("NPC", "Put this NPC into a role state", "state"),
             command("NPC", "Spawn another NPC", "spawn"),

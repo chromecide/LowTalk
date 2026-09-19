@@ -39,6 +39,7 @@ public final class Reference {
         cmd("shop", "[Shop_Id]", "Open this NPC's barter shop (or a named one). Statements after it run when the shop closes; with none, the conversation ends there.");
         // ---- npc
         cmd("attitude", "friendly", "Set this NPC's attitude toward the player: ignore, hostile, neutral, friendly, revered.");
+        cmd("calm", "", "Make this NPC forget whatever it was fighting. An attitude alone will not call off an attack already under way.");
         cmd("anim", "Id [Slot]", "Play an animation on the NPC; slot Emote by default, Status is what the game uses for greetings.");
         cmd("sound", "Sound_Id", "Play a sound event at the NPC.");
         cmd("npc_name", "\"Name\" | clear", "Rename this NPC (nameplate and display name, kept with the NPC).");

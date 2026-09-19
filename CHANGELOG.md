@@ -26,6 +26,15 @@ version nobody can download. The last published version is 0.3.0.
   the same way it found us — so the format guide says so where `<<objective>>` is documented, and the testing
   guide says so against stations 7 and 12, which start real objectives.
 
+### Added
+
+- **`<<calm>>` makes an NPC forget what it was fighting.** An attitude decides who an NPC will start on, and
+  nothing more: set a goblin friendly while it is mid-swing and it keeps swinging, which makes "the guard
+  stands down" impossible to write. The targets a role has marked live in a component the game exposes, so
+  `<<calm>>` clears them. Together with `<<attitude friendly>>` it calls an NPC off — the attitude stops it
+  choosing you again, the calm stops the attack already under way. On a role that never marks a target it
+  does nothing and says nothing.
+
 ### Fixed
 
 - **A condition could not see what a command above it had just done.** `<<give Food_Bread>>` followed by

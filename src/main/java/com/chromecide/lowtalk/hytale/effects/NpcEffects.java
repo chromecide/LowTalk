@@ -14,6 +14,7 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import com.hypixel.hytale.server.npc.NPCPlugin;
 import com.hypixel.hytale.server.npc.entities.NPCEntity;
 import com.hypixel.hytale.server.npc.role.support.DisplayNameSupport;
+import com.hypixel.hytale.server.npc.role.support.MarkedEntitySupport;
 import com.hypixel.hytale.server.npc.role.support.StateSupport;
 import org.joml.Vector3d;
 
@@ -39,6 +40,22 @@ public final class NpcEffects {
                 DisplayNameSupport.setDisplayName(npcRef, null, true, store);
             } else {
                 DisplayNameSupport.setDisplayName(npcRef, name, store);
+            }
+            markForSaving(npcRef, store);
+            return null;
+        });
+
+        // <<calm>>  this NPC forgets whatever it was fighting
+        effects.register("calm", (session, effect) -> {
+            Store<EntityStore> store = BuiltinFunctions.store(session.getContext());
+            Ref<EntityStore> npcRef = BuiltinEffects.npcRef(session, store);
+            if (npcRef == null) throw new RuntimeError(effect.pos(), "<<calm>> needs an NPC (this dialogue has none)");
+            MarkedEntitySupport marks = store.getComponent(npcRef, MarkedEntitySupport.getComponentType());
+            if (marks == null) return null;   // a role that never marks a target has nothing to forget
+            Ref<EntityStore>[] targets = marks.getEntityTargets();
+            if (targets == null) return null;
+            for (int slot = 0; slot < targets.length; slot++) {
+                if (targets[slot] != null) marks.clearMarkedEntity(slot);
             }
             markForSaving(npcRef, store);
             return null;
