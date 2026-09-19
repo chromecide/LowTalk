@@ -121,7 +121,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
         LINE_TEXT, LINE_SPEAKER, LINE_BUTTON,
         OPT_TEXT, OPT_TARGET, OPT_GO, OPT_MORE, OPT_IF, OPT_SHOW, OPT_ONCE, OPT_BODY,
         COND_KIND, COND_ARG, COND_ARG_PICK, COND_ARG_FIND, COND_OP, COND_VAL, COND_VAL_PICK, COND_VAL_FIND, COND_RAW,
-        CMD_ARGS, CMD_SLOT, CMD_SLOT_PICK, CMD_SLOT_FIND, CMD_PICK, SET, JUMP_NODE, JUMP_GO, INPUT, WAIT,
+        CMD_ARGS, CMD_SLOT, CMD_SLOT_PICK, CMD_SLOT_FIND, CMD_PICK, SET, JUMP_NODE, JUMP_GO, INPUT, INPUT_KIND, WAIT,
         BRANCH_BODY, BRANCH_ADD, BRANCH_DEL, BLOCK_BODY, ALT_ADD, ALT_DEL,
         UP, DOWN, DEL, ADD_KIND, ADD, ADD_NODE, RENAME, JUMP, BACK, HEADER, DELETE_NODE,
         H_BINDINGS, H_NPC_PICK, H_SPEAKER, H_TITLE, H_START, H_ON, H_PORTRAIT, H_SCOPE, H_LAYOUT, H_HISTORY,
@@ -502,6 +502,11 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
                         evt.addEventBinding(CustomUIEventBindingType.ValueChanged, sel + " " + f,
                                 rowData(Action.INPUT, row).append("@Value", sel + " #Var.Value").append("@Value2", sel + " #Prompt.Value"), false);
                     }
+                    cmd.set(sel + " #Kind.Entries", List.of(
+                            entry("text", "text", "Anything the player types."),
+                            entry("number", "number", "The box comes back until they type a number.")));
+                    cmd.set(sel + " #Kind.Value", in.kind() == Statement.InputKind.NUMBER ? "number" : "text");
+                    rowChange(evt, sel + " #Kind", Action.INPUT_KIND, row);
                     row = standard(evt, sel, row, new RowRef(i, -1));
                 }
                 case Statement.Wait w -> {
@@ -1078,6 +1083,7 @@ public class DialogueEditorPage extends InteractiveCustomUIPage<DialogueEditorPa
             }
             case SET -> { if (r != null) return problem(draft.setSet(scope, r.statement(), value, value2)); return false; }
             case INPUT -> { if (r != null) return problem(draft.setInput(scope, r.statement(), value, value2)); return false; }
+            case INPUT_KIND -> { if (r != null) return problem(draft.setInputKind(scope, r.statement(), value)); return false; }
             case WAIT -> { if (r != null) return problem(draft.setWait(scope, r.statement(), value)); return false; }
             case H_BINDINGS -> { draft.setBindings(value); return false; }
             case H_SPEAKER -> { draft.setSpeaker(value); return false; }

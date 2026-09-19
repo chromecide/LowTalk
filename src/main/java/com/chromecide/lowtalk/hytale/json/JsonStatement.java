@@ -71,6 +71,7 @@ public abstract class JsonStatement {
     public static final class Input extends JsonStatement {
         public String var = "$tmp.answer";
         public String prompt = "";
+        public String kind;
     }
 
     public static final class Wait extends JsonStatement {

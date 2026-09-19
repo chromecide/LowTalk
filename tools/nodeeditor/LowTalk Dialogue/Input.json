@@ -33,12 +33,27 @@
         "Width": 350,
         "Height": 50
       }
+    },
+    {
+      "Id": "Kind",
+      "Type": "Enum",
+      "Options": {
+        "Label": "Kind",
+        "Description": "number makes the box come back until the player types one.",
+        "Default": "text",
+        "Width": 140,
+        "Values": [
+          "text",
+          "number"
+        ]
+      }
     }
   ],
   "Outputs": [],
   "Schema": {
     "Type": "Input",
     "Var": "Var",
-    "Prompt": "Prompt"
+    "Prompt": "Prompt",
+    "Kind": "Kind"
   }
 }

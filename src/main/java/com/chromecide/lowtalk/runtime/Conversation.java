@@ -190,6 +190,12 @@ public final class Conversation {
         String answer = text == null ? "" : text;
         if (answer.length() > MAX_ANSWER) answer = answer.substring(0, MAX_ANSWER);
         text = answer;
+        if (in.kind() == Statement.InputKind.NUMBER && !isNumber(answer)) {
+            // Ask again rather than store it. Storing a word here ends the conversation later, in whichever
+            // line first treats the answer as a number, with an error the player caused and cannot read.
+            pendingInput = in;
+            return result(new Step.Ask(Evaluator.render(in.prompt(), ctx) + " (a number, please)"));
+        }
         ctx.setVar(in.target().scope(), in.target().name(), answer);
         typedVars.add(in.target().scope() + "." + in.target().name());
         // the mark outlives this conversation: the text is the player's wherever it is read next
@@ -392,6 +398,17 @@ public final class Conversation {
         pendingChoice = null;
         pendingInput = null;
         return result(new Step.Finish());
+    }
+
+    /** Whether an answer can be read as a number, by the same rule the language uses everywhere else. */
+    private static boolean isNumber(String answer) {
+        if (answer.isBlank()) return false;
+        try {
+            Double.parseDouble(answer.trim());
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     private Result result(Step step) {

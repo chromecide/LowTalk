@@ -40,6 +40,13 @@ Nothing else in this release needs anything from you.
 
 ### Added
 
+- **`<<input $n "How many?" number>>` asks again instead of taking a word.** A player who typed letters into a
+  box whose prompt said "type a number" did not find out then — the conversation ended later, in whichever
+  line first treated the answer as a number, with an apology and a closed window. Player-written text is the
+  one input a creator cannot validate, and it was the one input that could kill a conversation. A number box
+  now comes back with "(a number, please)" until it gets one. The kind carries through the printer, the JSON
+  format, the Node Editor and the in-game editor, which has a text/number dropdown on the row.
+
 - **A listener can tell how a conversation started, and where.** `DialogueContext` gained `getOpener()` — NPC,
   block, prop, trigger, join, role, interaction, command, API — and `getOrigin()`, the point in the world a
   block or prop conversation is happening at. A plugin watching dialogues could previously see which one

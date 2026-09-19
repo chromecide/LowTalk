@@ -112,7 +112,8 @@ public final class JsonConvert {
                 yield new Statement.Jump(p, j.node.trim());
             }
             case JsonStatement.End e -> new Statement.End(p);
-            case JsonStatement.Input in -> new Statement.Input(p, ExprParser.parseVar(in.var, p), text(in.prompt, p));
+            case JsonStatement.Input in -> new Statement.Input(p, ExprParser.parseVar(in.var, p), text(in.prompt, p),
+                    "number".equalsIgnoreCase(in.kind) ? Statement.InputKind.NUMBER : Statement.InputKind.TEXT);
             case JsonStatement.Wait w -> new Statement.Wait(p, ExprParser.parse(w.seconds, p));
             case JsonStatement.Command c -> {
                 if (blank(c.name)) throw new ParseException(p, "a Command has no Name");
@@ -305,6 +306,7 @@ public final class JsonConvert {
                 JsonStatement.Input out = new JsonStatement.Input();
                 out.var = Printer.expr(in.target());
                 out.prompt = Printer.text(in.prompt());
+                if (in.kind() == Statement.InputKind.NUMBER) out.kind = "number";
                 return out;
             }
             case Statement.Wait w -> {

@@ -178,7 +178,11 @@ public final class Printer {
                 case Statement.Set set -> sb.append(pad).append("<<set ").append(expr(set.target())).append(" = ").append(expr(set.value())).append(">>\n");
                 case Statement.Jump j -> sb.append(pad).append("<<jump ").append(j.node()).append(">>\n");
                 case Statement.End e -> sb.append(pad).append("<<end>>\n");
-                case Statement.Input in -> sb.append(pad).append("<<input ").append(expr(in.target())).append(' ').append(arg(text(in.prompt()))).append(">>\n");
+                case Statement.Input in -> {
+                    sb.append(pad).append("<<input ").append(expr(in.target())).append(' ').append(arg(text(in.prompt())));
+                    if (in.kind() == Statement.InputKind.NUMBER) sb.append(" number");
+                    sb.append(">>\n");
+                }
                 case Statement.Wait w -> sb.append(pad).append("<<wait ").append(expr(w.seconds())).append(">>\n");
                 case Statement.Command cmd -> {
                     sb.append(pad).append("<<").append(cmd.name());

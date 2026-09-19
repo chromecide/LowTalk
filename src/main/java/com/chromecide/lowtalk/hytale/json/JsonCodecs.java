@@ -137,7 +137,9 @@ public final class JsonCodecs {
                         .documentation("Where to store the text, e.g. $tmp.answer.").add();
                 b.append(new KeyedCodec<>("Prompt", Codec.STRING), (i, v) -> i.prompt = v, i -> i.prompt)
                         .documentation("Shown above the text box." + TEXT_DOC).add();
-            });
+                            b.append(new KeyedCodec<>("Kind", Codec.STRING), (x, v) -> x.kind = v, x -> x.kind)
+                        .documentation("\"number\" to make the box come back until the player types one; anything else takes any text.").add();
+});
 
     public static final BuilderCodec<JsonStatement.Wait> WAIT = statement(JsonStatement.Wait.class, JsonStatement.Wait::new,
             "Pause before the next line; the previous line shows with no Continue button.", b ->

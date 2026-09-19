@@ -241,7 +241,9 @@ statement("Jump", "Jump", "Continue at another passage.", [small("Passage", "Pas
 statement("End", "End", "Close the window.", category="Flow", color="Purple")
 statement("Input", "Text input", "Ask the player to type something and store it.",
           [small("Var", "Variable", "Where to store the text.", default="$tmp.answer"),
-           text("Prompt", "Prompt", "Shown above the text box." + TEXT, height=50)], category="Talk", color="Blue")
+           text("Prompt", "Prompt", "Shown above the text box." + TEXT, height=50),
+           enum("Kind", "Kind", ["text", "number"], "number makes the box come back until the player types one.", width=140)],
+          category="Talk", color="Blue")
 statement("Wait", "Wait", "Pause before the next line; the previous line shows with no Continue button.",
           [small("Seconds", "Seconds", "0 to 30; may be an expression.", default="2", width=100)], category="Flow", color="Purple")
 

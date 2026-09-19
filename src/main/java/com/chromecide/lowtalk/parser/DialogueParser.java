@@ -38,6 +38,14 @@ public final class DialogueParser {
     private static final Set<String> CLOSERS = Set.of("endif", "elseif", "else", "endonce", "or", "endrandom");
     private static final Pattern SET = Pattern.compile("^set\\s+(\\$[A-Za-z0-9_.]+)\\s*=\\s*(.+)$");
     private static final Pattern INPUT = Pattern.compile("^input\\s+(\\$[A-Za-z0-9_.]+)(?:\\s+(.+))?$");
+    /**
+     * A bare word after a quoted prompt saying what the box takes: {@code <<input $n "How many?" number>>}.
+     *
+     * <p>Only after a quoted prompt. An unquoted prompt is legal and the printer writes one whenever it can,
+     * so {@code <<input $n Pick a number>>} has to stay a prompt reading "Pick a number" rather than becoming
+     * a prompt reading "Pick a" that wants a number.
+     */
+    private static final Pattern INPUT_KIND = Pattern.compile("(?<=\")\\s+(number|text)\\s*$", Pattern.CASE_INSENSITIVE);
 
     /** One logical source line with its indentation and original line number. */
     private record SrcLine(int number, int indent, String text) {}
@@ -401,9 +409,20 @@ public final class DialogueParser {
             case "input" -> {
                 idx++;
                 Matcher m = INPUT.matcher(inner);
-                if (!m.matches()) throw new ParseException(p, "expected <<input $var \"prompt\">>");
-                Text prompt = m.group(2) == null ? Text.plain("") : parseStringArg(m.group(2), p);
-                return new Statement.Input(p, ExprParser.parseVar(m.group(1), p), prompt);
+                if (!m.matches()) throw new ParseException(p, "expected <<input $var \"prompt\" [number]>>");
+                String rest2 = m.group(2);
+                // A bare "number" or "text" after the prompt says what the box accepts.
+                Statement.InputKind kind = Statement.InputKind.TEXT;
+                if (rest2 != null) {
+                    Matcher k = INPUT_KIND.matcher(rest2);
+                    if (k.find()) {
+                        kind = k.group(1).equalsIgnoreCase("number")
+                                ? Statement.InputKind.NUMBER : Statement.InputKind.TEXT;
+                        rest2 = rest2.substring(0, k.start()).trim();
+                    }
+                }
+                Text prompt = rest2 == null || rest2.isEmpty() ? Text.plain("") : parseStringArg(rest2, p);
+                return new Statement.Input(p, ExprParser.parseVar(m.group(1), p), prompt, kind);
             }
             default -> {
                 idx++;

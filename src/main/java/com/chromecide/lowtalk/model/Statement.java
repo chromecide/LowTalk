@@ -33,7 +33,27 @@ public sealed interface Statement {
     record End(Pos pos) implements Statement {}
 
     /** Ask the player for text and store it in the target variable. */
-    record Input(Pos pos, Expr.Var target, Text prompt) implements Statement {}
+    /**
+     * A text box whose answer is stored in {@code target}.
+     *
+     * <p>{@code kind} is what the author asked the player for. A number input re-asks rather than storing a
+     * word, because the alternative is a conversation that dies later, in whatever line first treats the
+     * answer as a number — the one thing a creator cannot validate is the one thing that could end the
+     * conversation.
+     */
+    record Input(Pos pos, Expr.Var target, Text prompt, InputKind kind) implements Statement {
+        public Input(Pos pos, Expr.Var target, Text prompt) {
+            this(pos, target, prompt, InputKind.TEXT);
+        }
+    }
+
+    /** What an {@link Input} accepts. */
+    enum InputKind {
+        /** Anything the player types, cut to the answer limit. */
+        TEXT,
+        /** A number, or the box comes back. */
+        NUMBER
+    }
 
     /** <<random>> ... <<or>> ... <<endrandom>>: one alternative runs, chosen at random. */
     record Random(Pos pos, List<List<Statement>> alternatives) implements Statement {}

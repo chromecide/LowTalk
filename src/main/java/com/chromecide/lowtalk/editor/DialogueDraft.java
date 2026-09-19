@@ -483,9 +483,29 @@ public final class DialogueDraft {
 
     @Nullable
     public String setInput(Scope sc, int index, String var, String prompt) {
-        Statement s = parseStatementText("<<input " + (var == null ? "" : var.trim()) + " " + com.chromecide.lowtalk.parser.Printer.arg(prompt == null ? "" : prompt) + ">>");
+        // Rebuilt from text, so the kind has to be carried over by hand or editing the prompt would quietly
+        // turn a number box back into a text one.
+        List<Statement> body = view(sc);
+        Statement.InputKind kind = index >= 0 && index < body.size() && body.get(index) instanceof Statement.Input in
+                ? in.kind() : Statement.InputKind.TEXT;
+        Statement s = parseStatementText("<<input " + (var == null ? "" : var.trim()) + " "
+                + com.chromecide.lowtalk.parser.Printer.arg(prompt == null ? "" : prompt)
+                + (kind == Statement.InputKind.NUMBER ? " number" : "") + ">>");
         if (!(s instanceof Statement.Input)) return "write a variable like $name and a prompt";
         replace(sc, index, s);
+        return null;
+    }
+
+    /** Switch a text box to a number one, or back. Returns an error or null. */
+    @Nullable
+    public String setInputKind(Scope sc, int index, String kind) {
+        List<Statement> body = view(sc);
+        if (index < 0 || index >= body.size() || !(body.get(index) instanceof Statement.Input in)) {
+            return "that row is not an input";
+        }
+        Statement.InputKind want = "number".equalsIgnoreCase(kind == null ? "" : kind.trim())
+                ? Statement.InputKind.NUMBER : Statement.InputKind.TEXT;
+        replace(sc, index, new Statement.Input(in.pos(), in.target(), in.prompt(), want));
         return null;
     }
 
