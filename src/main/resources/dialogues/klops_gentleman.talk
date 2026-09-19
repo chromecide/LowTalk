@@ -1,7 +1,0 @@
-npc: @klops_gentleman
-speaker: Klops Gentleman
-
-== start
-Hello there.
--> Goodbye
-    <<end>>
