@@ -133,6 +133,16 @@ once-blocks); the modifiers can be combined in any order:
 A choice can show at most eight options at once. If an option's body does not
 `jump` or `end`, the passage's options are shown again, which makes hubs easy.
 
+**Order.** Statements run in the order they are written, and a condition sees
+what the commands above it did:
+
+```
+<<give Food_Bread>>
+<<if has("Food_Bread")>>
+  Mind how you carry it.
+<<endif>>
+```
+
 **Conditional.**
 
 ```

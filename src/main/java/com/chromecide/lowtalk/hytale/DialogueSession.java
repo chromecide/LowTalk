@@ -76,6 +76,12 @@ public class DialogueSession implements EffectHost {
         this.origin = origin;
         this.context = context;
         this.conversation = new Conversation(dialogue, context);
+        // Effects run where they are written, not after the passage has been walked. The node the effect is
+        // in is reported first, so a listener still hears about a passage before the commands inside it.
+        this.conversation.onEffect(effect -> {
+            nodeChanged();
+            applyEffect(effect);
+        });
         String title = dialogue.title() != null ? dialogue.title() : (dialogue.speaker() != null ? dialogue.speaker() : npcName);
         this.presentation = host.presentation(dialogue);
         this.page = new DialoguePage(player, this, title, dialogue.otherDirectives().get("portrait"), presentation.layout(), presentation.history());
@@ -162,7 +168,6 @@ public class DialogueSession implements EffectHost {
             s.fail(e);
             return null;
         }
-        s.applyEffects(first.effects());
         if (s.ended) return null;
         if (s.suspended) {
             if (first.step() instanceof Step.Finish) {
@@ -421,8 +426,7 @@ public class DialogueSession implements EffectHost {
             fail(e);
             return;
         }
-        nodeChanged();
-        applyEffects(r.effects());
+        nodeChanged();   // any passage entered after the last effect in the walk
         if (ended) return; // an effect took over the screen for good
         if (suspended) {
             // The shop is up. Nothing after the command: end quietly, the shop stays. Otherwise wait for Back.
@@ -451,24 +455,29 @@ public class DialogueSession implements EffectHost {
         }
     }
 
-    private void applyEffects(List<Effect> effects) {
-        for (Effect e : effects) {
-            EffectRegistry.Handler h = host.effects().get(e.name());
-            if (h == null) {
-                host.logger().at(Level.WARNING).log("%s: no handler for <<%s>> (not implemented yet, or no plugin provides it)", e.pos(), e.name());
-                notify(l -> l.onCommand(context, e.name(), e.args(), "no handler for <<" + e.name() + ">>"));
-                continue;
+    /**
+     * Run one effect, at the point in the passage where it is written.
+     *
+     * <p>A failing effect does not stop the conversation: it is logged, listeners hear about it, and the walk
+     * carries on. That was true when effects were applied in a batch afterwards and stays true now, because a
+     * creator's dialogue should not go dark because one command could not be carried out.
+     */
+    private void applyEffect(@Nonnull Effect e) {
+        EffectRegistry.Handler h = host.effects().get(e.name());
+        if (h == null) {
+            host.logger().at(Level.WARNING).log("%s: no handler for <<%s>> (not implemented yet, or no plugin provides it)", e.pos(), e.name());
+            notify(l -> l.onCommand(context, e.name(), e.args(), "no handler for <<" + e.name() + ">>"));
+            return;
+        }
+        try {
+            String narration = h.apply(this, e);
+            if (narration != null && !narration.isBlank()) {
+                page.showNarration(narration);
             }
-            try {
-                String narration = h.apply(this, e);
-                if (narration != null && !narration.isBlank()) {
-                    page.showNarration(narration);
-                }
-                notify(l -> l.onCommand(context, e.name(), e.args(), null));
-            } catch (RuntimeException ex) {
-                host.logger().at(Level.WARNING).log("%s: <<%s %s>> failed: %s", e.pos(), e.name(), String.join(" ", e.args()), ex.toString());
-                notify(l -> l.onCommand(context, e.name(), e.args(), String.valueOf(ex.getMessage())));
-            }
+            notify(l -> l.onCommand(context, e.name(), e.args(), null));
+        } catch (RuntimeException ex) {
+            host.logger().at(Level.WARNING).log("%s: <<%s %s>> failed: %s", e.pos(), e.name(), String.join(" ", e.args()), ex.toString());
+            notify(l -> l.onCommand(context, e.name(), e.args(), String.valueOf(ex.getMessage())));
         }
     }
 

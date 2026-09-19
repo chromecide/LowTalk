@@ -9,6 +9,7 @@ import com.chromecide.lowtalk.model.Statement;
 import com.chromecide.lowtalk.model.Text;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -24,6 +25,32 @@ import java.util.List;
 public final class Conversation {
 
     public record Result(Step step, List<Effect> effects) {}
+
+    /**
+     * Runs an effect the moment the walk reaches it.
+     *
+     * <p>Without one, effects are collected and handed back in the {@link Result} for the host to run after
+     * the walk has finished — which means a condition cannot see what an effect above it did. Writing
+     * {@code <<give Food_Bread>>} and then {@code <<if has("Food_Bread")>>} read false, silently, because the
+     * bread had not been given yet when the question was asked. A test harness found it by asking whether a
+     * recipe was known immediately after learning it.
+     */
+    public interface EffectSink {
+        void run(@Nonnull Effect effect);
+    }
+
+    /** Where effects go as they are reached. Null means collect them into the Result, as before. */
+    @Nullable private EffectSink sink;
+
+    /**
+     * Run effects as the walk reaches them, rather than collecting them.
+     *
+     * <p>The host sets this; nothing else should. Anything that walks a conversation without one — the test
+     * runner, the parser's own tests — keeps the collecting behaviour and sees an ordinary list of effects.
+     */
+    public void onEffect(@Nullable EffectSink sink) {
+        this.sink = sink;
+    }
 
     /** A body being executed and how far through it we are. */
     private static final class Frame {
@@ -280,7 +307,10 @@ public final class Conversation {
                             else if (HANDS_SOMETHING_OVER.contains(cmd.name())) warnIfPlayerChoosesTheReward(cmd.name(), t);
                             args.add(Evaluator.render(t, ctx));
                         }
-                        effects.add(new Effect(cmd.pos(), cmd.name(), List.copyOf(args)));
+                        Effect effect = new Effect(cmd.pos(), cmd.name(), List.copyOf(args));
+                        // Run it here, so a condition below this line sees what it did.
+                        if (sink == null) effects.add(effect);
+                        else sink.run(effect);
                     }
                 }
             } catch (RuntimeError e) {

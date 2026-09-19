@@ -51,8 +51,14 @@ public final class NpcEffects {
             if (npcRef == null) throw new RuntimeError(effect.pos(), "<<state>> needs an NPC (this dialogue has none)");
             String state = effect.args().get(0);
             String sub = effect.args().size() > 1 ? effect.args().get(1) : null;
+            StateSupport support = StateSupport.get(npcRef, store);
+            // setState ignores a name the role does not have, so a typo used to do nothing at all and say
+            // nothing about it. A creator has no way to see that from in game, and the NPC simply stays put.
+            if (support.getStateHelper().getStateIndex(state) < 0) {
+                throw new RuntimeError(effect.pos(), "this NPC's role has no state called '" + state + "'");
+            }
             try {
-                StateSupport.get(npcRef, store).setState(npcRef, state, sub, store);
+                support.setState(npcRef, state, sub, store);
             } catch (RuntimeException e) {
                 throw new RuntimeError(effect.pos(), "could not enter state '" + state + "': " + e.getMessage());
             }

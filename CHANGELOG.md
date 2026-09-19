@@ -28,6 +28,18 @@ version nobody can download. The last published version is 0.3.0.
 
 ### Fixed
 
+- **A condition could not see what a command above it had just done.** `<<give Food_Bread>>` followed by
+  `<<if has("Food_Bread")>>` took the false branch; so did `<<learn>>` and then `knows()`, and every other
+  pair like them. The runtime walked the whole passage first — evaluating every condition — and handed the
+  commands to the host to run once the walk was over, so a question asked after a command was answered with
+  the world as it stood before it. No error and no warning, just the wrong branch. Commands now run where
+  they are written. Found by a test harness asking whether a recipe was known immediately after teaching it,
+  and wrong since the language shipped.
+
+- **`<<state>>` did nothing, quietly, when the role had no state by that name.** The game's `setState`
+  ignores an unknown state, so a typo left the NPC where it was and said nothing to anyone. It now refuses by
+  name, the way an unknown title style already did.
+
 - **A renamed NPC went back to its old name at the next restart.** `<<npc_name>>` changed the nameplate in
   front of you and the documentation said the name was kept with the NPC, and it was not: the game only writes
   an entity out when its `Dirty` component says to, spawning marks an entity but changing a component does not,
