@@ -18,6 +18,13 @@ wonder.
 
 Nothing else in this release needs anything from you.
 
+### Built against Hytale 0.6.8 and 0.7.0-pre.3.1
+
+Both lines get a jar, and both were walked end to end before this was tagged. The two server updates that
+landed during that work changed one class between them — `HardwareUtil`, resolving Windows system binaries by
+absolute path instead of by name, which is PATH-hijack hardening and touches nothing this mod uses. Nothing
+else in either jar moved.
+
 ### Titles use the game's own styles
 
 - **`<<title>>` takes a style, not a yes-or-no.** Hytale 0.7 replaced the `IsMajor` flag with an `EventTitleStyle`,
