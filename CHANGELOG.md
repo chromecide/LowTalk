@@ -40,6 +40,12 @@ Nothing else in this release needs anything from you.
 
 ### Added
 
+- **A listener can tell how a conversation started, and where.** `DialogueContext` gained `getOpener()` — NPC,
+  block, prop, trigger, join, role, interaction, command, API — and `getOrigin()`, the point in the world a
+  block or prop conversation is happening at. A plugin watching dialogues could previously see which one
+  opened and for whom, and not by what route, so a dialogue bound to both an NPC and a block was
+  indistinguishable between the two. The session always knew; it now says.
+
 - **`<<spawn>>` can give the new NPC a tag, so it can be talked to.** A spawned NPC could only ever have the
   dialogue its role already had, which meant "spawn a guard, then talk to the guard" was not something this
   language could say — the NPC arrived and stood there. `<<spawn Kweebec_Merchant @guard>>` tags it, and a

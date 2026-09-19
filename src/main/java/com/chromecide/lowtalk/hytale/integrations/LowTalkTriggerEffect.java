@@ -55,6 +55,6 @@ public final class LowTalkTriggerEffect extends TriggerEffect {
         }
         if (plugin.getSessions().get(playerRef.getUuid()) != null) return; // already in a conversation
         World world = store.getExternalData().getWorld();
-        plugin.getSessions().openFor(d, playerRef, ref, store, world, null);
+        plugin.getSessions().openFor(d, playerRef, ref, store, world, null, com.chromecide.lowtalk.api.Opener.TRIGGER);
     }
 }

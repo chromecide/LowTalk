@@ -174,7 +174,7 @@ public class BrowsePage extends InteractiveCustomUIPage<BrowsePage.Data> {
                 World world = store.getExternalData().getWorld();
                 world.execute(() -> {
                     if (!playerEntity.isValid()) return;
-                    if (plugin.getSessions().openFor(d, playerRef, playerEntity, store, world, null) == null) {
+                    if (plugin.getSessions().openFor(d, playerRef, playerEntity, store, world, null, com.chromecide.lowtalk.api.Opener.COMMAND) == null) {
                         close();
                         playerRef.sendMessage(LowTalkCommand.msg(plugin, "endedAtOnce").param("passage", "start"));
                     }

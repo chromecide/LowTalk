@@ -40,7 +40,7 @@ public final class TestRunner implements EffectHost {
     public TestRunner(@Nonnull LowTalkPlugin plugin, @Nonnull Dialogue dialogue, @Nonnull PlayerRef player, @Nonnull World world,
                       @Nonnull UUID npcId, @Nonnull String npcName, boolean applyEffects, @Nonnull Consumer<String> out) {
         this.plugin = plugin;
-        this.context = new HytaleContext(dialogue, player, npcId, npcName, plugin.getStore(), plugin.getFunctions());
+        this.context = new HytaleContext(dialogue, player, npcId, npcName, plugin.getStore(), plugin.getFunctions(), com.chromecide.lowtalk.api.Opener.COMMAND, null);
         this.world = world;
         this.npcId = npcId;
         this.applyEffects = applyEffects;

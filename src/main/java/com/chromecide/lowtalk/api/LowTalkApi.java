@@ -173,7 +173,7 @@ public final class LowTalkApi {
         World world = store.getExternalData().getWorld();
         world.execute(() -> {
             if (!ref.isValid()) return;
-            plugin.getSessions().openFor(d, player, ref, store, world, NpcInfo.lookedAt(ref, store, player, plugin.getStore()));
+            plugin.getSessions().openFor(d, player, ref, store, world, NpcInfo.lookedAt(ref, store, player, plugin.getStore()), Opener.API);
         });
         return true;
     }

@@ -110,7 +110,28 @@ api.addListener(new DialogueListener() {
 ```
 
 `onStart`, `onNode`, `onChoice`, and `onEnd` all have empty defaults. `onEnd`
-fires exactly once per conversation whatever ended it.
+fires exactly once per conversation whatever ended it. `onCommand` reports each
+command as it runs, with the error when one fails, and `onFailed` reports a
+conversation that fell over.
+
+The context says how a conversation started and where, which matters as soon as
+a dialogue can be reached by more than one route — the same dialogue bound to an
+NPC and to a block looks identical otherwise:
+
+```java
+@Override
+public void onStart(DialogueContext ctx) {
+    if (ctx.getOpener() == Opener.BLOCK) {
+        Vector3d where = ctx.getOrigin();   // the middle of the block; null for an NPC
+        log("opened from a block at " + where);
+    }
+}
+```
+
+`Opener` is `NPC`, `BLOCK`, `PROP`, `TRIGGER`, `JOIN`, `ROLE`, `INTERACTION`,
+`COMMAND`, `API`, or `NONE` for a context built only to evaluate an expression.
+`getOrigin()` is the point a block or prop conversation happens at, and null
+when the NPC is the place.
 
 ## Open a dialogue
 

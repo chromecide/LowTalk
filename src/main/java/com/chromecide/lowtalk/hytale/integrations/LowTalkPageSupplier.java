@@ -56,7 +56,7 @@ public final class LowTalkPageSupplier implements OpenCustomUIInteraction.Custom
         Store<EntityStore> store = ref.getStore();
         World world = store.getExternalData().getWorld();
         NpcInfo npc = NpcInfo.lookedAt(ref, store, playerRef, plugin.getStore());
-        DialogueSession s = plugin.getSessions().prepareFor(d, playerRef, ref, store, world, npc);
+        DialogueSession s = plugin.getSessions().prepareFor(d, playerRef, ref, store, world, npc, com.chromecide.lowtalk.api.Opener.INTERACTION);
         return s == null ? null : s.getPage();
     }
 }

@@ -48,6 +48,6 @@ public final class LowTalkChoiceInteraction extends ChoiceInteraction {
         }
         World world = store.getExternalData().getWorld();
         NpcInfo npc = NpcInfo.lookedAt(ref, store, playerRef, plugin.getStore());
-        plugin.getSessions().openFor(d, playerRef, ref, store, world, npc);
+        plugin.getSessions().openFor(d, playerRef, ref, store, world, npc, com.chromecide.lowtalk.api.Opener.INTERACTION);
     }
 }

@@ -7,6 +7,7 @@ import com.chromecide.lowtalk.runtime.RuntimeError;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,8 +28,14 @@ public class HytaleContext implements Context, DialogueContext {
     private final VariableStore.Record worldRecord;
     private final Map<String, Object> tmp = new HashMap<>();
 
+    private final com.chromecide.lowtalk.api.Opener opener;
+    @Nullable private final org.joml.Vector3d origin;
+
     public HytaleContext(@Nonnull Dialogue dialogue, @Nonnull PlayerRef player, @Nonnull UUID npcId, @Nonnull String npcName,
-                         @Nonnull VariableStore store, @Nonnull FunctionRegistry functions) {
+                         @Nonnull VariableStore store, @Nonnull FunctionRegistry functions, @Nonnull com.chromecide.lowtalk.api.Opener opener,
+                         @Nullable org.joml.Vector3d origin) {
+        this.opener = opener;
+        this.origin = origin;
         this.dialogue = dialogue;
         this.player = player;
         this.npcId = npcId;
@@ -43,6 +50,10 @@ public class HytaleContext implements Context, DialogueContext {
 
     public Dialogue getDialogue() { return dialogue; }
     @Override public String getDialogueId() { return dialogue.id(); }
+
+    @Override @Nonnull public com.chromecide.lowtalk.api.Opener getOpener() { return opener; }
+
+    @Override @Nullable public org.joml.Vector3d getOrigin() { return origin; }
     @Override public PlayerRef getPlayer() { return player; }
     @Override public UUID getNpcId() { return npcId; }
 

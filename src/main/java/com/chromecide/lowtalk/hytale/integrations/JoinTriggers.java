@@ -36,7 +36,7 @@ public final class JoinTriggers {
             if (plugin.getSessions().get(playerRef.getUuid()) != null) return;
             for (Dialogue d : plugin.getRegistry().all()) {
                 if (!JOIN.equalsIgnoreCase(d.otherDirectives().get(DIRECTIVE))) continue;
-                if (plugin.getSessions().openFor(d, playerRef, ref, store, world, null) != null) return; // one at a time
+                if (plugin.getSessions().openFor(d, playerRef, ref, store, world, null, com.chromecide.lowtalk.api.Opener.JOIN) != null) return; // one at a time
             }
         });
     }

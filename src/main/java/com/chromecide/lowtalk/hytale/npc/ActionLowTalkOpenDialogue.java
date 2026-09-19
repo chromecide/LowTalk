@@ -64,7 +64,7 @@ public class ActionLowTalkOpenDialogue extends ActionBase {
             }
         }
         if (plugin.getSessions().get(playerRef.getUuid()) != null) return true; // already talking
-        plugin.getSessions().openFor(d, playerRef, playerEntity, store, world, npc);
+        plugin.getSessions().openFor(d, playerRef, playerEntity, store, world, npc, com.chromecide.lowtalk.api.Opener.ROLE);
         return true;
     }
 

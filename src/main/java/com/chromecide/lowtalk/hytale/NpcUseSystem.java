@@ -79,7 +79,7 @@ public class NpcUseSystem extends EntityEventSystem<EntityStore, UseEntityEvent.
 
         event.setCancelled(true);
         World world = store.getExternalData().getWorld();
-        plugin.getSessions().open(chosen, player, playerEntity, store, world, npc);
+        plugin.getSessions().open(chosen, player, playerEntity, store, world, npc, com.chromecide.lowtalk.api.Opener.NPC);
     }
 
     /**
@@ -107,7 +107,7 @@ public class NpcUseSystem extends EntityEventSystem<EntityStore, UseEntityEvent.
             return;
         }
         World world = store.getExternalData().getWorld();
-        plugin.getSessions().open(d, player, playerEntity, store, world, PropSupport.speaker(binding, d));
+        plugin.getSessions().open(d, player, playerEntity, store, world, PropSupport.speaker(binding, d), com.chromecide.lowtalk.api.Opener.PROP);
     }
 
     /** The first bound dialogue whose binding mode matches how the player interacted. */

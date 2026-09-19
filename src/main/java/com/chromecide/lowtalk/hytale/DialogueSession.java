@@ -48,6 +48,7 @@ public class DialogueSession implements EffectHost {
     private final String npcName;
     /** Where the conversation is when no entity stands for it (a bound block), or null. */
     private final org.joml.Vector3d origin;
+    private final com.chromecide.lowtalk.api.Opener opener;
     private final HytaleContext context;
     private final Conversation conversation;
     private final DialoguePage page;
@@ -66,7 +67,8 @@ public class DialogueSession implements EffectHost {
     private int stepSerial = 0;
 
     private DialogueSession(Host host, Dialogue dialogue, PlayerRef player, World world, UUID npcId, String npcName,
-                            @Nullable org.joml.Vector3d origin, HytaleContext context) {
+                            @Nullable org.joml.Vector3d origin, com.chromecide.lowtalk.api.Opener opener,
+                            HytaleContext context) {
         this.host = host;
         this.dialogue = dialogue;
         this.player = player;
@@ -74,6 +76,7 @@ public class DialogueSession implements EffectHost {
         this.npcId = npcId;
         this.npcName = npcName;
         this.origin = origin;
+        this.opener = opener;
         this.context = context;
         this.conversation = new Conversation(dialogue, context);
         // Effects run where they are written, not after the passage has been walked. The node the effect is
@@ -90,6 +93,9 @@ public class DialogueSession implements EffectHost {
     @Override
     @Nullable
     public org.joml.Vector3d getOrigin() { return origin; }
+
+    /** What started this conversation. Listeners read the same thing off the context. */
+    public com.chromecide.lowtalk.api.Opener getOpener() { return opener; }
 
     public com.chromecide.lowtalk.hytale.presentation.Presentation getPresentation() { return presentation; }
 
@@ -150,17 +156,18 @@ public class DialogueSession implements EffectHost {
     @Nullable
     public static DialogueSession prepare(@Nonnull Host host, @Nonnull FunctionRegistry functions, @Nonnull Dialogue dialogue,
                                           @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity, @Nonnull Store<EntityStore> store,
-                                          @Nonnull World world, @Nonnull NpcInfo npc) {
-        return prepare(host, functions, dialogue, player, playerEntity, store, world, npc, null);
+                                          @Nonnull World world, @Nonnull NpcInfo npc, @Nonnull com.chromecide.lowtalk.api.Opener opener) {
+        return prepare(host, functions, dialogue, player, playerEntity, store, world, npc, opener, null);
     }
 
     /** As above, starting in {@code startNode} when given (the editor's Test button). */
     @Nullable
     public static DialogueSession prepare(@Nonnull Host host, @Nonnull FunctionRegistry functions, @Nonnull Dialogue dialogue,
                                           @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity, @Nonnull Store<EntityStore> store,
-                                          @Nonnull World world, @Nonnull NpcInfo npc, @Nullable String startNode) {
-        HytaleContext ctx = new HytaleContext(dialogue, player, npc.id(), npc.name(), host.store(), functions);
-        DialogueSession s = new DialogueSession(host, dialogue, player, world, npc.id(), npc.name(), npc.at(), ctx);
+                                          @Nonnull World world, @Nonnull NpcInfo npc, @Nonnull com.chromecide.lowtalk.api.Opener opener,
+                                          @Nullable String startNode) {
+        HytaleContext ctx = new HytaleContext(dialogue, player, npc.id(), npc.name(), host.store(), functions, opener, npc.at());
+        DialogueSession s = new DialogueSession(host, dialogue, player, world, npc.id(), npc.name(), npc.at(), opener, ctx);
         Conversation.Result first;
         try {
             first = startNode == null ? s.conversation.start() : s.conversation.startAt(startNode);
@@ -195,16 +202,17 @@ public class DialogueSession implements EffectHost {
     @Nullable
     public static DialogueSession open(@Nonnull Host host, @Nonnull FunctionRegistry functions, @Nonnull Dialogue dialogue,
                                        @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity, @Nonnull Store<EntityStore> store,
-                                       @Nonnull World world, @Nonnull NpcInfo npc) {
-        return open(host, functions, dialogue, player, playerEntity, store, world, npc, null);
+                                       @Nonnull World world, @Nonnull NpcInfo npc, @Nonnull com.chromecide.lowtalk.api.Opener opener) {
+        return open(host, functions, dialogue, player, playerEntity, store, world, npc, opener, null);
     }
 
     /** As above, starting in {@code startNode} when given. */
     @Nullable
     public static DialogueSession open(@Nonnull Host host, @Nonnull FunctionRegistry functions, @Nonnull Dialogue dialogue,
                                        @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity, @Nonnull Store<EntityStore> store,
-                                       @Nonnull World world, @Nonnull NpcInfo npc, @Nullable String startNode) {
-        DialogueSession s = prepare(host, functions, dialogue, player, playerEntity, store, world, npc, startNode);
+                                       @Nonnull World world, @Nonnull NpcInfo npc, @Nonnull com.chromecide.lowtalk.api.Opener opener,
+                                       @Nullable String startNode) {
+        DialogueSession s = prepare(host, functions, dialogue, player, playerEntity, store, world, npc, opener, startNode);
         if (s == null) return null;
         if (!s.suspended) {
             Player playerComponent = store.getComponent(playerEntity, Player.getComponentType());

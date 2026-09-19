@@ -324,7 +324,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
                 context.sendMessage(noDialogue(plugin, id));
                 return;
             }
-            plugin.getSessions().openFor(d, player, ref, store, world, lookedAtNpc(ref, store, player, plugin));
+            plugin.getSessions().openFor(d, player, ref, store, world, lookedAtNpc(ref, store, player, plugin), com.chromecide.lowtalk.api.Opener.COMMAND);
         }
     }
 

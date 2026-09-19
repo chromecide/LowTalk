@@ -35,10 +35,11 @@ public class SessionManager {
     /** World thread only. Ends any session the player already has. */
     @Nullable
     public DialogueSession open(@Nonnull Dialogue dialogue, @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity,
-                                @Nonnull Store<EntityStore> store, @Nonnull World world, @Nonnull NpcInfo npc) {
+                                @Nonnull Store<EntityStore> store, @Nonnull World world, @Nonnull NpcInfo npc,
+                                @Nonnull com.chromecide.lowtalk.api.Opener opener) {
         DialogueSession existing = sessions.remove(player.getUuid());
         if (existing != null) existing.end();
-        DialogueSession s = DialogueSession.open(plugin, plugin.getFunctions(), dialogue, player, playerEntity, store, world, npc);
+        DialogueSession s = DialogueSession.open(plugin, plugin.getFunctions(), dialogue, player, playerEntity, store, world, npc, opener);
         if (s != null) sessions.put(player.getUuid(), s);
         return s;
     }
@@ -46,10 +47,11 @@ public class SessionManager {
     /** Open starting in a named node (the editor's Test button). World thread only. */
     @Nullable
     public DialogueSession openAt(@Nonnull Dialogue dialogue, @Nonnull String startNode, @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity,
-                                  @Nonnull Store<EntityStore> store, @Nonnull World world, @Nonnull NpcInfo npc) {
+                                  @Nonnull Store<EntityStore> store, @Nonnull World world, @Nonnull NpcInfo npc,
+                                @Nonnull com.chromecide.lowtalk.api.Opener opener) {
         DialogueSession existing = sessions.remove(player.getUuid());
         if (existing != null) existing.end();
-        DialogueSession s = DialogueSession.open(plugin, plugin.getFunctions(), dialogue, player, playerEntity, store, world, npc, startNode);
+        DialogueSession s = DialogueSession.open(plugin, plugin.getFunctions(), dialogue, player, playerEntity, store, world, npc, opener, startNode);
         if (s != null) sessions.put(player.getUuid(), s);
         return s;
     }
@@ -57,8 +59,9 @@ public class SessionManager {
     /** Open with an optional NPC; null means a narrator conversation. World thread only. */
     @Nullable
     public DialogueSession openFor(@Nonnull Dialogue dialogue, @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity,
-                                   @Nonnull Store<EntityStore> store, @Nonnull World world, @Nullable NpcInfo npc) {
-        return open(dialogue, player, playerEntity, store, world, npc == null ? NpcInfo.narrator(dialogue) : npc);
+                                   @Nonnull Store<EntityStore> store, @Nonnull World world, @Nullable NpcInfo npc,
+                                   @Nonnull com.chromecide.lowtalk.api.Opener opener) {
+        return open(dialogue, player, playerEntity, store, world, npc == null ? NpcInfo.narrator(dialogue) : npc, opener);
     }
 
     /**
@@ -67,11 +70,12 @@ public class SessionManager {
      */
     @Nullable
     public DialogueSession prepareFor(@Nonnull Dialogue dialogue, @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity,
-                                      @Nonnull Store<EntityStore> store, @Nonnull World world, @Nullable NpcInfo npc) {
+                                      @Nonnull Store<EntityStore> store, @Nonnull World world, @Nullable NpcInfo npc,
+                                      @Nonnull com.chromecide.lowtalk.api.Opener opener) {
         if (npc == null) npc = NpcInfo.narrator(dialogue);
         DialogueSession existing = sessions.remove(player.getUuid());
         if (existing != null) existing.end();
-        DialogueSession s = DialogueSession.prepare(plugin, plugin.getFunctions(), dialogue, player, playerEntity, store, world, npc);
+        DialogueSession s = DialogueSession.prepare(plugin, plugin.getFunctions(), dialogue, player, playerEntity, store, world, npc, opener);
         if (s != null) {
             sessions.put(player.getUuid(), s);
             s.afterOpen();

@@ -77,7 +77,7 @@ public final class DialogueExpressions {
             return null;
         }
         String name = npcName != null ? npcName : (d.speaker() != null ? d.speaker() : "Narrator");
-        return new HytaleContext(d, player, npcId, name, plugin.getStore(), plugin.getFunctions());
+        return new HytaleContext(d, player, npcId, name, plugin.getStore(), plugin.getFunctions(), com.chromecide.lowtalk.api.Opener.NONE, null);
     }
 
     private static void warn(LowTalkPlugin plugin, String message) {

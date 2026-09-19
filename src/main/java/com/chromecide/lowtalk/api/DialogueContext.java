@@ -21,6 +21,18 @@ public interface DialogueContext {
 
     @Nonnull String getDialogueId();
 
+    /** What started this conversation: an NPC, a block, a trigger, a role, a command, another plugin. */
+    @Nonnull Opener getOpener();
+
+    /**
+     * Where the conversation is happening, when it is somewhere rather than with someone: the middle of the
+     * block or prop that opened it. Null for an NPC conversation, where the NPC is the place.
+     *
+     * <p>With {@link #getOpener()} this is what lets a listener tell one block from another — which block
+     * was used, not merely that one was.
+     */
+    @Nullable org.joml.Vector3d getOrigin();
+
     /** A variable's value (Double, String, Boolean), or null if unset. */
     @Nullable Object getVar(@Nonnull String scope, @Nonnull String name);
 
