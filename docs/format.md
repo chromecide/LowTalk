@@ -212,7 +212,7 @@ time. Any statements are allowed inside, not just lines.
 | `<<npc_name "Elder Mara">>`, `<<npc_name clear>>` | Rename this NPC (nameplate and display name, persisted with the NPC). |
 | `<<state Name [SubState]>>` | Put this NPC's role into one of the states defined in its role JSON. |
 | `<<despawn>>` | End the conversation and retire this NPC the way the game retires NPCs. |
-| `<<spawn Role_Id [right up forward]>>` | Spawn an NPC near the player, by default two blocks in front, facing them. Offsets are in blocks relative to where the player faces. |
+| `<<spawn Kweebec_Merchant>>`, `<<spawn Kweebec_Merchant @guard 2 0 3>>` | Spawn an NPC near the player, facing them, with optional blocks to the right, up and forward. **An `@tag` gives the new NPC that tag**, so a dialogue whose `npc:` line names it becomes the NPC's own — without one, a spawned NPC only has whatever dialogue its role already had, and "spawn a guard who then talks to you" cannot be written. The tag is recognised by its leading `@` in any position. |
 
 Plugins can register additional commands.
 

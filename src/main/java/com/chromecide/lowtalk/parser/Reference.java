@@ -45,7 +45,7 @@ public final class Reference {
         cmd("npc_name", "\"Name\" | clear", "Rename this NPC (nameplate and display name, kept with the NPC).");
         cmd("state", "State [SubState]", "Put this NPC's role into a state from its role JSON.");
         cmd("despawn", "", "End the conversation and retire this NPC.");
-        cmd("spawn", "Role_Id [right up forward]", "Spawn an NPC near the player, two blocks in front by default, facing them.");
+        cmd("spawn", "Kweebec_Merchant @guard", "Spawn an NPC near the player. Give it @a_tag and a dialogue bound to that tag is its own, so the NPC you spawn can be talked to.");
         // ---- progress
         cmd("objective", "Id | start Id | cancel Id | line Line_Id | task Task_Id", "Start or abandon an objective, start an objective line, or advance a talk-to-NPC task.");
         cmd("reputation", "+10 [Group_Id]", "Change the player's standing with this NPC's reputation group, or a named group.");

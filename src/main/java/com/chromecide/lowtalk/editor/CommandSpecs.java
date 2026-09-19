@@ -187,7 +187,7 @@ public final class CommandSpecs {
         spec("npc_name", text("name"));
         spec("state", text("state"), optionalText("sub-state"));
         spec("despawn");
-        spec("spawn", asset("role", ROLES), optionalNumber("right"), optionalNumber("up"), optionalNumber("forward"));
+        spec("spawn", asset("role", ROLES), optionalText("tag"), optionalNumber("right"), optionalNumber("up"));
         // ---- progress
         spec("objective", choice("do", OBJECTIVE_VERBS), asset("objective", OBJECTIVES));
         spec("reputation", number("by"), optionalAsset("group", REPUTATION_GROUPS));
@@ -318,6 +318,20 @@ public final class CommandSpecs {
                     else return null;
                 }
                 return List.of(raw.get(0), under, style, seconds);
+            }
+            case "spawn" -> {
+                if (raw.isEmpty()) return raw;
+                // The tag is the one that starts with @, wherever the author put it.
+                String tag = "";
+                List<String> numbers = new ArrayList<>();
+                for (String a : raw.subList(1, raw.size())) {
+                    String t = a.trim();
+                    if (t.startsWith("@")) tag = t;
+                    else if (numbers.size() < 2) numbers.add(t);
+                    else return null;
+                }
+                while (numbers.size() < 2) numbers.add("");
+                return List.of(raw.get(0), tag, numbers.get(0), numbers.get(1));
             }
             case "vfx" -> {
                 if (raw.isEmpty()) return raw;

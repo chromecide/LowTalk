@@ -162,6 +162,7 @@ public final class JsonConvert {
                 if (blank(sp.role)) throw new ParseException(p, "a Spawn needs a Role");
                 List<String> args = new ArrayList<>();
                 args.add(sp.role);
+                if (!blank(sp.tag)) args.add(sp.tag.startsWith("@") ? sp.tag : "@" + sp.tag);
                 if (sp.right != 0 || sp.up != 0 || sp.forward != 2.0) {
                     args.add(Printer.expr(new Expr.Literal(sp.right)));
                     args.add(Printer.expr(new Expr.Literal(sp.up)));
@@ -440,16 +441,29 @@ public final class JsonConvert {
                     }
                 }
                 case "spawn" -> {
-                    if (a0 != null && (args.size() == 1 || args.size() == 4)) {
+                    if (a0 != null) {
+                        // The tag is whichever argument starts with @; the rest are the placement numbers.
+                        String tag = null;
+                        List<String> numbers = new ArrayList<>();
+                        boolean plain = true;
+                        for (Text t : args.subList(1, args.size())) {
+                            if (!t.isStatic()) { plain = false; break; }
+                            String v = t.debugString().trim();
+                            if (v.startsWith("@")) tag = v.substring(1);
+                            else numbers.add(v);
+                        }
                         try {
-                            JsonStatement.Spawn sp = new JsonStatement.Spawn();
-                            sp.role = a0;
-                            if (args.size() == 4) {
-                                sp.right = Double.parseDouble(a1);
-                                sp.up = Double.parseDouble(args.get(2).debugString());
-                                sp.forward = Double.parseDouble(args.get(3).debugString());
+                            if (plain && (numbers.isEmpty() || numbers.size() == 3)) {
+                                JsonStatement.Spawn sp = new JsonStatement.Spawn();
+                                sp.role = a0;
+                                sp.tag = tag;
+                                if (numbers.size() == 3) {
+                                    sp.right = Double.parseDouble(numbers.get(0));
+                                    sp.up = Double.parseDouble(numbers.get(1));
+                                    sp.forward = Double.parseDouble(numbers.get(2));
+                                }
+                                return sp;
                             }
-                            return sp;
                         } catch (NumberFormatException ignored) {
                             // fall through to a generic command
                         }

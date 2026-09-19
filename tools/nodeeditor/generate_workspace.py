@@ -266,6 +266,7 @@ statement("Despawn", "Despawn NPC", "End the conversation and retire this NPC.",
 statement("Calm", "Calm NPC", "Make this NPC forget whatever it was fighting. An attitude alone will not call off an attack already under way.", color="Orange")
 statement("Spawn", "Spawn NPC", "Spawn an NPC near the player, facing them.",
           [small("Role", "Role", "NPC role id, e.g. Kweebec_Merchant."),
+           small("Tag", "Tag", "Tag the new NPC with this, without the @, so a dialogue bound to the tag is its own."),
            number("Right", "Right", "Blocks to the player's right.", 0.0), number("Up", "Up", "Blocks up.", 0.0),
            number("Forward", "Forward", "Blocks in front of the player.", 2.0)], color="Orange")
 statement("Objective", "Start objective", "Start an objective for the player.", [small("Objective", "Objective", "Objective id.")], color="Yellow")

@@ -289,6 +289,8 @@ public final class JsonCodecs {
             "Spawn an NPC near the player, facing them.", b -> {
                 b.append(new KeyedCodec<>("Role", Codec.STRING), (s, v) -> s.role = v, s -> s.role).addValidator(Validators.nonNull())
                         .metadata(pick(JsonDialogues.DATASET_ROLES)).documentation("The NPC role to spawn.").add();
+                b.append(new KeyedCodec<>("Tag", Codec.STRING), (s, v) -> s.tag = v, s -> s.tag)
+                        .documentation("Tag the new NPC with this, without the @, so a dialogue bound to the tag becomes its own.").add();
                 b.append(new KeyedCodec<>("Right", Codec.DOUBLE), (s, v) -> s.right = v, s -> s.right).documentation("Blocks to the player's right.").add();
                 b.append(new KeyedCodec<>("Up", Codec.DOUBLE), (s, v) -> s.up = v, s -> s.up).documentation("Blocks up.").add();
                 b.append(new KeyedCodec<>("Forward", Codec.DOUBLE), (s, v) -> s.forward = v, s -> s.forward).documentation("Blocks in front of the player (default 2).").add();

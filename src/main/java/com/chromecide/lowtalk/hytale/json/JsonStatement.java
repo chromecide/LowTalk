@@ -183,6 +183,7 @@ public abstract class JsonStatement {
 
     public static final class Spawn extends JsonStatement {
         public String role;
+        public String tag;
         public double right;
         public double up;
         public double forward = 2.0;

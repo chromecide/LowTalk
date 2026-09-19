@@ -153,4 +153,31 @@ class JsonConvertTest {
         assertEquals("start", d.starts().get(0).node());
         assertNull(d.speaker());
     }
+
+    /**
+     * A spawned NPC's tag survives the JSON round trip, wherever the author wrote it.
+     *
+     * <p>The tag is what makes a spawned NPC something you can talk to — a dialogue bound to it becomes the
+     * new NPC's own — so losing it in a conversion would turn a working dialogue into one that spawns a mute.
+     * It is recognised by its leading {@code @} in any position, which is exactly the kind of thing a
+     * conversion gets wrong.
+     */
+    @Test
+    void aSpawnTagSurvivesTheRoundTrip() {
+        for (String written : List.of("<<spawn Kweebec_Merchant @guard>>",
+                                      "<<spawn Kweebec_Merchant @guard 1 0 3>>",
+                                      "<<spawn Kweebec_Merchant 1 0 3 @guard>>")) {
+            Dialogue d = DialogueParser.parse("t.talk", "== a\n" + written + "\nDone.\n");
+            LowTalkJson asset = JsonConvert.toAsset(d);
+
+            JsonStatement first = asset.nodes.get(0).body.get(0);
+            JsonStatement.Spawn spawn = assertInstanceOf(JsonStatement.Spawn.class, first,
+                    written + " should convert to a Spawn, not a generic command");
+            assertEquals("Kweebec_Merchant", spawn.role);
+            assertEquals("guard", spawn.tag, "the tag is kept without its @");
+
+            String back = Printer.dialogue(JsonConvert.toModel(asset, "t"));
+            assertTrue(back.contains("@guard"), "and comes back as a tag: " + back);
+        }
+    }
 }

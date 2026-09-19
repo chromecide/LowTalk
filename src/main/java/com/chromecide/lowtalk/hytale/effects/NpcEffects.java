@@ -18,6 +18,8 @@ import com.hypixel.hytale.server.npc.role.support.MarkedEntitySupport;
 import com.hypixel.hytale.server.npc.role.support.StateSupport;
 import org.joml.Vector3d;
 
+import java.util.ArrayList;
+import java.util.List;
 import javax.annotation.Nonnull;
 import java.util.logging.Level;
 
@@ -112,9 +114,23 @@ public final class NpcEffects {
             Store<EntityStore> store = playerRef.getStore();
             TransformComponent transform = store.getComponent(playerRef, TransformComponent.getComponentType());
             if (transform == null) return null;
-            double right = offset(effect, 1, 0.0);
-            double up = offset(effect, 2, 0.0);
-            double forward = offset(effect, 3, 2.0);
+            // A tag is recognised by its leading @ wherever it sits, the way a title's style is recognised by
+            // being one. Without it a spawned NPC can only ever have the dialogue its role already had, so
+            // "spawn a guard, then talk to the guard" could not be written at all.
+            String tag = null;
+            List<String> placement = new ArrayList<>();
+            for (String a : effect.args().subList(1, effect.args().size())) {
+                String t = a.trim();
+                if (t.startsWith("@") && t.length() > 1) {
+                    if (tag != null) throw new RuntimeError(effect.pos(), "<<spawn>> takes one @tag, not two");
+                    tag = t.substring(1);
+                } else {
+                    placement.add(t);
+                }
+            }
+            double right = number(effect, placement, 0, 0.0);
+            double up = number(effect, placement, 1, 0.0);
+            double forward = number(effect, placement, 2, 2.0);
             float yaw = transform.getRotation().yaw();
             double fx = -Math.sin(yaw), fz = Math.cos(yaw); // unit vector the player faces, on the ground plane
             double rx = fz, rz = -fx;
@@ -123,9 +139,30 @@ public final class NpcEffects {
             Rotation3f facePlayer = Rotation3f.lookAt(pos, p);
             var pair = NPCPlugin.get().spawnNPC(store, role, null, pos, new Rotation3f(0.0f, facePlayer.yaw(), 0.0f));
             if (pair == null) throw new RuntimeError(effect.pos(), "could not spawn an NPC with role '" + role + "'");
-            plugin.getLogger().at(Level.INFO).log("<<spawn>> %s for %s", role, session.getPlayer().getUsername());
+            if (tag != null) {
+                var uuid = store.getComponent(pair.first(),
+                        com.hypixel.hytale.server.core.entity.UUIDComponent.getComponentType());
+                if (uuid == null) {
+                    throw new RuntimeError(effect.pos(), "the NPC spawned but has no id, so it cannot be tagged '" + tag + "'");
+                }
+                plugin.getStore().addTag(plugin.getStore().npc(uuid.getUuid()), tag);
+                plugin.getStore().flush();
+            }
+            plugin.getLogger().at(Level.INFO).log("<<spawn>> %s%s for %s", role,
+                    tag == null ? "" : " tagged @" + tag, session.getPlayer().getUsername());
             return null;
         });
+    }
+
+    /** A placement number, by position among the arguments that are not the tag. */
+    private static double number(com.chromecide.lowtalk.runtime.Effect effect, List<String> placement, int index, double def) {
+        if (placement.size() <= index) return def;
+        try {
+            return Double.parseDouble(placement.get(index).trim());
+        } catch (NumberFormatException e) {
+            throw new RuntimeError(effect.pos(), "<<spawn>> expects numbers for right, up and forward; got '"
+                    + placement.get(index) + "'");
+        }
     }
 
     private static double offset(com.chromecide.lowtalk.runtime.Effect effect, int index, double def) {

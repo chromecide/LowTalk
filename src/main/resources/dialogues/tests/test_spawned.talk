@@ -1,0 +1,34 @@
+# The dialogue of an NPC that did not exist a moment ago.
+#
+# Station 12 spawns a Rootling Merchant tagged @spawned_helper, and this file is bound to that tag, so the
+# NPC arrives able to talk. Without the tag a spawned NPC can only ever have whatever dialogue its role
+# already had, which is why "spawn a guard, then talk to the guard" could not be written before.
+#
+# It also despawns itself rather than the station. Station 12 used to offer "despawn me", which retired the
+# station in the middle of a walk and took its renamed nameplate with it.
+
+npc: @spawned_helper
+title: Spawned helper
+speaker: Helper
+
+== start
+I did not exist a moment ago. Station 12 spawned me and tagged me @spawned_helper, and this dialogue is bound
+to that tag rather than to my role, so it is mine.
+-> What does that prove?
+    <<jump why>>
+-> Send me away
+    <<jump leave>>
+-> Nothing, thanks
+    <<end>>
+
+== why
+That a spawned NPC can be a full participant. Every other Rootling Merchant on this server keeps its own
+dialogue; only the one that was spawned with the tag has this one.
+-> Send me away
+    <<jump leave>>
+-> Good
+    <<end>>
+
+== leave
+Back to nothing, then.
+<<despawn>>

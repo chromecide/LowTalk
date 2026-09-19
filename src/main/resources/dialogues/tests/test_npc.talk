@@ -11,8 +11,10 @@ TEST 12: NPC control and objective extras. Objective_Gather is "{objective("Obje
 -> Give me my station name back
     <<npc_name "12 - NPC control and objectives">>
     <<jump start>>
--> Spawn a Rootling Merchant two blocks to your right (expect a new NPC facing you; it may wander off)
-    <<spawn Kweebec_Merchant 2 0 0>>
+-> Spawn a helper two blocks to your right (expect a new NPC facing you, with a dialogue of its own)
+    <<spawn Kweebec_Merchant @spawned_helper 2 0 0>>
+    Talk to it: the tag gives it test_spawned.talk, which no other merchant has. It despawns itself when you
+    are done with it.
     <<jump start>>
 -> Start Objective_Gather, then cancel it (expect it to appear in your tracker and vanish again)
     <<set $objective_runs = $objective_runs + 1>>
@@ -28,7 +30,5 @@ TEST 12: NPC control and objective extras. Objective_Gather is "{objective("Obje
     <<set $talk_runs = $talk_runs + 1>>
     <<objective Objective_LowTalk_Talk>>
     <<jump start>>
--> Despawn me (expect this window to close and the NPC to disappear; /lowtalk testworld respawn brings it back)
-    <<despawn>>
 -> Leave
     <<end>>

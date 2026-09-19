@@ -67,7 +67,7 @@ public final class Validator {
             Map.entry("npc_name", new int[] {1, 1}),
             Map.entry("state", new int[] {1, 2}),
             Map.entry("despawn", new int[] {0, 0}),
-            Map.entry("spawn", new int[] {1, 4}),
+            Map.entry("spawn", new int[] {1, 5}),
             Map.entry("music", new int[] {1, 1}),
             Map.entry("vfx", new int[] {1, 4}),
             Map.entry("camera", new int[] {1, 2})
@@ -412,6 +412,22 @@ public final class Validator {
             return;
         }
         switch (cmd.name()) {
+            case "spawn" -> {
+                // Five arguments are allowed, but only because one of them may be a tag. Four placement
+                // numbers is still three too many, and a widened arity alone would have let that through.
+                int tags = 0;
+                int placement = 0;
+                for (Text a : cmd.args().subList(1, cmd.args().size())) {
+                    if (a.isStatic() && a.debugString().trim().startsWith("@")) tags++;
+                    else placement++;
+                }
+                if (tags > 1) {
+                    out.add(new Problem(cmd.pos(), true, "<<spawn>> expects one @tag at most, got " + tags));
+                } else if (placement > 3) {
+                    out.add(new Problem(cmd.pos(), true, "<<spawn>> expects a role, an optional @tag and up to "
+                            + "three numbers for right, up and forward; got " + placement + " numbers"));
+                }
+            }
             case "attitude" -> {
                 Text a = cmd.args().get(0);
                 if (a.isStatic() && !ATTITUDES.contains(a.debugString().toLowerCase())) {

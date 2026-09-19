@@ -40,6 +40,17 @@ Nothing else in this release needs anything from you.
 
 ### Added
 
+- **`<<spawn>>` can give the new NPC a tag, so it can be talked to.** A spawned NPC could only ever have the
+  dialogue its role already had, which meant "spawn a guard, then talk to the guard" was not something this
+  language could say — the NPC arrived and stood there. `<<spawn Kweebec_Merchant @guard>>` tags it, and a
+  dialogue whose `npc:` line names `@guard` is that NPC's own. The tag is recognised by its leading `@` in
+  any position, the way a title's style is, so `<<spawn Kweebec_Merchant @guard 2 0 3>>` and
+  `<<spawn Kweebec_Merchant 2 0 3 @guard>>` are the same thing. It carries through the JSON format and the
+  Node Editor as a Tag field.
+
+  Station 12 of the test corridor now spawns a helper with a dialogue of its own, which despawns itself when
+  you send it away. It used to offer to despawn *itself*, which retired a station in the middle of a walk.
+
 - **A Windows installer for the Node Editor workspace.** The only script a creator has to run was
   `install.sh`, and Windows has no `sh`, so the workspace was no use to anyone who could not install it.
   There is an `install.ps1` beside it now:

@@ -24,6 +24,16 @@
       }
     },
     {
+      "Id": "Tag",
+      "Type": "SmallString",
+      "Options": {
+        "Label": "Tag",
+        "Description": "Tag the new NPC with this, without the @, so a dialogue bound to the tag is its own.",
+        "Default": "",
+        "Width": 200
+      }
+    },
+    {
       "Id": "Right",
       "Type": "Float",
       "Options": {
@@ -58,6 +68,7 @@
   "Schema": {
     "Type": "Spawn",
     "Role": "Role",
+    "Tag": "Tag",
     "Right": "Right",
     "Up": "Up",
     "Forward": "Forward"
