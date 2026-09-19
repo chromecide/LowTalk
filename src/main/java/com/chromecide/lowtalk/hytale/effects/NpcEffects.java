@@ -59,6 +59,12 @@ public final class NpcEffects {
             }
             try {
                 support.setState(npcRef, state, sub, store);
+            } catch (NullPointerException e) {
+                // A name in the role's state map with no sub-states behind it -- "start", the engine's own
+                // placeholder, is one -- throws inside the game rather than being refused. The creator does
+                // not need the stack trace's worth of that; they need to know the state is not usable.
+                throw new RuntimeError(effect.pos(), "this NPC's role lists a state called '" + state
+                        + "' but defines no sub-states for it, so it cannot be entered");
             } catch (RuntimeException e) {
                 throw new RuntimeError(effect.pos(), "could not enter state '" + state + "': " + e.getMessage());
             }
