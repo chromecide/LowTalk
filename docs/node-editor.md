@@ -24,6 +24,8 @@ sh tools/nodeeditor/install.sh          # macOS and Linux
 powershell -ExecutionPolicy Bypass -File tools\nodeeditor\install.ps1   # Windows
 ```
 
+The PowerShell version has not been run on Windows yet — it mirrors the shell script line for line, and if it cannot find your client it will tell you to pass the Workspaces folder as an argument. Please report it if it fails.
+
 With no argument the script installs into every Hytale client it finds,
 release and pre-release (`Hytale.app/Contents/Resources/NodeEditor/Workspaces/`
 on macOS). Pass a `NodeEditor/Workspaces` folder as the argument to target one
