@@ -263,6 +263,7 @@ statement("NpcName", "Rename NPC", "Rename this NPC (kept with the NPC).", [smal
 statement("State", "Set NPC state", "Put this NPC's role into one of its states.",
           [small("State", "State", "State name from the role JSON."), small("SubState", "Sub-state", "Optional.")], color="Orange")
 statement("Despawn", "Despawn NPC", "End the conversation and retire this NPC.", color="Orange")
+statement("Calm", "Calm NPC", "Make this NPC forget whatever it was fighting. An attitude alone will not call off an attack already under way.", color="Orange")
 statement("Spawn", "Spawn NPC", "Spawn an NPC near the player, facing them.",
           [small("Role", "Role", "NPC role id, e.g. Kweebec_Merchant."),
            number("Right", "Right", "Blocks to the player's right.", 0.0), number("Up", "Up", "Blocks up.", 0.0),

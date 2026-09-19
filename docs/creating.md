@@ -84,7 +84,7 @@ is the same JSON asset the form edits, so the server loads it like any other, an
 
 See [node-editor.md](node-editor.md) for installing the workspace, a demo graph, and how the pieces connect.
 The workspace lives inside the client install, so every game update removes it; rerun
-`sh tools/nodeeditor/install.sh` when the editor stops offering `LowTalk - Dialogue`.
+`sh tools/nodeeditor/install.sh` (or `powershell -ExecutionPolicy Bypass -File tools\nodeeditor\install.ps1` on Windows) when the editor stops offering `LowTalk - Dialogue`.
 
 ## As a text file
 

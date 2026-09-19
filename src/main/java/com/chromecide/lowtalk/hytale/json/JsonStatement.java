@@ -191,6 +191,9 @@ public abstract class JsonStatement {
     public static final class Despawn extends JsonStatement {
     }
 
+    public static final class Calm extends JsonStatement {
+    }
+
     public static final class Run extends JsonStatement {
         public String command = "";
     }

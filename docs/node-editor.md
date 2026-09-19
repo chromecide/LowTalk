@@ -20,7 +20,8 @@ back). If the Node Editor stops offering `LowTalk - Dialogue`, run the script
 again; it is safe to repeat.
 
 ```
-sh tools/nodeeditor/install.sh
+sh tools/nodeeditor/install.sh          # macOS and Linux
+powershell -ExecutionPolicy Bypass -File tools\nodeeditor\install.ps1   # Windows
 ```
 
 With no argument the script installs into every Hytale client it finds,

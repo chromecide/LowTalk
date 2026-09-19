@@ -297,6 +297,9 @@ public final class JsonCodecs {
     public static final BuilderCodec<JsonStatement.Despawn> DESPAWN = statement(JsonStatement.Despawn.class, JsonStatement.Despawn::new,
             "End the conversation and retire this NPC.", b -> {});
 
+    public static final BuilderCodec<JsonStatement.Calm> CALM = statement(JsonStatement.Calm.class, JsonStatement.Calm::new,
+            "Make this NPC forget whatever it was fighting.", b -> {});
+
     public static final BuilderCodec<JsonStatement.Run> RUN = statement(JsonStatement.Run.class, JsonStatement.Run::new,
             "Run a server command as the console. Never include text the player typed.", b ->
                     b.append(new KeyedCodec<>("Command", Codec.STRING), (r, v) -> r.command = v, r -> r.command).addValidator(Validators.nonNull())
@@ -431,6 +434,7 @@ public final class JsonCodecs {
         STATEMENT.register("State", JsonStatement.State.class, STATE);
         STATEMENT.register("Spawn", JsonStatement.Spawn.class, SPAWN);
         STATEMENT.register("Despawn", JsonStatement.Despawn.class, DESPAWN);
+        STATEMENT.register("Calm", JsonStatement.Calm.class, CALM);
         STATEMENT.register("Run", JsonStatement.Run.class, RUN);
         STATEMENT.register("Shop", JsonStatement.Shop.class, SHOP);
         STATEMENT.register("ObjectiveLine", JsonStatement.ObjectiveLine.class, OBJECTIVE_LINE);

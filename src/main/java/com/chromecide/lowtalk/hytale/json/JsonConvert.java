@@ -170,6 +170,7 @@ public final class JsonConvert {
                 yield commandText(p, "spawn", args);
             }
             case JsonStatement.Despawn dn -> new Statement.Command(p, "despawn", List.of());
+            case JsonStatement.Calm cm -> new Statement.Command(p, "calm", List.of());
             case JsonStatement.Run run -> commandText(p, "run", List.of(run.command == null ? "" : run.command));
             case JsonStatement.Shop sh -> blank(sh.shop) ? new Statement.Command(p, "shop", List.of()) : command(p, "shop", sh.shop, null);
             case JsonStatement.ObjectiveLine ol -> command(p, "objective", "line", ol.line);
@@ -456,6 +457,9 @@ public final class JsonConvert {
                 }
                 case "despawn" -> {
                     if (args.isEmpty()) return new JsonStatement.Despawn();
+                }
+                case "calm" -> {
+                    if (args.isEmpty()) return new JsonStatement.Calm();
                 }
                 case "music" -> {
                     if (a0 != null && a1 == null) {

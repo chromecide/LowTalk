@@ -24,3 +24,7 @@ src/main/resources/manifest.json
 # Dev server output when runServer is started from the repo root
 server.log
 console.in
+
+# Python bytecode from the workspace generator
+__pycache__/
+*.pyc

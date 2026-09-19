@@ -1,0 +1,20 @@
+{
+  "Id": "Calm",
+  "Title": "Calm NPC",
+  "Description": "Make this NPC forget whatever it was fighting. An attitude alone will not call off an attack already under way.",
+  "Color": "Orange",
+  "Inputs": [
+    {
+      "Id": "In",
+      "Type": "Statement",
+      "Color": "Blue",
+      "Multiple": false,
+      "Description": "Connect to the Body pin of a Passage, Option, Branch or Alternative. Statements run in the order of their links."
+    }
+  ],
+  "Content": [],
+  "Outputs": [],
+  "Schema": {
+    "Type": "Calm"
+  }
+}

@@ -28,6 +28,11 @@ version nobody can download. The last published version is 0.3.0.
 
 ### Added
 
+- **The Node Editor workspace installs on Windows.** The only script a creator has to run was `install.sh`,
+  and Windows has no `sh`. There is an `install.ps1` beside it now, doing the same thing —
+  `powershell -ExecutionPolicy Bypass -File tools\nodeeditor\install.ps1`, with an optional path to the
+  Workspaces folder if it cannot find the client. The workspace was no use to anyone who could not install it.
+
 - **`<<calm>>` makes an NPC forget what it was fighting.** An attitude decides who an NPC will start on, and
   nothing more: set a goblin friendly while it is mid-swing and it keeps swinging, which makes "the guard
   stands down" impossible to write. The targets a role has marked live in a component the game exposes, so
