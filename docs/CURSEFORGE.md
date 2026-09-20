@@ -2,11 +2,41 @@
 
 **Title:** LowTalk — dialogue for NPCs, props and blocks, made in game or in your editor
 
-**Summary (one line):** Give any NPC, prop or block a real conversation: branching dialogue with memory, choices
-and native Hytale rewards. Build it in game with one tool, in the Asset Editor, in the Node Editor, or as a text
-file. Open source.
+**Summary (one line, 232 characters):** Branching dialogue for NPCs, props and blocks: memory, choices and
+native Hytale rewards, made in game or in your editor. Open source, MIT. Built with an AI coding agent and
+play-tested by hand; the disclosure is in the description.
 
 **Description:**
+
+**Made with AI assistance. Here is exactly what that means, before anything else.**
+
+LowTalk is one person's mod — Chromecide — written in a terminal with an AI coding agent, Claude Code, doing
+most of the typing. That belongs at the top of this page rather than the bottom of it.
+
+- **What the person did.** Decided what to build, what to leave out, and when something was not good enough.
+  Played every feature in the game by hand. Nothing here is called working because it was written carefully.
+- **What the agent did.** Most of the Java, the tests and the documentation, under that direction. Hytale's
+  decompiled server sources were read to learn the API, never copied.
+- **There is no AI inside the mod.** It makes no network connections of any kind: no telemetry, no analytics,
+  no update check, nothing sent to its author or anyone else. Every line a player reads was written by a
+  dialogue author, not generated.
+- **No AI-generated art, ever.** The tool icon was drawn by [@Trix8ea](https://x.com/Trix8ea); the only other
+  images the mod ships are two small frame textures a script draws pixel by pixel from numbers. Contributions
+  containing AI-generated images are rejected.
+- **How you can check the testing claim.** Every release is walked check by check in the game, on the exact
+  jars attached here, on each Hytale version they support, and what was tried is recorded per check and
+  stamped with that jar's hash. The harness that drives it and the records it produced are public
+  ([LowTalkHarness](https://github.com/chromecide/LowTalkHarness)), and so is the list of what the tests do
+  **not** cover ([what the corridor does not reach](https://github.com/chromecide/LowTalk/blob/main/docs/testing.md#what-the-corridor-does-not-reach)).
+  It is not decoration: 0.4.0's fix for a condition that could not see what the command above it had just
+  done, and for an NPC rename that had never once survived a restart, both came out of that walk rather
+  than out of reading the code.
+
+If that is not something you want on your server, that is a fair call and no argument will be made. The
+[whole repository](https://github.com/chromecide/LowTalk) is MIT and public, so you can read exactly what you
+would be running.
+
+---
 
 LowTalk lets you give any NPC a conversation that remembers the player: greetings that change once you have
 met, choices that hand out items or start objectives, secrets that only unlock after another NPC has been spoken
@@ -84,14 +114,6 @@ boot failure `Asset 'Rope' of type Beam doesn't exist` (a Hytale asset load-orde
 
 The tool icon, a speech bubble being clicked, was drawn by [@Trix8ea](https://x.com/Trix8ea) on X and is used
 with their permission. The mod is MIT; the icon is not, and stays the artist's.
-
-**AI Use Disclosure**
-
-LowTalk was designed, directed and play-tested by one person; most of the code
-and documentation was written by Claude Code under that direction. There is no AI inside the mod: every line a
-player reads is written by a dialogue author, and the plugin makes no network calls. No generative AI is used for
-imagery: the mod's art is made by people, and contributions with AI-generated images are rejected. The repository
-is public so you can see exactly what you are running.
 
 **Version notes for 0.4.0** (the "changelog" box on the file upload)
 
