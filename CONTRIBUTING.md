@@ -100,24 +100,59 @@ ships rather than a build with test code in it. Its `records/` folder holds what
 per server version, stamped with the build id it was observed on; its `docs/protocol.md` is the session
 protocol these seven rules come from. 0.4.0 was walked this way on Hytale 0.6.8 and on 0.7.0-pre.3.1.
 
+**A release is gated on the walk, and the walk is done by hand by a maintainer.** Not because a contributor
+could not do it — the harness is public and its protocol is written down precisely so the walk is reproducible
+by someone else — but because the claim on the listing is that every release was played before it shipped, and
+somebody has to have actually played it. So a change can be reviewed and merged by anyone; cutting a release
+means somebody sat down and walked the tree. There is currently one maintainer.
+
 ## Branches, tags and Hytale patchlines
 
 Hytale has a release line and a pre-release line, and the pre-release becomes the next release. A mod jar carries
 a server-version range in its manifest, so we owe one jar per line.
 
-- **`main`** targets the current Hytale release. Code that works on both lines goes here; prefer the game's own
-  helpers over building packets or reaching into internals, because the helpers are what stay stable.
-- **`prerelease`** targets the pre-release line: only what cannot compile on the release line lives there, plus a
-  separate dev-server folder (`../lowtalk-pre`, a git worktree) so pre-release worlds never touch release worlds.
-  Merge `main` into it often. When Hytale promotes a pre-release, merge `prerelease` into `main`, bump the
-  properties, tag, and start the next `prerelease` from `main`.
-- **Versions** are the mod's own (`version` in gradle.properties, semantic). On `main`, `./gradlew build` makes the
-  release-line jar and `./gradlew buildAll` also makes a pre-release jar from the same commit (`buildPreRelease`,
-  driven by the `prerelease_*` properties) into `build/dist/`. The jars published for the pre-release line are built
-  on the `prerelease` branch, whose `version` carries the game version as build metadata
-  (`0.1.0+hytale.0.7.0-pre.1`), so a plain `./gradlew build` there produces the correctly named jar; `buildAll` on
-  `main` is the shortcut while the branches do not differ in code.
+- **`main` is the only branch.** One source tree builds for both lines, and that constraint is deliberate:
+  where an API moved, prefer a helper that exists on both lines over a version-specific call, and put the
+  awkward cases behind a small compatibility class (see `hytale/compat/`) rather than behind a branch. Prefer
+  the game's own helpers over building packets or reaching into internals, because the helpers are what stay
+  stable. There was a `prerelease` branch until 0.4.0; it is gone, because it drifted five commits behind
+  through a whole release and anything built from it would have shipped stale code while looking current.
+- **Versions** are the mod's own (`version` in gradle.properties, semantic). `./gradlew build` makes the
+  release-line jar; `./gradlew buildAll` makes both, from the same commit, into `build/dist/`. The pre-release
+  jar is produced by `buildPreRelease`, which re-invokes the build with the `prerelease_*` properties and adds
+  the game version as build metadata (`0.4.0+hytale.0.7.0-pre.3.1`). Both jars in a release come from the one
+  tagged commit.
+- **A separate run directory per line**, so pre-release worlds never touch release worlds. These are plain
+  scratch servers, not worktrees: drop the built jar in `mods/` and boot it.
 - **Tags** `vX.Y.Z` mark releases on `main`. A GitHub release carries both jars and states the Hytale versions.
-- **Dry runs** against a new pre-release go in the changelog under a "Hytale <version> notes" heading: what broke,
-  what was deprecated, what held. A replacement API that compiles can still behave differently, so walk the test
-  corridor after every port.
+
+### Every pre-release is tracked; not every pre-release gets a jar
+
+These are two different jobs, and keeping them apart is what makes it affordable to follow a line that moves
+weekly.
+
+**Tracking** happens as soon as Hytale publishes a build, and it is mostly mechanical. Steps 1 and 2 use two
+scripts that are the maintainer's own tooling and do not live in this repository; everything they do is
+described here, so the process does not depend on having them.
+
+1. **Notice the build exists** — `hytale-check-versions.sh` asks Hytale's Maven repository
+   (`maven.hytale.com/<channel>/com/hypixel/hytale/Server/maven-metadata.xml`) rather than the launcher, so you
+   learn about a new version while the build you have is still on disk.
+2. **Archive the build you have, before letting the launcher update** — `hytale-archive.sh` copies the server
+   jar and its assets out of the launcher install. The launcher replaces that install in place, so an
+   un-archived version is simply gone, and an API diff against the previous version is the only way to tell a
+   quiet patch from a breaking one.
+3. Decompile the new jar, diff the classes, and run the harness's `whatChanged <oldArchive> <newArchive>` to
+   name the checks worth re-running.
+4. Build both jars and boot them. Fix whatever broke, on `main`, so one tree still builds for both lines.
+5. Write what you found in the changelog under a `Hytale <version> notes` heading: what broke, what was
+   deprecated, what held. A replacement API that compiles can still behave differently, so say which of the two
+   you actually established.
+
+That last step is the point of tracking. "It compiles and boots on the new pre-release, and nothing has been
+walked on it" is a useful, honest, publishable state — and writing it down is what stops "we follow the
+pre-release line" being a claim with nothing behind it.
+
+**Shipping a pre-release jar** is the other job, and it needs the full release gate above: a clean walk of the
+whole tree on that line, on the final jar. A jar that goes out is a jar that was walked. So a tracked
+pre-release may sit for weeks with no jar published, and that is working as intended rather than a backlog.
