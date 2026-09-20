@@ -94,8 +94,11 @@ this one — a game-breaking bug turned up seconds after the tag went on.
    moved. Same id, same jar, so the walk still describes what ships. A moved id means something outside the
    docs changed and the walk is stale.
 
-The walk itself is driven by a separate harness mod, so the LowTalk being tested is the jar that ships rather
-than a build with test code in it. 0.4.0 was walked this way on Hytale 0.6.8 and on 0.7.0-pre.3.1.
+The walk itself is driven by a separate harness mod,
+[LowTalkHarness](https://github.com/chromecide/LowTalkHarness), so the LowTalk being tested is the jar that
+ships rather than a build with test code in it. Its `records/` folder holds what was actually tried, per check,
+per server version, stamped with the build id it was observed on; its `docs/protocol.md` is the session
+protocol these seven rules come from. 0.4.0 was walked this way on Hytale 0.6.8 and on 0.7.0-pre.3.1.
 
 ## Branches, tags and Hytale patchlines
 

@@ -108,6 +108,11 @@ these has a station:
 - **The in-game editor** — the largest surface in the mod, and nothing automated touches it. The walkthrough
   below is the whole of its coverage.
 
+Some of these are covered by [LowTalkHarness](https://github.com/chromecide/LowTalkHarness), a separate mod
+that drives a release walk and records what was tried per check and per Hytale version. It is where `<<calm>>`,
+typed number input and the restart-dependent checks are exercised, and its `docs/gaps.md` says why the rest
+still are not.
+
 ## When something fails
 
 - Dialogue problems: `/lowtalk reload` prints file and line.
