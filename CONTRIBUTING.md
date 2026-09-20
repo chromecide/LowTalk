@@ -75,6 +75,28 @@ folders, so it never sees the packaged asset pack; a mistake in packaging (0.2.0
 reaches users while every dev run passes. Drop `build/dist/LowTalk-<version>.jar` into a scratch server's `mods/`
 for each line and wait for "Universe ready!" before tagging.
 
+### The release gate
+
+During development, re-testing is scoped to what changed. A release is not: the whole test tree is walked
+again on the final jar, on each line that gets a jar, after the last change that touches the jar. 0.3.0 taught
+this one — a game-breaking bug turned up seconds after the tag went on.
+
+1. One clean walk of every check on the final jar, on the release-line server.
+2. The same walk on the pre-release line when a pre-release jar ships. A jar that goes out is a jar that was
+   walked.
+3. Every result stamped with that jar's build id. A pass carried over from an earlier build does not count. A
+   fault found during the walk means a fix, a new jar, and a new walk.
+4. Nothing reported left hanging: every complaint is fixed, failed with a reason, or written down as a known
+   gap.
+5. Every known gap written down, with why nothing covers it.
+6. The built jars booted on a plain server, as above.
+7. The documentation pass comes after the walk, and then the jars are rebuilt to confirm the build id has not
+   moved. Same id, same jar, so the walk still describes what ships. A moved id means something outside the
+   docs changed and the walk is stale.
+
+The walk itself is driven by a separate harness mod, so the LowTalk being tested is the jar that ships rather
+than a build with test code in it. 0.4.0 was walked this way on Hytale 0.6.8 and on 0.7.0-pre.3.1.
+
 ## Branches, tags and Hytale patchlines
 
 Hytale has a release line and a pre-release line, and the pre-release becomes the next release. A mod jar carries

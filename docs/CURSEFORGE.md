@@ -48,8 +48,12 @@ npc: Kweebec_Merchant
   between NPCs, plus world state.
 - Native rewards and hooks: give and take items, open the NPC's own barter
   shop, start Hytale objectives and read their state, change the NPC's
-  attitude, play animations and sounds, run commands.
-- Text input, so an NPC can ask the player's name or pose a riddle.
+  attitude, call an angry one off, play animations and sounds, and run server
+  commands (off unless the owner turns it on).
+- Spawn an NPC mid-conversation and give it a dialogue of its own, so "fetch
+  the guard, then talk to the guard" is one dialogue.
+- Text input, so an NPC can ask the player's name or pose a riddle; a box can
+  ask for a number and keep asking until it gets one.
 - Bind a dialogue to every NPC of a role, or to one specific NPC, from the tool's page.
 - Talking props: spawn any block or item as a prop (the game's Entity Spawn page), bind a dialogue with the tool,
   and it gets a "Press F to read" prompt. Move it with the Entity Tool; the dialogue follows.
@@ -71,9 +75,9 @@ their state. It leaves journals and trackers to the mods that do those well.
 `lowtalk.creator`, server operation needs `lowtalk.admin` (give admins
 `lowtalk.*`); players need nothing.
 
-**Requirements:** a Hytale server. **Supported Hytale versions:** release line 0.6.3 to 0.6.5 (`LowTalk-0.3.1.jar`),
-pre-release line 0.7.0-pre.2 (`LowTalk-0.3.1+hytale.0.7.0-pre.2.jar`); one jar per line is attached to each GitHub
-release and the server refuses the wrong one. No dependencies. LowTalk 0.1.1+ also carries a workaround for the 0.7.0-pre.2
+**Requirements:** a Hytale server. **Supported Hytale versions:** release line 0.6.3 to 0.6.8 (`LowTalk-0.4.0.jar`),
+pre-release line 0.7.0-pre.2 to 0.7.0-pre.3.1 (`LowTalk-0.4.0+hytale.0.7.0-pre.3.1.jar`); one jar per line is attached to each GitHub
+release and the server refuses the wrong one. 0.4.0 was walked end to end on 0.6.8 and on 0.7.0-pre.3.1. No dependencies. LowTalk 0.1.1+ also carries a workaround for the 0.7.0-pre.2
 boot failure `Asset 'Rope' of type Beam doesn't exist` (a Hytale asset load-order bug; see the README).
 
 **Credits**
@@ -89,7 +93,42 @@ player reads is written by a dialogue author, and the plugin makes no network ca
 imagery: the mod's art is made by people, and contributions with AI-generated images are rejected. The repository
 is public so you can see exactly what you are running.
 
-**Version notes for 0.3.1** (the "changelog" box on the file upload)
+**Version notes for 0.4.0** (the "changelog" box on the file upload)
+
+**Read this first: `<<run>>` is off by default now.** If any of your dialogues run a server command, they will
+stop doing it until you set `AllowRunCommand: true` in `lowtalk.json`. `<<run>>` executes with the console's
+authority and dialogues arrive in asset packs that can come from anybody, so it now waits for an owner to say
+yes. The server names every dialogue that uses it at startup. Nothing else in this release needs anything
+from you.
+
+An NPC you spawn mid-conversation can have a dialogue of its own: `<<spawn Kweebec_Merchant @helper>>` tags the
+new NPC, and any dialogue bound to `@helper` is the one it talks with. Before this, a spawned NPC could only
+ever have whatever its role already said, so "fetch the guard, then talk to the guard" could not be written.
+
+`<<calm>>` makes an NPC forget what it is fighting. `<<attitude friendly>>` decides who an NPC will start on,
+not the fight it is already in, which is a distinction the docs now make as well.
+
+`<<input $n "How many?" number>>` asks again rather than storing a word. A player who typed letters into a
+number box used to find out much later, when the conversation ended in whichever line first did arithmetic on
+the answer.
+
+`<<title>>` takes a style rather than a yes-or-no, because Hytale 0.7 replaced the flag with an enum and added
+`GoblinBreach` and `VoidEviction` to `Default` and `Major`. The styles offered are read off the game's own enum
+at startup. Old `minor`/`major` and the JSON `Major` boolean still work.
+
+Fixed: a command now runs before the line under it is evaluated, so a condition sees what the command just did
+(a `<<learn>>` followed by a check on it used to read the old answer). Renaming an NPC with `<<npc_name>>`
+survives a server restart — nothing had marked the entity as needing saving. `<<state>>` says so when a role
+has no such state instead of failing silently. Rebuilding the test corridor no longer leaves block bindings
+behind.
+
+For plugin authors: `DialogueContext` gained `getOpener()` — NPC, block, prop, trigger, join, role,
+interaction, command, API — and `getOrigin()`, where a block or prop conversation is happening.
+
+Both jars were walked station by station on 0.6.8 and on 0.7.0-pre.3.1 before this was tagged.
+
+**Version notes for 0.3.1** — never uploaded; 0.4.0 is the first file to carry these changes, and the notes are
+kept here because the 0.4.0 box should mention them too.
 
 The in-game editor now explains itself. Commands are edited as named fields instead of one box of text: a particle
 effect asks for a particle, a scale and a number of seconds; giving an item asks for an item and a count. Items,

@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (0.4.0)
+## 0.4.0 (2026-09-20)
 
 0.3.1 was built and tested but never published, so its changes are folded in here rather than listed under a
 version nobody can download. The last published version is 0.3.0.

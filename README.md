@@ -70,14 +70,15 @@ Ah, {player}. Back again.
   (`$player.stage`), per-NPC counters shared by everyone (`$npc.visitors`), and world state (`$world.season`).
 - Native hooks: `give`, `take`, `shop`, `objective` (start, cancel, lines, tasks), `reputation`, `attitude`,
   `anim`, `sound`, `notify`, `title`, `effect`, `heal`, `stat`, `learn`, `teleport`, `weather`, `time`, `music`,
-  `vfx`, `camera`, `npc_name`, `state`, `spawn`, `despawn`, `run`; checks like `has()`, `count()`, `objective()`,
+  `vfx`, `camera`, `npc_name`, `state`, `spawn`, `despawn`, `calm`, `run`; checks like `has()`, `count()`, `objective()`,
   `reputation()`, `rank()`, `stat()`, `hour()`, `weather()`, `visited()`, `chance()`, and `t()` for the game's
   translations.
 - Binding by NPC role, or by tagging one specific NPC in game. Dialogues can also start from the Trigger Volume
   Tool, from any `OpenCustomUI` interaction, from shop-style choice pages, from an NPC's own role, or when a player
   joins; a quest can have "talk to this NPC" as a task with a marker over their head.
 - A validator with file and line numbers, usable in game, from the editors and from the shell; a headless test
-  runner; a test corridor world that exercises every feature.
+  runner; a test corridor world of fifteen stations, each one a feature you walk up to and try.
+  [What the corridor does not reach](docs/testing.md#what-the-corridor-does-not-reach) is written down too.
 - An API for other plugins: add functions and commands (with help text and pickers so they look native in every
   editor), listen to conversations, open dialogues, bind dialogues to NPCs at run time. [Companions](https://github.com/chromecide/LowTalkCompanions)
   is built on it.
@@ -112,15 +113,16 @@ Ah, {player}. Back again.
 | `/lowtalk thaw` | Unfreeze the NPC you're looking at |
 | `/lowtalk testworld leave` | Leave the test corridor: main world, old game mode, world unloaded when empty |
 | `/lowtalk tool` | Get the LowTalk tool: use it on an NPC, prop, block or nothing to bind, edit or create dialogues (creator) |
+| `/lowtalk stop` | Leave your current conversation |
+| `/lowtalk help [name]` | The format reference in chat: commands, functions, keywords, or one entry |
+| `/lowtalk info <id>` | Outline of a dialogue: passages, options, variables, unreachable passages |
+| `/lowtalk convert json\|talk <id> <pack>` | Write a dialogue in the other format into an asset pack (`server` = plugin folder for talk) |
+
 - `/lowtalk block bind <dialogue> [instead|also]`, `block unbind`, `block list`: dialogues on the block you are
   looking at (creator).
 - `/lowtalk browse`: the dialogue browser, the same page the tool opens when used on nothing (creator).
 - `/lowtalk prop list`, `prop unbind <uuid>`: prop bindings, for cleaning up after props that are gone (creator).
   Binding and unbinding a prop that still exists is done with the tool.
-| `/lowtalk stop` | Leave your current conversation |
-| `/lowtalk help [name]` | The format reference in chat: commands, functions, keywords, or one entry |
-| `/lowtalk info <id>` | Outline of a dialogue: passages, options, variables, unreachable passages |
-| `/lowtalk convert json\|talk <id> <pack>` | Write a dialogue in the other format into an asset pack (`server` = plugin folder for talk) |
 
 Permissions: `lowtalk.creator` covers authoring (`list`, `open`, `tags`, `vars`,
 `reset`, `test`, `help`, `info`); `lowtalk.admin` covers server operation (`reload`, `tag`,
@@ -148,6 +150,7 @@ without it: options that need a missing command are hidden and conditions on mis
 
 | LowTalk | Hytale release line | Hytale pre-release line |
 |---------|---------------------|-------------------------|
+| 0.4.0   | 0.6.3 to 0.6.8 (`LowTalk-0.4.0.jar`) | 0.7.0-pre.2 to 0.7.0-pre.3.1 (`LowTalk-0.4.0+hytale.0.7.0-pre.3.1.jar`) [^walked] |
 | 0.3.1   | 0.6.3 to 0.6.5 (`LowTalk-0.3.1.jar`) | 0.7.0-pre.2 (`LowTalk-0.3.1+hytale.0.7.0-pre.2.jar`) |
 | 0.3.0   | 0.6.3 to 0.6.5 (`LowTalk-0.3.0.jar`) | 0.7.0-pre.2 (`LowTalk-0.3.0+hytale.0.7.0-pre.2.jar`) |
 | 0.2.1   | 0.6.3 to 0.6.5 (`LowTalk-0.2.1.jar`) | 0.7.0-pre.2 (`LowTalk-0.2.1+hytale.0.7.0-pre.2.jar`) |
@@ -158,6 +161,10 @@ without it: options that need a missing command are hidden and conditions on mis
 Each release ships one jar per Hytale line; the server refuses a jar built for the other line. Both come from
 the same commit: `./gradlew buildAll` writes them to `build/dist/`. See [CONTRIBUTING.md](CONTRIBUTING.md) for how
 branches and tags follow Hytale's patchlines.
+
+[^walked]: The ranges are what each jar's manifest accepts. 0.4.0 was walked end to end on 0.6.8 and on
+0.7.0-pre.3.1, the newest of each line; the older versions in the range are what the mod is built to support,
+not versions it was played through on.
 
 
 ### Known Hytale issue: 0.7.0-pre.2 boot failure
@@ -264,6 +271,12 @@ plain about what that means.
 
 - The idea, the design decisions, what to build next and what to leave out came from a person. So did every
   test in the game: each feature was played through by hand, and the ones that did not hold up were reworked.
+- Nothing is called tested because it was written carefully. Every release is walked check by check in game,
+  on the jar that ships, on each Hytale line it ships for, and what was tried is recorded per check with the
+  build id it was observed on. The rules are in [CONTRIBUTING.md](CONTRIBUTING.md#the-release-gate), including
+  the ones about not judging what nobody saw. Every fix in 0.4.0 came out of playing it rather than reading
+  it, and what the walk does **not** cover is written down too, in
+  [testing.md](docs/testing.md#what-the-corridor-does-not-reach).
 - Most of the Java, the tests and these documents were written by the agent under that direction, in a
   terminal, with the person reading the results in the game rather than the code. Hytale's decompiled server
   sources were read to learn the API, never copied; the rule is in [CONTRIBUTING.md](CONTRIBUTING.md).

@@ -12,6 +12,12 @@ Covers the parser, expression language, validator, interpreter, and the `.ui`
 layout files (checked against vocabulary harvested from Hytale's own layouts,
 because a bad word in a layout disconnects every joining player).
 
+A command has to be registered in about seven places to work everywhere, and
+`<<calm>>` reached a test server missing two of them. Four of those places are
+now checked against the one list they should agree with, and fail the build if
+a command is absent: the in-game reference, the editor's Add menu, the
+editor's argument specs, and the generated Node Editor workspace.
+
 ## 2. Headless play-through (server, no clicking)
 
 ```
@@ -62,9 +68,10 @@ Walk east. Stations, in order:
 | 9 | Random and time | `chance()`, `random()`, `ordinal()`, `hour()`, `$npc.` counters |
 | 10 | Format extras | `[a|b]` text variation, `<<random>>` blocks, `<<once>>` options, `? :` in text, `<<wait>>`, `include:` of `_shared.talk` |
 | 11 | Weather, time, translation | `<<weather>>` for the world and for one player, `<<time>>` by name, with a fade, pause and resume, `weather()`, `hour()`, `t()` from the pack's language file |
+| 12 | NPC control and objectives | `<<npc_name>>` (rename it, then check the name is still there after a server restart), `<<spawn Kweebec_Merchant @spawned_helper 2 0 0>>`, `<<objective cancel>>`, `<<objective line>>`, `objective_line()`, and the `LowTalkNode` task type: start `Objective_LowTalk_Talk` here, then talk to station 1 to complete it (see the objective warning below) |
+| 12a | Spawned helper | the NPC station 12 spawns. It is tagged `@spawned_helper` and `test_spawned.talk` binds to that tag, so an NPC that did not exist a moment ago arrives with a dialogue of its own rather than its role's. "Send me away" runs its `<<despawn>>` on itself, so the walk never loses a station. |
 | 13 | Music, effects, camera | `<<music>>`, `<<vfx>>`, `<<camera>>` |
 | 14 | Opened by the role | the `LowTalk_Talker` role's own interaction instruction uses the `LowTalkOpenDialogue` action; LowTalk's use hook is not involved (`npc: none`) |
-| 12 | NPC control and objectives | `<<npc_name>>`, `<<spawn>>`, `<<despawn>>`, `<<objective cancel>>`, `<<objective line>>`, `objective_line()`, and the `LowTalkNode` task type: start `Objective_LowTalk_Talk` here, then talk to station 1 to complete it (see the objective warning below) |
 
 > **Stations 7 and 12 start real objectives, and Hytale's objective system is rough.** We have seen the client
 > crash with an index error while it updated the objective tracker, including on objectives LowTalk had no part
@@ -81,6 +88,25 @@ To start over, stop the server and delete `universe/worlds/lowtalk_test` in
 the server folder, then remove the `built` flag with `/lowtalk vars` in mind:
 it lives in `data/world.json` under the `lowtalk_test` scope. Or simply build
 a fresh server folder.
+
+## What the corridor does not reach
+
+Worth saying plainly, because a corridor you can walk end to end is easy to mistake for full coverage. None of
+these has a station:
+
+- **`on: join`** — needs a disconnect and a reconnect, which no dialogue can ask for.
+- **Bound blocks and props** — a station is an NPC. Bind a dialogue to a door or a chest with `/lowtalk tool`
+  and use it; the prop path is the same tool on an entity spawned from the game's Entity Spawn page.
+- **Trigger volumes** — LowTalk registers `LowTalkDialogue`, `LowTalkCondition` and `LowTalkSetVariable` with
+  the trigger volume plugin on every boot, and nothing in the corridor places a volume.
+- **`<<run>>`** — off unless you turn `AllowRunCommand` on, so testing it means editing `lowtalk.json` twice.
+- **`<<calm>>` and typed number input** (`<<input $n "How many?" number>>`) — both want an NPC that is trying
+  to kill you and a box you can type the wrong thing into, neither of which belongs in a corridor a creator
+  walks through.
+- **The layout chain** — dialogue, pack, API, server config, and `ForceLayout` over all of them. Checking the
+  order means editing config between attempts.
+- **The in-game editor** — the largest surface in the mod, and nothing automated touches it. The walkthrough
+  below is the whole of its coverage.
 
 ## When something fails
 

@@ -50,8 +50,9 @@ com.chromecide.lowtalk
   parser/     text -> AST. No Hytale imports. Fully unit tested.
   model/      AST types: Dialogue, Passage, Line, Option, Conditional, Command, Expr.
   runtime/    Interpreter: walks a passage for one player, evaluates expressions,
-              produces "what to show next" and a list of effects to apply.
-              No Hytale imports; effects and functions are interfaces.
+              produces "what to show next" and hands each effect to the host
+              as it reaches it. No Hytale imports; effects and functions are
+              interfaces.
   store/      Variable persistence: per player, per NPC, world. JSON files.
   hytale/     Everything that touches the server API:
                 bindings (role / tag -> dialogue), the use-entity hook,
@@ -80,9 +81,20 @@ Every advance yields a **Step**:
 - `Ask(prompt, variable)` show a text box
 - `Finish` close the window
 
-and a list of **Effects** to apply before showing it. Effects are simple
-records (`Give(item, n)`, `SetAttitude(a)`, `Jump(passage)`, ...) that the
-Hytale layer executes on the world thread.
+plus the **Effects** the walk reached on the way. Effects are simple records
+(`Give(item, n)`, `SetAttitude(a)`, `Jump(passage)`, ...) that the Hytale layer
+executes on the world thread.
+
+An effect runs where it is written, not after the walk. A live session
+installs an `EffectSink`, and the interpreter hands each effect to it the
+moment it reaches the command, so a condition below a command sees what the
+command did — `<<give Food_Bread>>` and then `<<if has("Food_Bread")>>` takes
+the true branch. A host that passes no sink, such as the headless `/lowtalk
+test` runner or a unit test, gets the effects collected into the `Result`
+instead and can decide whether to run them at all. Collecting them for
+everyone was the original design, and it was wrong: it meant every condition
+in a passage was evaluated against the world as it stood before any of the
+passage's commands ran.
 
 Expressions are evaluated against a **Context** that exposes variables and
 functions. Built-in functions live in the Hytale layer; plugins add more
@@ -253,7 +265,9 @@ plugin.
 
 - Should `start when` guards be evaluated on every open, or cached per player
   until a variable they read changes? Start with every open; it is cheap.
-- Do we want a `<<wait seconds>>` for timed lines? Probably later, and only
-  if the client can re-render a page without user input.
+- ~~Do we want a `<<wait seconds>>` for timed lines?~~ Answered: yes, the
+  client re-renders without user input, so `<<wait>>` ships. The catch worth
+  knowing is that the rest of the passage runs only if the conversation is
+  still open, so anything that has to happen must not sit after a wait.
 - Portraits: Hytale UI can show textures from packs. Whether a dialogue can
   reference an NPC's own model render is unknown.

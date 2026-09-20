@@ -28,7 +28,8 @@ The quickest way to make an NPC talk. Nothing to install, nothing to type in a f
      kind (by role) or only this one (by tag), and where to save it (the server's folder or an asset pack). Create
      opens the new dialogue in edit mode with a first line ready.
 3. Change what is said by typing into the line. Add lines, options and everything else with the **Add** dropdown:
-   a line, an option, a command, set a variable, if/else, once, random, ask the player, wait, jump, end.
+   a line, an option, a command, set a variable, if/else, once, random, ask the player (for text or for a
+   number), wait, jump, end.
 4. An option has a **target**: a passage to go to, "(end)", "(back to these options)" for a hub, or "+ new passage",
    which creates a passage and takes you into it. **Go** walks into the target the way a player's click would.
    The **...** button opens the option's settings: only-if, grey-unless, once, and "Edit what happens", which
@@ -54,8 +55,9 @@ always visible in the Asset Editor for reference: a merchant with a memory, a un
 teller that asks your name, a lore keeper with a hub of topics (all four as text) and a valley guide and the same
 lore keeper as JSON. They are unbound there (`npc: none`),
 so shipping them changes no NPC. To start from one, use **Copy Asset** in the create dialog, save the copy into
-your pack, and set its `npc:` to a role id or an `@tag`. The same three text examples are also copied into the
-plugin's own `dialogues` folder on first run, bound to real roles, so a fresh server has working conversations.
+your pack, and set its `npc:` to a role id or an `@tag`. Installing LowTalk binds nothing on its own: the same
+text examples can be copied into the plugin's own `dialogues` folder on first run, bound to real roles, by
+setting `CopyExamplesOnFirstRun` to true in `lowtalk.json` before that first run.
 
 ## In the Asset Editor's form
 
@@ -117,4 +119,5 @@ The whole syntax is in [format.md](format.md).
 - Talk to the NPC. Bound NPCs show the game's "Press [key] to talk" prompt.
 - `/lowtalk open <id>` opens any dialogue with the NPC you are looking at, or with no NPC at all.
 - `/lowtalk test <id> [choices...]` plays it headlessly with scripted choices, for checking logic quickly.
-- The test corridor ([testing.md](testing.md)) is a world of NPCs that exercise every feature.
+- The test corridor ([testing.md](testing.md)) is a world of fifteen NPCs, each one a feature you walk up to
+  and try. That page also lists [what it does not reach](testing.md#what-the-corridor-does-not-reach).
