@@ -95,59 +95,68 @@ is public so you can see exactly what you are running.
 
 **Version notes for 0.4.0** (the "changelog" box on the file upload)
 
+*One paste. 0.3.1 was built and tested but never uploaded, so everything it changed ships here too — if the
+last version you saw was 0.3.0, all of this is new.*
+
 **Read this first: `<<run>>` is off by default now.** If any of your dialogues run a server command, they will
 stop doing it until you set `AllowRunCommand: true` in `lowtalk.json`. `<<run>>` executes with the console's
 authority and dialogues arrive in asset packs that can come from anybody, so it now waits for an owner to say
 yes. The server names every dialogue that uses it at startup. Nothing else in this release needs anything
 from you.
 
-An NPC you spawn mid-conversation can have a dialogue of its own: `<<spawn Kweebec_Merchant @helper>>` tags the
-new NPC, and any dialogue bound to `@helper` is the one it talks with. Before this, a spawned NPC could only
-ever have whatever its role already said, so "fetch the guard, then talk to the guard" could not be written.
+**Installing LowTalk puts no words in vanilla NPCs' mouths.** The example dialogues used to be copied in on
+first run already bound to Kweebec Merchants, Kweebec Elders and Klops Merchants; a fresh server now has no
+bound dialogue until you write or copy one. The examples still ship inside the pack, bound to nothing, so
+`/lowtalk browse` and the Asset Editor still have something to start from. Set `CopyExamplesOnFirstRun` to
+true in `lowtalk.json` before the first run for the old behaviour.
 
-`<<calm>>` makes an NPC forget what it is fighting. `<<attitude friendly>>` decides who an NPC will start on,
-not the fight it is already in, which is a distinction the docs now make as well.
+**The in-game editor explains itself.** Commands are edited as named fields instead of one box of text: a
+particle effect asks for a particle, a scale and a number of seconds; giving an item asks for an item and a
+count. Items, sounds, entity effects and objectives can be picked from the game's own lists, narrowed by what
+you type, and a list too long for a dropdown — the three thousand items on a stock server — gets a search page
+of its own. The Add menu offers the common commands by name (give an item, start an objective, open the shop,
+play an animation) and says what every kind of row does. Conditions are chosen from a menu rather than
+written: "the player has | Food_Bread | yes". Mistakes are marked on the row as you make them rather than when
+you press Save. Three pickers that filled the wrong argument are fixed.
 
-`<<input $n "How many?" number>>` asks again rather than storing a word. A player who typed letters into a
+**An NPC you spawn mid-conversation can have a dialogue of its own.** `<<spawn Kweebec_Merchant @helper>>`
+tags the new NPC, and any dialogue bound to `@helper` is the one it talks with. Before this, a spawned NPC
+could only ever have whatever its role already said, so "fetch the guard, then talk to the guard" could not be
+written.
+
+**`<<calm>>` makes an NPC forget what it is fighting.** `<<attitude friendly>>` decides who an NPC will start
+on, not the fight it is already in — a distinction the docs now make as well. Use the two together to call a
+guard off.
+
+**`<<input $n "How many?" number>>` asks again rather than storing a word.** A player who typed letters into a
 number box used to find out much later, when the conversation ended in whichever line first did arithmetic on
 the answer.
 
-`<<title>>` takes a style rather than a yes-or-no, because Hytale 0.7 replaced the flag with an enum and added
-`GoblinBreach` and `VoidEviction` to `Default` and `Major`. The styles offered are read off the game's own enum
-at startup. Old `minor`/`major` and the JSON `Major` boolean still work.
+**`<<title>>` takes a style rather than a yes-or-no**, because Hytale 0.7 replaced the flag with an enum and
+added `GoblinBreach` and `VoidEviction` to `Default` and `Major`. The styles offered are read off the game's
+own enum at startup, so a version that adds one needs no release of this mod. Old `minor`/`major` and the JSON
+`Major` boolean still work.
 
-Fixed: a command now runs before the line under it is evaluated, so a condition sees what the command just did
-(a `<<learn>>` followed by a check on it used to read the old answer). Renaming an NPC with `<<npc_name>>`
+**The tool has an icon of its own**, a speech bubble being clicked, drawn by @Trix8ea. The mod stays MIT; the
+icon stays the artist's, and its layered source and checksums are in the repository. There is a Windows
+installer for the Node Editor workspace now as well — it mirrors the shell script line for line, but it has
+not been run on Windows yet, so please say so if it fails for you.
+
+**Fixed.** A command now runs before the line under it is evaluated, so a condition sees what the command just
+did (a `<<learn>>` followed by a check on it used to read the old answer). Renaming an NPC with `<<npc_name>>`
 survives a server restart — nothing had marked the entity as needing saving. `<<state>>` says so when a role
-has no such state instead of failing silently. Rebuilding the test corridor no longer leaves block bindings
-behind.
+has no state by that name instead of failing silently. A dropdown wider than the panel it drew into would not
+open at all. Rebuilding the test corridor no longer leaves block bindings behind, and no longer spawns a
+second set of station NPCs after a server start.
 
-For plugin authors: `DialogueContext` gained `getOpener()` — NPC, block, prop, trigger, join, role,
-interaction, command, API — and `getOrigin()`, where a block or prop conversation is happening.
+**For plugin authors.** `DialogueContext` gained `getOpener()` — NPC, block, prop, trigger, join, role,
+interaction, command, API — and `getOrigin()`, where a block or prop conversation is happening. Other mods can
+name their own commands' arguments with `registerCommandArgs` and get the same named fields and pickers as the
+built-in commands.
 
-Both jars were walked station by station on 0.6.8 and on 0.7.0-pre.3.1 before this was tagged.
-
-**Version notes for 0.3.1** — never uploaded; 0.4.0 is the first file to carry these changes, and the notes are
-kept here because the 0.4.0 box should mention them too.
-
-The in-game editor now explains itself. Commands are edited as named fields instead of one box of text: a particle
-effect asks for a particle, a scale and a number of seconds; giving an item asks for an item and a count. Items,
-sounds, entity effects and objectives can be picked from the game's own lists, narrowed by what you type. The Add
-menu offers the common commands by name (give an item, start an objective, open the shop, play an animation) and
-says what every kind of row does. Mistakes are marked on the row as you make them rather than when you press Save,
-and conditions can be picked from a menu instead of written. Three pickers that filled the wrong argument are
-fixed.
-
-Installing LowTalk no longer puts words in vanilla NPCs' mouths. The example dialogues used to be copied in on
-first run already bound to Kweebec Merchants, Kweebec Elders and Klops Merchants; now a fresh server has no
-bound dialogue until you write or copy one. The examples still ship inside the pack, bound to nothing, so
-`/lowtalk browse` and the Asset Editor still have something to start from. Set `CopyExamplesOnFirstRun` to true
-in `lowtalk.json` before the first run for the old behaviour.
-
-The tool also has an icon of its own, a speech bubble being clicked, drawn by @Trix8ea. The mod stays MIT; the
-icon stays the artist's, and its layered source and checksums are in the repository.
-
-Fixed: `/lowtalk testworld build` spawned a second set of station NPCs when run again after a server start.
+**How it was tested.** Every check was walked in game, station by station, on the exact jars attached here:
+0.6.8 on the release line and 0.7.0-pre.3.1 on the pre-release line. What that walk does not reach is written
+down in the repository rather than left unsaid, and the harness that drives it is public.
 
 **Version notes for 0.3.0** (the "changelog" box on the file upload)
 
