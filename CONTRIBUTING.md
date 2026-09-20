@@ -132,16 +132,15 @@ These are two different jobs, and keeping them apart is what makes it affordable
 weekly.
 
 **Tracking** happens as soon as Hytale publishes a build, and it is mostly mechanical. Steps 1 and 2 use two
-scripts that are the maintainer's own tooling and do not live in this repository; everything they do is
-described here, so the process does not depend on having them.
+scripts in [`tools/`](tools/); what they do is described here too, so the process does not depend on them.
 
-1. **Notice the build exists** — `hytale-check-versions.sh` asks Hytale's Maven repository
-   (`maven.hytale.com/<channel>/com/hypixel/hytale/Server/maven-metadata.xml`) rather than the launcher, so you
-   learn about a new version while the build you have is still on disk.
-2. **Archive the build you have, before letting the launcher update** — `hytale-archive.sh` copies the server
-   jar and its assets out of the launcher install. The launcher replaces that install in place, so an
-   un-archived version is simply gone, and an API diff against the previous version is the only way to tell a
-   quiet patch from a breaking one.
+1. **Notice the build exists** — [`tools/hytale-check-versions.sh`](tools/hytale-check-versions.sh) asks
+   Hytale's Maven repository (`maven.hytale.com/<channel>/com/hypixel/hytale/Server/maven-metadata.xml`)
+   rather than the launcher, so you learn about a new version while the build you have is still on disk.
+2. **Archive the build you have, before letting the launcher update** —
+   [`tools/hytale-archive.sh`](tools/hytale-archive.sh) copies the server jar and its assets out of the
+   launcher install. The launcher replaces that install in place, so an un-archived version is simply gone,
+   and an API diff against the previous version is the only way to tell a quiet patch from a breaking one.
 3. Decompile the new jar, diff the classes, and run the harness's `whatChanged <oldArchive> <newArchive>` to
    name the checks worth re-running.
 4. Build both jars and boot them. Fix whatever broke, on `main`, so one tree still builds for both lines.
