@@ -2,6 +2,28 @@
 
 Things that are not part of the mod but are part of keeping it honest.
 
+## `help-sweep.sh`
+
+Runs `--help` on every command in a tree on a running server and fails if any of it renders a raw
+translation key instead of text.
+
+```sh
+./tools/help-sweep.sh                 # /lowtalk on ../../lowtalk-firstrun
+./tools/help-sweep.sh mycommand /path/to/server
+```
+
+Command and argument descriptions are translation keys resolved at display time. A key with no entry in
+the `.lang` file does not fail the build, does not fail a test and logs no warning — it prints the key, in
+game, where only someone looking at that exact screen would notice. There is no static check that catches
+it either, because some keys are composed at runtime from a format string.
+
+The command list comes from the server's own help output rather than from the source or the `.lang` file,
+so a missing key cannot hide by also being missing from the list of things to check. That was a real bug in
+the first version of this script: deleting a key to test it also deleted its own test case.
+
+Exit 0 clean, 1 if anything rendered a raw key, 2 if it could not run. The server must already be up with
+a `console.in` fifo.
+
 ## Hytale version tracking
 
 Two scripts that exist because **the Hytale launcher installs into `.../game/latest` and replaces it in
