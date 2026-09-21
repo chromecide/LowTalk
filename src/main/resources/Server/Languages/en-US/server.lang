@@ -171,3 +171,35 @@ lowtalk.picker.clear = Leave it empty
 lowtalk.picker.cancel = Cancel
 lowtalk.editor.optionExtras = this option
 lowtalk.newdialog.format = Saved as
+
+# Command and subcommand descriptions. The command system resolves the second argument of
+# super(name, description) through I18nModule, so these are keys, not display strings — the
+# same convention the game's own 658 command descriptions use.
+commands.lowtalk.desc = LowTalk dialogue tools
+commands.lowtalk.reload.desc = Re-read all dialogue files
+commands.lowtalk.list.desc = List loaded dialogues and their bindings
+commands.lowtalk.help.desc = Reference for the dialogue format
+commands.lowtalk.convert.desc = Write a dialogue as .json (form editor) or .talk (text)
+commands.lowtalk.info.desc = Outline of a loaded dialogue
+commands.lowtalk.open.desc = Open a dialogue by id
+commands.lowtalk.block.desc = Dialogues bound to placed blocks
+commands.lowtalk.block.bind.desc = Bind a dialogue to the block you are looking at
+commands.lowtalk.block.unbind.desc = Remove the dialogue from the block you are looking at
+commands.lowtalk.block.list.desc = List every block binding
+commands.lowtalk.browse.desc = Browse, edit and test every loaded dialogue
+commands.lowtalk.prop.desc = Dialogues bound to props
+commands.lowtalk.prop.list.desc = List every prop binding
+commands.lowtalk.prop.unbind.desc = Remove a prop binding by UUID
+commands.lowtalk.tags.desc = Show the tags and bound dialogues of the NPC you are looking at
+commands.lowtalk.vars.desc = Show your saved dialogue variables
+commands.lowtalk.reset.desc = Forget everything every dialogue knows about you
+commands.lowtalk.thaw.desc = Unfreeze the NPC you are looking at
+commands.lowtalk.test.desc = Play a dialogue from the console with scripted choices
+commands.lowtalk.testworld.desc = Build or visit the LowTalk test corridor
+commands.lowtalk.tool.desc = Get the LowTalk tool: click an NPC with it to edit its dialogue in place
+commands.lowtalk.stop.desc = Leave your current conversation
+commands.lowtalk.testworld.leave.desc = Return to the main world with your old game mode and unload the test world
+commands.lowtalk.testworld.probe.desc = Report why the nearest NPC does or does not react to you
+commands.lowtalk.testworld.respawn.desc = Reset your test state, respawn the corridor's NPCs and return to the entrance
+commands.lowtalk.testworld.build.desc = Create the test world and build the corridor of stations
+commands.lowtalk.testworld.go.desc = Teleport to the test corridor

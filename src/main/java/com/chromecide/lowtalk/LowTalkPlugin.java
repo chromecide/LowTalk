@@ -87,7 +87,13 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
         this.getEntityStoreRegistry().registerSystem(new NpcGoneSystem(this));
         this.getEntityStoreRegistry().registerSystem(new com.chromecide.lowtalk.hytale.PropSupport.EnsureInteractions(this));
         this.getEntityStoreRegistry().registerSystem(new NpcHintSystem(this));
-        this.getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, e -> sessions.end(e.getPlayerRef().getUuid()));
+        this.getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, e -> {
+            java.util.UUID leaving = e.getPlayerRef().getUuid();
+            sessions.end(leaving);
+            // Flush and drop this player's cached records. Without it the cache grows one entry per
+            // player, plus one per player-and-NPC pair they ever spoke to, and never shrinks.
+            if (store != null) store.evictPlayer(leaving);
+        });
         this.getCommandRegistry().registerCommand(new LowTalkCommand(this));
         this.getEventRegistry().registerGlobal(com.hypixel.hytale.server.core.event.events.player.PlayerReadyEvent.class,
                 e -> com.chromecide.lowtalk.hytale.integrations.JoinTriggers.onPlayerReady(this, e));
@@ -143,17 +149,17 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
                     .registerCoreComponentType(com.chromecide.lowtalk.hytale.npc.BuilderSensorLowTalkCondition.TYPE_ID,
                             com.chromecide.lowtalk.hytale.npc.BuilderSensorLowTalkCondition::new);
         } catch (RuntimeException e) {
-            getLogger().at(Level.WARNING).log("Could not register the LowTalk NPC role components: %s", e.toString());
+            getLogger().at(Level.WARNING).withCause(e).log("Could not register the LowTalk NPC role components");
         }
         try {
             com.chromecide.lowtalk.hytale.objectives.ObjectiveNodes.register(this);
         } catch (RuntimeException e) {
-            getLogger().at(Level.WARNING).log("Could not register the LowTalkNode objective task: %s", e.toString());
+            getLogger().at(Level.WARNING).withCause(e).log("Could not register the LowTalkNode objective task");
         }
         try {
             com.chromecide.lowtalk.hytale.json.JsonDialogues.register(this);
         } catch (RuntimeException e) {
-            getLogger().at(Level.WARNING).log("Could not register the JSON dialogue asset type: %s", e.toString());
+            getLogger().at(Level.WARNING).withCause(e).log("Could not register the JSON dialogue asset type");
         }
         // The title styles a creator may pick are the game's own, read off its style enum, so a version that adds
         // one needs no change here. Said out loud because which call the server has decides what <<title>> can do.
@@ -164,7 +170,7 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
                     String.join(", ", com.chromecide.lowtalk.hytale.compat.EventTitles.styleNames()),
                     com.chromecide.lowtalk.hytale.compat.EventTitles.flavour());
         } catch (RuntimeException e) {
-            getLogger().at(Level.WARNING).log("Could not read the game's title styles: %s", e.toString());
+            getLogger().at(Level.WARNING).withCause(e).log("Could not read the game's title styles");
         }
         try {
             com.hypixel.hytale.builtin.triggervolumes.TriggerVolumesPlugin tv = com.hypixel.hytale.builtin.triggervolumes.TriggerVolumesPlugin.get();
@@ -187,7 +193,7 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
             tv.registerAssetField(com.chromecide.lowtalk.hytale.integrations.LowTalkSetVariableEffect.TYPE_ID, "Dialogue",
                     com.chromecide.lowtalk.hytale.json.JsonDialogues.DATASET_DIALOGUES);
         } catch (RuntimeException e) {
-            getLogger().at(Level.WARNING).log("Could not register the LowTalkDialogue trigger effect: %s", e.toString());
+            getLogger().at(Level.WARNING).withCause(e).log("Could not register the LowTalkDialogue trigger effect");
         }
         try {
             this.getCodecRegistry(com.hypixel.hytale.server.core.modules.interaction.interaction.config.server.OpenCustomUIInteraction.PAGE_CODEC)
@@ -195,7 +201,7 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
                             com.chromecide.lowtalk.hytale.integrations.LowTalkPageSupplier.class,
                             com.chromecide.lowtalk.hytale.integrations.LowTalkPageSupplier.CODEC);
         } catch (RuntimeException e) {
-            getLogger().at(Level.WARNING).log("Could not register the LowTalk page for OpenCustomUI interactions: %s", e.toString());
+            getLogger().at(Level.WARNING).withCause(e).log("Could not register the LowTalk page for OpenCustomUI interactions");
         }
         try {
             com.hypixel.hytale.builtin.asseteditor.AssetEditorPlugin.get().getAssetTypeRegistry()
@@ -203,7 +209,7 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
             this.getEventRegistry().register(com.hypixel.hytale.builtin.asseteditor.event.AssetEditorSelectAssetEvent.class,
                     e -> com.chromecide.lowtalk.hytale.integrations.LowTalkAssetTypeHandler.onSelect(this, e));
         } catch (RuntimeException e) {
-            getLogger().at(Level.WARNING).log("Could not register .talk files with the Asset Editor: %s", e.toString());
+            getLogger().at(Level.WARNING).withCause(e).log("Could not register .talk files with the Asset Editor");
         }
         try {
             com.chromecide.lowtalk.hytale.ToolTargetInteraction.install(this);
@@ -212,7 +218,7 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
                     com.chromecide.lowtalk.hytale.ToolTargetInteraction.class,
                     com.chromecide.lowtalk.hytale.ToolTargetInteraction.CODEC);
         } catch (RuntimeException e) {
-            getLogger().at(Level.WARNING).log("Could not register the LowTalkTarget interaction: %s", e.toString());
+            getLogger().at(Level.WARNING).withCause(e).log("Could not register the LowTalkTarget interaction");
         }
         try {
             com.hypixel.hytale.server.core.entity.entities.player.pages.choices.ChoiceInteraction.CODEC.register(
@@ -224,7 +230,7 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
                     com.chromecide.lowtalk.hytale.integrations.LowTalkChoiceRequirement.class,
                     com.chromecide.lowtalk.hytale.integrations.LowTalkChoiceRequirement.CODEC);
         } catch (RuntimeException e) {
-            getLogger().at(Level.WARNING).log("Could not register the LowTalkDialogue choice interaction: %s", e.toString());
+            getLogger().at(Level.WARNING).withCause(e).log("Could not register the LowTalkDialogue choice interaction");
         }
     }
 

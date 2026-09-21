@@ -226,6 +226,26 @@ public class VariableStore {
         return removed;
     }
 
+    /**
+     * Write out and forget everything cached for one player: their own record and the per-NPC records of
+     * their conversations. Called when they disconnect.
+     *
+     * <p>Unlike {@link #resetPlayer} this deletes nothing on disk — the records are flushed first, so the
+     * player picks up exactly where they left off next time they join. It exists because the cache is
+     * keyed by player and by player-and-NPC pair and nothing ever dropped those entries, so a long-lived
+     * server accumulated one entry per player for every NPC they had ever spoken to.
+     */
+    public void evictPlayer(@Nonnull UUID playerId) {
+        String prefix = "players/" + playerId;
+        for (Map.Entry<String, Record> e : cache.entrySet()) {
+            String key = e.getKey();
+            if (!key.equals(prefix) && !key.startsWith(prefix + "/")) continue;
+            Record record = e.getValue();
+            writeIfDirty(key, record);
+            cache.remove(key, record);
+        }
+    }
+
     // ---- persistence
 
     private Record load(String key) {
@@ -251,24 +271,28 @@ public class VariableStore {
     /** Write every dirty record. Safe to call from any thread. */
     public void flush() {
         for (Map.Entry<String, Record> e : cache.entrySet()) {
-            Record r = e.getValue();
-            String json;
+            writeIfDirty(e.getKey(), e.getValue());
+        }
+    }
+
+    /** Write one record if it has changed. The dirty flag goes back on if the write fails. */
+    private void writeIfDirty(@Nonnull String key, @Nonnull Record r) {
+        String json;
+        synchronized (r) {
+            if (!r.dirty) return;
+            json = gson.toJson(r);
+            r.dirty = false;
+        }
+        Path p = root.resolve(key + ".json");
+        try {
+            Files.createDirectories(p.getParent());
+            Path tmp = p.resolveSibling(p.getFileName() + ".tmp");
+            Files.writeString(tmp, json, StandardCharsets.UTF_8);
+            Files.move(tmp, p, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (IOException ex) {
+            logger.at(Level.WARNING).log("Could not write %s: %s", p, ex.toString());
             synchronized (r) {
-                if (!r.dirty) continue;
-                json = gson.toJson(r);
-                r.dirty = false;
-            }
-            Path p = root.resolve(e.getKey() + ".json");
-            try {
-                Files.createDirectories(p.getParent());
-                Path tmp = p.resolveSibling(p.getFileName() + ".tmp");
-                Files.writeString(tmp, json, StandardCharsets.UTF_8);
-                Files.move(tmp, p, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-            } catch (IOException ex) {
-                logger.at(Level.WARNING).log("Could not write %s: %s", p, ex.toString());
-                synchronized (r) {
-                    r.dirty = true;
-                }
+                r.dirty = true;
             }
         }
     }
