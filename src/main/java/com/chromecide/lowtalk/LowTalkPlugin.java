@@ -44,6 +44,9 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
 
     private final Config<LowTalkConfig> config;
     private VariableStore store;
+    private com.hypixel.hytale.component.ResourceType<
+            com.hypixel.hytale.server.core.universe.world.storage.EntityStore,
+            com.chromecide.lowtalk.hytale.NpcHintState> hintStateType;
     private DialogueRegistry registry;
     private FunctionRegistry functions;
     private EffectRegistry effects;
@@ -86,6 +89,10 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
         this.getEntityStoreRegistry().registerSystem(new com.chromecide.lowtalk.hytale.BlockUseSystem(this));
         this.getEntityStoreRegistry().registerSystem(new NpcGoneSystem(this));
         this.getEntityStoreRegistry().registerSystem(new com.chromecide.lowtalk.hytale.PropSupport.EnsureInteractions(this));
+        // Registered before the system that reads it. Per store, so each world keeps its own copy.
+        this.hintStateType = this.getEntityStoreRegistry()
+                .registerResource(com.chromecide.lowtalk.hytale.NpcHintState.class,
+                        com.chromecide.lowtalk.hytale.NpcHintState::new);
         this.getEntityStoreRegistry().registerSystem(new NpcHintSystem(this));
         this.getEventRegistry().registerGlobal(PlayerDisconnectEvent.class, e -> {
             java.util.UUID leaving = e.getPlayerRef().getUuid();
@@ -322,6 +329,11 @@ public class LowTalkPlugin extends JavaPlugin implements DialogueSession.Host {
 
     @Override
     public VariableStore store() { return store; }
+
+    /** Per-world prompt bookkeeping for {@link com.chromecide.lowtalk.hytale.NpcHintSystem}. */
+    public com.hypixel.hytale.component.ResourceType<
+            com.hypixel.hytale.server.core.universe.world.storage.EntityStore,
+            com.chromecide.lowtalk.hytale.NpcHintState> getHintStateType() { return hintStateType; }
 
     @Override
     public HytaleLogger logger() { return getLogger(); }
