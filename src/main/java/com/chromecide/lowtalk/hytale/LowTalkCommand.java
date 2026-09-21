@@ -124,7 +124,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
     /** /lowtalk help [name | commands | functions | keywords]: the format reference, in chat. */
     static class Help extends CommandBase {
         private final LowTalkPlugin plugin;
-        private final OptionalArg<String> topicArg = withOptionalArg("topic", "A command, function or keyword name, or commands / functions / keywords", ArgTypes.GREEDY_STRING);
+        private final OptionalArg<String> topicArg = withOptionalArg("topic", "server.commands.lowtalk.help.topic.desc", ArgTypes.GREEDY_STRING);
 
         Help(LowTalkPlugin plugin) {
             super("help", "server.commands.lowtalk.help.desc");
@@ -189,14 +189,14 @@ public class LowTalkCommand extends AbstractCommandCollection {
     static class ConvertTo extends CommandBase {
         private final LowTalkPlugin plugin;
         private final String format;
-        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", dialogueIds());
+        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "server.commands.lowtalk.convert.dialogue.desc", dialogueIds());
         private final RequiredArg<String> packArg;
 
         ConvertTo(LowTalkPlugin plugin, String format) {
-            super(format, format.equals("json") ? "Write a dialogue as a JSON asset into a pack" : "Write a dialogue as .talk text into a pack, or 'server' for the plugin folder");
+            super(format, "server.commands.lowtalk.convert." + format + ".desc");
             this.plugin = plugin;
             this.format = format;
-            this.packArg = withRequiredArg("pack", format.equals("json") ? "Asset pack name, e.g. JP:My Pack" : "Asset pack name, or server", ArgTypes.GREEDY_STRING);
+            this.packArg = withRequiredArg("pack", "server.commands.lowtalk.convert." + format + ".pack.desc", ArgTypes.GREEDY_STRING);
             this.requirePermission(CREATOR);
         }
 
@@ -285,7 +285,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
     /** /lowtalk info <id>: nodes, options, variables and unreachable nodes of a loaded dialogue. */
     static class Info extends CommandBase {
         private final LowTalkPlugin plugin;
-        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", dialogueIds());
+        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "server.commands.lowtalk.info.dialogue.desc", dialogueIds());
 
         Info(LowTalkPlugin plugin) {
             super("info", "server.commands.lowtalk.info.desc");
@@ -307,7 +307,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
     /** Open a dialogue by id with the NPC you are looking at (or with no NPC). */
     static class Open extends AbstractPlayerCommand {
         private final LowTalkPlugin plugin;
-        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", dialogueIds());
+        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "server.commands.lowtalk.open.dialogue.desc", dialogueIds());
 
         Open(LowTalkPlugin plugin) {
             super("open", "server.commands.lowtalk.open.desc");
@@ -351,8 +351,8 @@ public class LowTalkCommand extends AbstractCommandCollection {
 
     static class BlockBind extends AbstractPlayerCommand {
         private final LowTalkPlugin plugin;
-        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", dialogueIds());
-        private final OptionalArg<String> modeArg = withOptionalArg("mode", "instead (default) or also", ArgTypes.STRING);
+        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "server.commands.lowtalk.block.bind.dialogue.desc", dialogueIds());
+        private final OptionalArg<String> modeArg = withOptionalArg("mode", "server.commands.lowtalk.block.bind.mode.desc", ArgTypes.STRING);
 
         BlockBind(LowTalkPlugin plugin) {
             super("bind", "server.commands.lowtalk.block.bind.desc");
@@ -481,7 +481,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
     /** Drop a binding by UUID, for props that no longer exist; the tool's Unbind covers props still in the world. */
     static class PropUnbind extends AbstractPlayerCommand {
         private final LowTalkPlugin plugin;
-        private final RequiredArg<String> idArg = withRequiredArg("uuid", "Prop entity UUID, from /lowtalk prop list", ArgTypes.STRING);
+        private final RequiredArg<String> idArg = withRequiredArg("uuid", "server.commands.lowtalk.prop.unbind.uuid.desc", ArgTypes.STRING);
 
         PropUnbind(LowTalkPlugin plugin) {
             super("unbind", "server.commands.lowtalk.prop.unbind.desc");
@@ -511,10 +511,11 @@ public class LowTalkCommand extends AbstractCommandCollection {
     static class Tag extends AbstractPlayerCommand {
         private final LowTalkPlugin plugin;
         private final boolean add;
-        private final RequiredArg<String> tagArg = withRequiredArg("tag", "Tag name, without the @", ArgTypes.STRING);
+        private final RequiredArg<String> tagArg = withRequiredArg("tag", "server.commands.lowtalk.tag.tag.desc", ArgTypes.STRING);
 
         Tag(LowTalkPlugin plugin, boolean add) {
-            super(add ? "tag" : "untag", add ? "Tag the NPC you are looking at" : "Remove a tag from the NPC you are looking at");
+            super(add ? "tag" : "untag",
+                    add ? "server.commands.lowtalk.tag.desc" : "server.commands.lowtalk.untag.desc");
             this.plugin = plugin;
             this.add = add;
             this.requirePermission(ADMIN);
@@ -639,8 +640,8 @@ public class LowTalkCommand extends AbstractCommandCollection {
      */
     static class TestDialogue extends AbstractPlayerCommand {
         private final LowTalkPlugin plugin;
-        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", dialogueIds());
-        private final OptionalArg<String> scriptArg = withOptionalArg("script", "'apply' to run effects for real, then choices: numbers or text prefixes", ArgTypes.GREEDY_STRING);
+        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "server.commands.lowtalk.test.dialogue.desc", dialogueIds());
+        private final OptionalArg<String> scriptArg = withOptionalArg("script", "server.commands.lowtalk.test.script.desc", ArgTypes.GREEDY_STRING);
 
         TestDialogue(LowTalkPlugin plugin) {
             super("test", "server.commands.lowtalk.test.desc");
