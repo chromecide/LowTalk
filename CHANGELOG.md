@@ -18,12 +18,30 @@ wonder.
 
 Nothing else in this release needs anything from you.
 
-### Built against Hytale 0.6.8 and 0.7.0-pre.3.1
+### Built against Hytale 0.6.8 and 0.7.0-pre.5
 
 Both lines get a jar, and both were walked end to end before this was tagged. The two server updates that
 landed during that work changed one class between them — `HardwareUtil`, resolving Windows system binaries by
 absolute path instead of by name, which is PATH-hijack hardening and touches nothing this mod uses. Nothing
-else in either jar moved.
+else in either jar moved. The pre-release jar now targets 0.7.0-pre.5, which is where that line has got to.
+
+### The transcript sits in the game's own frame
+
+It used a nine-slice texture shipped with this pack. The game already provides the inset panel it was
+imitating, so it uses that and the texture is gone. A mod should build from what ships rather than carry art
+of its own.
+
+### Under the hood: pages describe themselves
+
+Pages no longer name the controls they draw into. Each one says what should be on screen as plain data, and a
+single layout per page maps those names onto controls; only the difference is sent on each step. Nothing about
+this is visible while playing, and it is written up in `docs/DESIGN.md`.
+
+Two reasons it was worth doing. The control names now live in one place per page, so the test that checks every
+one of them against the layout documents can see all of them — it previously could not see any name that was
+built up in code, which was most of the dialogue window's option buttons and all of the editor's argument
+fields. And the client's interface is moving to a different UI stack with a server-driven form of it coming;
+keeping the drawing in one replaceable piece means meeting that is new layouts rather than new pages.
 
 ### Titles use the game's own styles
 
