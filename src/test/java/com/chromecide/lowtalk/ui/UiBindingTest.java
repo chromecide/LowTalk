@@ -48,8 +48,12 @@ class UiBindingTest {
     private static final Map<String, Set<String>> PROPERTIES = Map.of(
             "Label", Set.of("Text"),
             "Title", Set.of("Text"),
-            "TextButton", Set.of("Text", "Background"),
-            "SecondaryTextButton", Set.of("Text", "Background"),
+            // Disabled greys a button and stops it raising its event. The game sets it on its own buttons all
+            // over (RespawnPage, the pack browser, the trigger-volume inspector), so it is a real property; it
+            // only looks new here because the option buttons are addressed as "#Opt" + i and so were never a
+            // literal for the scan to find.
+            "TextButton", Set.of("Text", "Background", "Disabled"),
+            "SecondaryTextButton", Set.of("Text", "Background", "Disabled"),
             "TextField", Set.of("Value", "PlaceholderText"),
             "DropdownBox", Set.of("Value", "Entries"),
             "CheckBoxWithLabel", Set.of("Value", "Text"),
@@ -182,6 +186,30 @@ class UiBindingTest {
         assertTrue(uses().size() > 50, "only " + uses().size() + " bindings found; the source scan is broken");
     }
 
+    /**
+     * A page that declares its bindings in a PageLayout writes the control and the property as separate
+     * arguments, so the literal scan cannot see it. If the declaration scan ever stops matching, that page
+     * silently stops being checked and nothing else here would notice — so check it is still matching.
+     */
+    @Test
+    void theDeclarationScanFindsThePagesBuiltOnPageLayout() throws IOException {
+        List<Use> uses = uses();
+        assertTrue(uses.stream().anyMatch(u -> u.file().equals("DialoguePage.java") && u.control().equals("NpcTitle")),
+                "DialoguePage declares #NpcTitle in its PageLayout but the declaration scan did not find it");
+        assertTrue(uses.stream().anyMatch(u -> u.file().equals("DialoguePage.java") && u.control().equals("Opt7")),
+                "a pool of 8 should be checked as #Opt0..#Opt7; #Opt7 was not among them");
+        assertTrue(uses.stream().anyMatch(u -> u.file().equals("BrowsePage.java") && u.control().equals("EditButton")),
+                "a button declared inside a row template was not found");
+        assertTrue(uses.stream().anyMatch(u -> u.file().equals("BrowsePage.java") && u.control().equals("ShowTests")),
+                "a selector naming more than one control was not split into its parts");
+        assertTrue(uses.stream().anyMatch(u -> u.file().equals("EditorLayout.java") && u.control().equals("VB")),
+                "the editor's condition rows were not found; EditorLayout holds the most names of anything here");
+        assertTrue(uses.stream().anyMatch(u -> u.file().equals("EditorLayout.java") && u.control().equals("B3")),
+                "the editor's fourth argument slot was not found");
+        long editor = uses.stream().filter(u -> u.file().equals("EditorLayout.java")).count();
+        assertTrue(editor > 150, "only " + editor + " editor bindings found; that file declares far more");
+    }
+
     private record Use(String file, String control, String property, Set<String> layouts) {
         @Override
         public String toString() {
@@ -207,6 +235,112 @@ class UiBindingTest {
                 Matcher m = USE.matcher(literal);
                 while (m.find()) out.add(new Use(e.getKey() + ".java", m.group(1), m.group(2), layouts));
             }
+            out.addAll(declaredUses(e.getKey() + ".java", src, layouts));
+        }
+        return out;
+    }
+
+    // ---- pages that declare their bindings in a PageLayout --------------------------------------
+    //
+    // A page built on PageLayout names a control and a property as two separate arguments, so the scan for
+    // "#Name.Text" literals above finds nothing in it. These read the declarations instead. This is strictly
+    // more than the literal scan could see: a pool is written "#Opt" with a size, so #Opt0..#Opt7 were never
+    // literals anywhere and were never checked at all.
+
+    /** {@code .property("title", "#NpcTitle", "Text")}, and box/reads/field, which have the same shape. */
+    private static final Pattern DECLARED_TARGET =
+            Pattern.compile("\\.(?:property|box|reads|field)\\(\\s*\\x22[^\\x22]*\\x22\\s*,\\s*\\x22([^\\x22]*#[^\\x22]*)\\x22\\s*,\\s*\\x22(\\w+)\\x22\\s*\\)");
+
+    /**
+     * {@code .container("transcript", "#Transcript")}, {@code .command("CLOSE", "#CloseButton", ...)} and the
+     * row-level forms of the same. A control that only raises a command still has to be there.
+     */
+    private static final Pattern DECLARED_CONTROL =
+            Pattern.compile("\\.(?:container|command|rowCommand|rowButton)\\(\\s*\\x22[^\\x22]*\\x22\\s*,\\s*\\x22([^\\x22]*#[^\\x22]*)\\x22");
+
+    /** {@code .revealsLatestWith("ScrollChildIndexIntoView")} applies to the container just opened. */
+    private static final Pattern DECLARED_REVEAL =
+            Pattern.compile("\\.container\\(\\s*\\x22[^\\x22]*\\x22\\s*,\\s*\\x22(#\\w+)\\x22[\\s\\S]*?\\.revealsLatestWith\\(\\s*\\x22(\\w+)\\x22");
+
+    /** {@code .pool("options", "#Opt", 8) ... .done()} and its fields. */
+    private static final Pattern DECLARED_POOL =
+            Pattern.compile("\\.pool\\(\\s*\\x22[^\\x22]*\\x22\\s*,\\s*\\x22(#\\w+)\\x22\\s*,\\s*(\\w+)\\s*\\)([\\s\\S]*?)\\.done\\(\\)");
+
+    /** {@code .poolCommand("CHOOSE", "#Opt", 8, ...)}. */
+    private static final Pattern DECLARED_POOL_COMMAND =
+            Pattern.compile("\\.poolCommand\\(\\s*\\x22[^\\x22]*\\x22\\s*,\\s*\\x22(#\\w+)\\x22\\s*,\\s*(\\w+)");
+
+    /** A field inside a pool block: the selector may be empty, meaning the pooled control itself. */
+    private static final Pattern POOL_FIELD =
+            Pattern.compile("\\.field\\(\\s*\\x22[^\\x22]*\\x22\\s*,\\s*\\x22(#?\\w*)\\x22\\s*,\\s*\\x22(\\w+)\\x22\\s*\\)");
+
+    private static final Pattern POOL_HIDDEN = Pattern.compile("\\.hiddenWith\\(\\s*\\x22(\\w+)\\x22");
+
+
+    /**
+     * A pool size is usually written as the page's own constant rather than a number, so resolve it from
+     * the declaration in the same file. A size that cannot be resolved is a broken scan, not an empty pool.
+     */
+    private static int sizeOf(String src, String token) {
+        if (token.matches("\\d+")) return Integer.parseInt(token);
+        Matcher m = Pattern.compile("\\b" + Pattern.quote(token) + "\\s*=\\s*(\\d+)").matcher(src);
+        if (m.find()) return Integer.parseInt(m.group(1));
+        throw new IllegalStateException("pool size '" + token + "' is not a number and has no constant in this file");
+    }
+
+
+    /**
+     * A selector may walk down more than one control — "#ShowTests #CheckBox" sets the value of a check box
+     * inside a labelled group. The property belongs to the last control named; the ones before it only have
+     * to exist, so they are recorded against Visible, which every control has.
+     */
+    private static void addSelector(List<Use> out, String file, String selector, String property, Set<String> layouts) {
+        Matcher controls = Pattern.compile("#(\\w+)").matcher(selector);
+        List<String> names = new ArrayList<>();
+        while (controls.find()) names.add(controls.group(1));
+        for (int i = 0; i < names.size(); i++) {
+            out.add(new Use(file, names.get(i), i == names.size() - 1 ? property : "Visible", layouts));
+        }
+    }
+
+    private static List<Use> declaredUses(String file, String rawSrc, Set<String> layouts) {
+        String src = stripComments(rawSrc);
+        List<Use> out = new ArrayList<>();
+
+        Matcher m = DECLARED_TARGET.matcher(src);
+        while (m.find()) addSelector(out, file, m.group(1), m.group(2), layouts);
+
+        // A control that only raises a command, or holds a list, still has to exist. Visible is universal, so
+        // naming it here checks the control is declared without claiming anything about its kind.
+        m = DECLARED_CONTROL.matcher(src);
+        while (m.find()) addSelector(out, file, m.group(1), "Visible", layouts);
+
+        m = DECLARED_REVEAL.matcher(src);
+        while (m.find()) addSelector(out, file, m.group(1), m.group(2), layouts);
+
+        m = DECLARED_POOL.matcher(src);
+        while (m.find()) {
+            String prefix = m.group(1).substring(1);
+            int size = sizeOf(src, m.group(2));
+            String body = m.group(3);
+            Matcher hidden = POOL_HIDDEN.matcher(body);
+            String visible = hidden.find() ? hidden.group(1) : "Visible";
+            for (int i = 0; i < size; i++) {
+                out.add(new Use(file, prefix + i, visible, layouts));
+                Matcher f = POOL_FIELD.matcher(body);
+                while (f.find()) {
+                    String selector = f.group(1);
+                    String control = selector.isEmpty() ? prefix + i : selector.substring(1);
+                    out.add(new Use(file, control, f.group(2), layouts));
+                }
+            }
+        }
+
+        m = DECLARED_POOL_COMMAND.matcher(src);
+        while (m.find()) {
+            String prefix = m.group(1).substring(1);
+            int size = sizeOf(src, m.group(2));
+            for (int i = 0; i < size; i++) out.add(new Use(file, prefix + i, "Visible", layouts));
         }
         return out;
     }

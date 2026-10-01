@@ -1,6 +1,11 @@
 package com.chromecide.lowtalk.hytale;
 
 import com.chromecide.lowtalk.LowTalkPlugin;
+import com.chromecide.lowtalk.ui.PageLayout;
+import com.chromecide.lowtalk.ui.UiEvent;
+import com.chromecide.lowtalk.ui.UiModel;
+import com.chromecide.lowtalk.ui.UiOption;
+import com.chromecide.lowtalk.ui.UiPage;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
@@ -8,14 +13,7 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import org.joml.Vector3i;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
-import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.server.core.entity.entities.Player;
-import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
-import com.hypixel.hytale.server.core.ui.DropdownEntryInfo;
-import com.hypixel.hytale.server.core.ui.LocalizableString;
-import com.hypixel.hytale.server.core.ui.builder.EventData;
-import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
-import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
@@ -24,10 +22,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 /** The LowTalk tool on a block: pick a dialogue and whether it replaces the block's own action, or unbind. */
-public class BindBlockPage extends InteractiveCustomUIPage<BindBlockPage.Data> {
+public class BindBlockPage extends UiPage<BindBlockPage.Data> {
 
     private static final String LAYOUT = "Pages/LowTalk/BindBlockPage.ui";
     private static final String NONE = "$none";
+
+    /** Which control carries which value. The only place this page names anything on screen. */
+    @Nonnull
+    private static PageLayout layout() {
+        return PageLayout.of(LAYOUT)
+                .property("where", "#Where", "Text")
+                .property("dialogues", "#Dialogue", "Entries")
+                .property("dialogue", "#Dialogue", "Value")
+                .property("modes", "#Mode", "Entries")
+                .property("mode", "#Mode", "Value")
+                .property("unbindVisible", "#UnbindButton", "Visible")
+                .property("editVisible", "#EditButton", "Visible")
+                .command("EDIT", "#EditButton", UiEvent.ACTIVATE).done()
+                .command("NEW", "#NewButton", UiEvent.ACTIVATE).done()
+                .command("BIND", "#BindButton", UiEvent.ACTIVATE)
+                    .reads("Dialogue", "#Dialogue", "Value")
+                    .reads("Mode", "#Mode", "Value").done()
+                .command("UNBIND", "#UnbindButton", UiEvent.ACTIVATE).done()
+                .command("CANCEL", "#CancelButton", UiEvent.ACTIVATE).done()
+                .build();
+    }
 
     public static class Data {
         public static final BuilderCodec<Data> CODEC = BuilderCodec.builder(Data.class, Data::new)
@@ -46,7 +65,7 @@ public class BindBlockPage extends InteractiveCustomUIPage<BindBlockPage.Data> {
     private final String blockId;
 
     private BindBlockPage(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef playerRef, @Nonnull String worldName, @Nonnull Vector3i pos, @Nonnull String blockId) {
-        super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC);
+        super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC, layout());
         this.plugin = plugin;
         this.worldName = worldName;
         this.pos = pos;
@@ -61,35 +80,33 @@ public class BindBlockPage extends InteractiveCustomUIPage<BindBlockPage.Data> {
     }
 
     @Override
-    public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder cmd, @Nonnull UIEventBuilder evt, @Nonnull Store<EntityStore> store) {
-        cmd.append(LAYOUT);
+    protected void populate(@Nonnull UiModel model) {
         BlockBindings.Binding current = plugin.getBlockBindings().get(worldName, pos.x, pos.y, pos.z);
-        cmd.set("#Where.Text", blockId + "  @ " + pos.x + " " + pos.y + " " + pos.z);
-        List<DropdownEntryInfo> dialogues = new ArrayList<>();
-        dialogues.add(new DropdownEntryInfo(LocalizableString.fromString("(none)"), NONE));
-        for (String id : plugin.getRegistry().ids()) dialogues.add(new DropdownEntryInfo(LocalizableString.fromString(id), id));
-        cmd.set("#Dialogue.Entries", dialogues);
-        cmd.set("#Dialogue.Value", current == null ? NONE : current.dialogue());
-        List<DropdownEntryInfo> modes = new ArrayList<>();
-        modes.add(new DropdownEntryInfo(LocalizableString.fromString("talk instead of the block's own action"), BlockBindings.MODE_INSTEAD));
-        modes.add(new DropdownEntryInfo(LocalizableString.fromString("talk and let the block act as well"), BlockBindings.MODE_ALSO));
-        cmd.set("#Mode.Entries", modes);
-        cmd.set("#Mode.Value", current == null ? BlockBindings.MODE_INSTEAD : current.mode());
-        cmd.set("#UnbindButton.Visible", current != null);
-        cmd.set("#EditButton.Visible", current != null && plugin.getRegistry().byId(current.dialogue()) != null);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#EditButton", new EventData().append("Action", "EDIT"), false);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#NewButton", new EventData().append("Action", "NEW"), false);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#BindButton",
-                new EventData().append("Action", "BIND").append("@Dialogue", "#Dialogue.Value").append("@Mode", "#Mode.Value"), false);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#UnbindButton", new EventData().append("Action", "UNBIND"), false);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#CancelButton", new EventData().append("Action", "CANCEL"), false);
+        model.set("where", blockId + "  @ " + pos.x + " " + pos.y + " " + pos.z);
+        List<UiOption> dialogues = new ArrayList<>();
+        dialogues.add(UiOption.of(NONE, "(none)"));
+        for (String id : plugin.getRegistry().ids()) dialogues.add(UiOption.same(id));
+        model.set("dialogues", dialogues);
+        model.set("dialogue", current == null ? NONE : current.dialogue());
+        model.set("modes", List.of(
+                UiOption.of(BlockBindings.MODE_INSTEAD, "talk instead of the block's own action"),
+                UiOption.of(BlockBindings.MODE_ALSO, "talk and let the block act as well")));
+        model.set("mode", current == null ? BlockBindings.MODE_INSTEAD : current.mode());
+        model.set("unbindVisible", current != null);
+        model.set("editVisible", current != null && plugin.getRegistry().byId(current.dialogue()) != null);
+    }
+
+    @Nonnull
+    @Override
+    protected String commandOf(@Nonnull Data data) {
+        return data.action == null ? "" : data.action;
     }
 
     @Override
-    public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Data data) {
-        if (data.action == null) return;
+    protected void onCommand(@Nonnull String command, @Nonnull Data data,
+                             @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         BlockBindings bindings = plugin.getBlockBindings();
-        switch (data.action) {
+        switch (command) {
             case "BIND" -> {
                 if (data.dialogue == null || NONE.equals(data.dialogue) || plugin.getRegistry().byId(data.dialogue) == null) {
                     playerRef.sendMessage(LowTalkCommand.msg(plugin, "blockPickDialogue"));

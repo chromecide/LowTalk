@@ -1,6 +1,11 @@
 package com.chromecide.lowtalk.hytale;
 
 import com.chromecide.lowtalk.LowTalkPlugin;
+import com.chromecide.lowtalk.ui.PageLayout;
+import com.chromecide.lowtalk.ui.UiEvent;
+import com.chromecide.lowtalk.ui.UiModel;
+import com.chromecide.lowtalk.ui.UiOption;
+import com.chromecide.lowtalk.ui.UiPage;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
@@ -8,13 +13,6 @@ import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
 import com.hypixel.hytale.server.core.entity.entities.Player;
-import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
-import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
-import com.hypixel.hytale.server.core.ui.DropdownEntryInfo;
-import com.hypixel.hytale.server.core.ui.builder.EventData;
-import com.hypixel.hytale.server.core.ui.LocalizableString;
-import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
-import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
@@ -24,7 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 /** The LowTalk tool on a prop: pick a dialogue and an optional speaker name, or unbind. */
-public class BindPropPage extends InteractiveCustomUIPage<BindPropPage.Data> {
+public class BindPropPage extends UiPage<BindPropPage.Data> {
     private static final String LAYOUT = "Pages/LowTalk/BindPropPage.ui";
     private static final String NONE = "$none";
     /** The prompt choices: label shown in the dropdown -> translation key the client renders with the bound key. */
@@ -36,6 +34,29 @@ public class BindPropPage extends InteractiveCustomUIPage<BindPropPage.Data> {
             {"use", "server.lowtalk.hint.use"},
     };
     static final String DEFAULT_HINT = HINTS[0][1];
+
+    /** Which control carries which value. The only place this page names anything on screen. */
+    @Nonnull
+    private static PageLayout layout() {
+        return PageLayout.of(LAYOUT)
+                .property("where", "#Where", "Text")
+                .property("dialogues", "#Dialogue", "Entries")
+                .property("dialogue", "#Dialogue", "Value")
+                .property("name", "#Name", "Value")
+                .property("hints", "#Hint", "Entries")
+                .property("hint", "#Hint", "Value")
+                .property("unbindVisible", "#UnbindButton", "Visible")
+                .property("editVisible", "#EditButton", "Visible")
+                .command("EDIT", "#EditButton", UiEvent.ACTIVATE).done()
+                .command("NEW", "#NewButton", UiEvent.ACTIVATE).done()
+                .command("BIND", "#BindButton", UiEvent.ACTIVATE)
+                    .reads("Dialogue", "#Dialogue", "Value")
+                    .reads("Name", "#Name", "Value")
+                    .reads("Hint", "#Hint", "Value").done()
+                .command("UNBIND", "#UnbindButton", UiEvent.ACTIVATE).done()
+                .command("CANCEL", "#CancelButton", UiEvent.ACTIVATE).done()
+                .build();
+    }
 
     public static class Data {
         public static final BuilderCodec<Data> CODEC = BuilderCodec.builder(Data.class, Data::new)
@@ -55,7 +76,7 @@ public class BindPropPage extends InteractiveCustomUIPage<BindPropPage.Data> {
     private final String label;
 
     private BindPropPage(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef playerRef, @Nonnull UUID propId, @Nonnull String label) {
-        super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC);
+        super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC, layout());
         this.plugin = plugin;
         this.propId = propId;
         this.label = label;
@@ -69,37 +90,36 @@ public class BindPropPage extends InteractiveCustomUIPage<BindPropPage.Data> {
     }
 
     @Override
-    public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder cmd, @Nonnull UIEventBuilder evt, @Nonnull Store<EntityStore> store) {
-        cmd.append(LAYOUT);
+    protected void populate(@Nonnull UiModel model) {
         PropBindings.Binding current = plugin.getPropBindings().get(propId);
-        cmd.set("#Where.Text", label);
-        List<DropdownEntryInfo> dialogues = new ArrayList<>();
-        dialogues.add(new DropdownEntryInfo(LocalizableString.fromString("(none)"), NONE));
-        for (String id : plugin.getRegistry().ids()) dialogues.add(new DropdownEntryInfo(LocalizableString.fromString(id), id));
-        cmd.set("#Dialogue.Entries", dialogues);
-        cmd.set("#Dialogue.Value", current == null ? NONE : current.dialogue());
-        cmd.set("#Name.Value", current == null || current.name() == null ? "" : current.name());
-        List<DropdownEntryInfo> hints = new ArrayList<>();
-        for (String[] h : HINTS) hints.add(new DropdownEntryInfo(LocalizableString.fromString(h[0]), h[1]));
-        hints.add(new DropdownEntryInfo(LocalizableString.fromString("(no prompt)"), NONE));
-        cmd.set("#Hint.Entries", hints);
-        cmd.set("#Hint.Value", current == null ? DEFAULT_HINT : (current.hint() == null ? NONE : current.hint()));
-        cmd.set("#UnbindButton.Visible", current != null);
-        cmd.set("#EditButton.Visible", current != null && plugin.getRegistry().byId(current.dialogue()) != null);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#EditButton", new EventData().append("Action", "EDIT"), false);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#NewButton", new EventData().append("Action", "NEW"), false);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#BindButton",
-                new EventData().append("Action", "BIND").append("@Dialogue", "#Dialogue.Value").append("@Name", "#Name.Value").append("@Hint", "#Hint.Value"), false);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#UnbindButton", new EventData().append("Action", "UNBIND"), false);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#CancelButton", new EventData().append("Action", "CANCEL"), false);
+        model.set("where", label);
+        List<UiOption> dialogues = new ArrayList<>();
+        dialogues.add(UiOption.of(NONE, "(none)"));
+        for (String id : plugin.getRegistry().ids()) dialogues.add(UiOption.same(id));
+        model.set("dialogues", dialogues);
+        model.set("dialogue", current == null ? NONE : current.dialogue());
+        model.set("name", current == null || current.name() == null ? "" : current.name());
+        List<UiOption> hints = new ArrayList<>();
+        for (String[] h : HINTS) hints.add(UiOption.of(h[1], h[0]));
+        hints.add(UiOption.of(NONE, "(no prompt)"));
+        model.set("hints", hints);
+        model.set("hint", current == null ? DEFAULT_HINT : (current.hint() == null ? NONE : current.hint()));
+        model.set("unbindVisible", current != null);
+        model.set("editVisible", current != null && plugin.getRegistry().byId(current.dialogue()) != null);
+    }
+
+    @Nonnull
+    @Override
+    protected String commandOf(@Nonnull Data data) {
+        return data.action == null ? "" : data.action;
     }
 
     @Override
-    public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Data data) {
-        if (data.action == null) return;
+    protected void onCommand(@Nonnull String command, @Nonnull Data data,
+                             @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         PropBindings bindings = plugin.getPropBindings();
         Ref<EntityStore> prop = store.getExternalData().getRefFromUUID(propId);
-        switch (data.action) {
+        switch (command) {
             case "BIND" -> {
                 if (data.dialogue == null || NONE.equals(data.dialogue) || plugin.getRegistry().byId(data.dialogue) == null) {
                     playerRef.sendMessage(LowTalkCommand.msg(plugin, "blockPickDialogue"));

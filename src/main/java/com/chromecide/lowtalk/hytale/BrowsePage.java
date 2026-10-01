@@ -2,20 +2,19 @@ package com.chromecide.lowtalk.hytale;
 
 import com.chromecide.lowtalk.LowTalkPlugin;
 import com.chromecide.lowtalk.model.Dialogue;
+import com.chromecide.lowtalk.ui.PageLayout;
+import com.chromecide.lowtalk.ui.UiEvent;
+import com.chromecide.lowtalk.ui.UiItem;
+import com.chromecide.lowtalk.ui.UiModel;
+import com.chromecide.lowtalk.ui.UiOption;
+import com.chromecide.lowtalk.ui.UiPage;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
-import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.server.core.entity.entities.Player;
-import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
-import com.hypixel.hytale.server.core.ui.DropdownEntryInfo;
-import com.hypixel.hytale.server.core.ui.LocalizableString;
-import com.hypixel.hytale.server.core.ui.builder.EventData;
-import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
-import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
@@ -23,18 +22,49 @@ import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * The LowTalk tool used on nothing: every loaded dialogue, where it came from and what it is attached to, with
  * Edit and Test for each, plus New and Reload. The way in to dialogues that are not yet on any NPC, prop or block.
  */
-public class BrowsePage extends InteractiveCustomUIPage<BrowsePage.Data> {
+public class BrowsePage extends UiPage<BrowsePage.Data> {
     private static final String LAYOUT = "Pages/LowTalk/BrowsePage.ui";
     private static final String ROW = "Pages/LowTalk/BrowseRow.ui";
     private static final String FILTER_ALL = "all";
     private static final String FILTER_UNATTACHED = "unattached";
     private static final String FILTER_ATTACHED = "attached";
+    private static final String ROW_DIALOGUE = "dialogue";
+
+    /** Which control carries which value. The only place this page names anything on screen. */
+    @Nonnull
+    private static PageLayout layout() {
+        return PageLayout.of(LAYOUT)
+                .property("filters", "#Filter", "Entries")
+                .property("filter", "#Filter", "Value")
+                .property("showTests", "#ShowTests #CheckBox", "Value")
+                .property("emptyVisible", "#Empty", "Visible")
+                .property("status", "#Status", "Text")
+                .container("rows", "#Rows")
+                    .template(ROW_DIALOGUE, ROW)
+                        .field("id", "#Id", "Text")
+                        .field("source", "#Source", "Text")
+                        .field("attached", "#Attached", "Text")
+                        .field("notAttached", "#NotAttached", "Visible")
+                        .command("EDIT", "#EditButton", UiEvent.ACTIVATE, Map.of("Id", "id"))
+                        .command("TEST", "#TestButton", UiEvent.ACTIVATE, Map.of("Id", "id"))
+                        .done()
+                    .done()
+                .command("FILTER", "#Filter", UiEvent.VALUE_CHANGED)
+                    .reads("Value", "#Filter", "Value").done()
+                .command("TESTS", "#ShowTests #CheckBox", UiEvent.VALUE_CHANGED)
+                    .reads("Checked", "#ShowTests #CheckBox", "Value").done()
+                .command("NEW", "#NewButton", UiEvent.ACTIVATE).done()
+                .command("RELOAD", "#ReloadButton", UiEvent.ACTIVATE).done()
+                .command("CLOSE", "#CloseButton", UiEvent.ACTIVATE).done()
+                .build();
+    }
 
     public static class Data {
         public static final BuilderCodec<Data> CODEC = BuilderCodec.builder(Data.class, Data::new)
@@ -57,7 +87,7 @@ public class BrowsePage extends InteractiveCustomUIPage<BrowsePage.Data> {
     private String status = "";
 
     private BrowsePage(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef playerRef, @Nonnull Ref<EntityStore> playerEntity) {
-        super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC);
+        super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC, layout());
         this.plugin = plugin;
         this.playerEntity = playerEntity;
     }
@@ -71,53 +101,40 @@ public class BrowsePage extends InteractiveCustomUIPage<BrowsePage.Data> {
     }
 
     @Override
-    public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder cmd, @Nonnull UIEventBuilder evt, @Nonnull Store<EntityStore> store) {
-        cmd.append(LAYOUT);
-        render(cmd, evt);
-    }
-
-    /** Everything below the layout: filter, rows, status and buttons. Re-run on refresh after clearing the rows. */
-    private void render(UICommandBuilder cmd, UIEventBuilder evt) {
-        List<DropdownEntryInfo> filters = new ArrayList<>();
-        filters.add(new DropdownEntryInfo(LocalizableString.fromString("all dialogues"), FILTER_ALL));
-        filters.add(new DropdownEntryInfo(LocalizableString.fromString("not attached to anything"), FILTER_UNATTACHED));
-        filters.add(new DropdownEntryInfo(LocalizableString.fromString("attached to an NPC, prop or block"), FILTER_ATTACHED));
-        cmd.set("#Filter.Entries", filters);
-        cmd.set("#Filter.Value", filter);
-        evt.addEventBinding(CustomUIEventBindingType.ValueChanged, "#Filter",
-                new EventData().append("Action", "FILTER").append("@Value", "#Filter.Value"), false);
-        cmd.set("#ShowTests #CheckBox.Value", showTests);
-        evt.addEventBinding(CustomUIEventBindingType.ValueChanged, "#ShowTests #CheckBox",
-                new EventData().append("Action", "TESTS").append("@Checked", "#ShowTests #CheckBox.Value"), false);
+    protected void populate(@Nonnull UiModel model) {
+        model.set("filters", List.of(
+                UiOption.of(FILTER_ALL, "all dialogues"),
+                UiOption.of(FILTER_UNATTACHED, "not attached to anything"),
+                UiOption.of(FILTER_ATTACHED, "attached to an NPC, prop or block")));
+        model.set("filter", filter);
+        model.set("showTests", showTests);
 
         Set<String> onProps = plugin.getPropBindings().dialogues();
         Set<String> onBlocks = plugin.getBlockBindings().dialogues();
         List<Dialogue> all = plugin.getRegistry().all();
         all.sort((a, b) -> a.id().compareToIgnoreCase(b.id()));
-        int shown = 0;
+        List<UiItem> rows = new ArrayList<>();
         for (Dialogue d : all) {
             if (!showTests && isTest(d)) continue;
             String attached = attachedTo(d, onProps, onBlocks);
             boolean isAttached = attached != null;
             if (FILTER_UNATTACHED.equals(filter) && isAttached) continue;
             if (FILTER_ATTACHED.equals(filter) && !isAttached) continue;
-            cmd.append("#Rows", ROW);
-            String sel = "#Rows[" + shown + "]";
-            cmd.set(sel + " #Id.Text", d.id());
-            cmd.set(sel + " #Source.Text", source(d));
-            cmd.set(sel + " #Attached.Text", isAttached ? attached : "");
-            cmd.set(sel + " #NotAttached.Visible", !isAttached);
-            evt.addEventBinding(CustomUIEventBindingType.Activating, sel + " #EditButton",
-                    new EventData().append("Action", "EDIT").append("Id", d.id()), false);
-            evt.addEventBinding(CustomUIEventBindingType.Activating, sel + " #TestButton",
-                    new EventData().append("Action", "TEST").append("Id", d.id()), false);
-            shown++;
+            rows.add(UiItem.of(ROW_DIALOGUE)
+                    .with("id", d.id())
+                    .with("source", source(d))
+                    .with("attached", isAttached ? attached : "")
+                    .with("notAttached", (Object) Boolean.valueOf(!isAttached)));
         }
-        cmd.set("#Empty.Visible", shown == 0);
-        cmd.set("#Status.Text", status);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#NewButton", new EventData().append("Action", "NEW"), false);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#ReloadButton", new EventData().append("Action", "RELOAD"), false);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#CloseButton", new EventData().append("Action", "CLOSE"), false);
+        model.setItems("rows", rows);
+        model.set("emptyVisible", rows.isEmpty());
+        model.set("status", status);
+    }
+
+    @Nonnull
+    @Override
+    protected String commandOf(@Nonnull Data data) {
+        return data.action == null ? "" : data.action;
     }
 
     /** The test-corridor dialogues: files in the dialogues folder's tests/ subfolder, or ids starting with test_. */
@@ -148,20 +165,20 @@ public class BrowsePage extends InteractiveCustomUIPage<BrowsePage.Data> {
     }
 
     @Override
-    public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Data data) {
-        if (data.action == null) return;
-        switch (data.action) {
+    protected void onCommand(@Nonnull String command, @Nonnull Data data,
+                             @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
+        switch (command) {
             case "FILTER" -> {
                 if (data.value != null) filter = data.value;
-                refresh(store);
+                refresh();
             }
             case "TESTS" -> {
                 showTests = Boolean.TRUE.equals(data.checked);
-                refresh(store);
+                refresh();
             }
             case "EDIT" -> {
                 Dialogue d = data.id == null ? null : plugin.getRegistry().byId(data.id);
-                if (d == null) { status = "That dialogue is no longer loaded."; refresh(store); return; }
+                if (d == null) { status = "That dialogue is no longer loaded."; refresh(); return; }
                 World world = store.getExternalData().getWorld();
                 world.execute(() -> { // the next page replaces this one; see DialogueEditorPage.test for why not close() first
                     if (!playerEntity.isValid()) return;
@@ -170,7 +187,7 @@ public class BrowsePage extends InteractiveCustomUIPage<BrowsePage.Data> {
             }
             case "TEST" -> {
                 Dialogue d = data.id == null ? null : plugin.getRegistry().byId(data.id);
-                if (d == null) { status = "That dialogue is no longer loaded."; refresh(store); return; }
+                if (d == null) { status = "That dialogue is no longer loaded."; refresh(); return; }
                 World world = store.getExternalData().getWorld();
                 world.execute(() -> {
                     if (!playerEntity.isValid()) return;
@@ -191,7 +208,7 @@ public class BrowsePage extends InteractiveCustomUIPage<BrowsePage.Data> {
                 DialogueRegistry.LoadReport report = plugin.reloadDialogues();
                 status = report.loaded() + " of " + report.files() + " file(s) loaded, " + report.errors() + " error(s), "
                         + report.warnings() + " warning(s)" + (report.messages().isEmpty() ? "" : ": " + String.join("  ", report.messages()));
-                refresh(store);
+                refresh();
             }
             case "CLOSE" -> close();
             default -> {}
@@ -202,13 +219,5 @@ public class BrowsePage extends InteractiveCustomUIPage<BrowsePage.Data> {
     static NpcInfo narrator(Dialogue d) {
         String name = d.speaker() != null ? d.speaker() : (d.title() != null ? d.title() : "Narrator");
         return new NpcInfo(null, NpcInfo.NONE, "none", name, Set.of());
-    }
-
-    private void refresh(Store<EntityStore> store) {
-        UICommandBuilder cmd = new UICommandBuilder();
-        UIEventBuilder evt = new UIEventBuilder();
-        cmd.clear("#Rows");
-        render(cmd, evt);
-        sendUpdate(cmd, evt, false);
     }
 }
