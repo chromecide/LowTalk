@@ -11,7 +11,7 @@ TEST 3: Text input. You will be asked to type. Try pressing Enter as well as cli
 <<else>>
   You typed "{$tmp.word}". Expected: your text echoed exactly, including capitals and spaces.
 <<endif>>
-<<input $tmp.n "Now type a number">>
+<<input $tmp.n "Now type a number" number>>
 You typed {$tmp.n}, which reads as {plural($tmp.n, "apple", "apples")}: "{$tmp.n} {plural($tmp.n, "apple", "apples")}".
 -> Try again
     <<jump start>>

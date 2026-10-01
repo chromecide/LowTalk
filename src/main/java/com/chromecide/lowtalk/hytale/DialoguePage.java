@@ -119,6 +119,14 @@ public class DialoguePage extends UiPage<DialoguePage.Data> {
     private final List<Integer> slotToOption = new ArrayList<>();
     /** Everything said so far, as rows, so the transcript survives the window being rebuilt. */
     private final List<UiItem> said = new ArrayList<>();
+    /**
+     * Set when a new question is put to the player, so the box is emptied for it.
+     *
+     * <p>The model cannot see this for itself: what the player typed only ever exists on the client, so the
+     * model still holds the empty string it sent for the previous question and a plain set() looks like no
+     * change at all. Without this the second question arrives with the first answer still in the box.
+     */
+    private boolean clearInput = false;
     private volatile boolean open = true;
     private volatile long openedAt = System.currentTimeMillis();
 
@@ -161,7 +169,10 @@ public class DialoguePage extends UiPage<DialoguePage.Data> {
             case Step.Choose choose -> {
                 if (choose.line() != null) say(SAID_NPC, choose.line().speaker(), choose.line().text());
             }
-            case Step.Ask ask -> say(SAID_NPC, null, ask.prompt());
+            case Step.Ask ask -> {
+                say(SAID_NPC, null, ask.prompt());
+                clearInput = true;
+            }
             case Step.Wait wait -> {
                 if (wait.line() != null) say(SAID_NPC, wait.line().speaker(), wait.line().text());
             }
@@ -219,6 +230,12 @@ public class DialoguePage extends UiPage<DialoguePage.Data> {
             case Step.Ask ask -> {
                 wantsInput = true;
                 model.set("inputValue", "");
+                // Only for a newly asked question: emptying it on every draw would wipe what is being typed
+                // if a narration line arrived mid-answer.
+                if (clearInput) {
+                    model.resend("inputValue");
+                    clearInput = false;
+                }
                 model.set("inputVisible", true);
             }
             case Step.Wait wait -> {} // only Leave while the pause runs
