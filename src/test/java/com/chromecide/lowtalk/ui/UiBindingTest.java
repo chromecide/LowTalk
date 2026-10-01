@@ -54,6 +54,7 @@ class UiBindingTest {
             "DropdownBox", Set.of("Value", "Entries"),
             "CheckBoxWithLabel", Set.of("Value", "Text"),
             "Group", Set.of("ScrollChildIndexIntoView", "Background"),
+            "SimpleContainer", Set.of("ScrollChildIndexIntoView", "Background"),
             "Bar", Set.of("Background"));
 
     /** Properties every control has, whatever it is. */
