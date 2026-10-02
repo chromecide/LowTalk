@@ -42,17 +42,22 @@ public class BindPropPage extends UiPage<BindPropPage.Data> {
                 .property("where", "#Where", "Text")
                 .property("dialogues", "#Dialogue", "Entries")
                 .property("dialogue", "#Dialogue", "Value")
-                .property("name", "#Name", "Value")
+                .seedProperty("name", "#Name", "Value")
                 .property("hints", "#Hint", "Entries")
                 .property("hint", "#Hint", "Value")
                 .property("unbindVisible", "#UnbindButton", "Visible")
                 .property("editVisible", "#EditButton", "Visible")
+                .property("bindDisabled", "#BindButton", "Disabled")
                 .command("EDIT", "#EditButton", UiEvent.ACTIVATE).done()
                 .command("NEW", "#NewButton", UiEvent.ACTIVATE).done()
-                .command("BIND", "#BindButton", UiEvent.ACTIVATE)
-                    .reads("Dialogue", "#Dialogue", "Value")
-                    .reads("Name", "#Name", "Value")
+                // Each field reports its own change and the page keeps the answer; the button carries nothing.
+                .command("DIALOGUE", "#Dialogue", UiEvent.VALUE_CHANGED)
+                    .reads("Dialogue", "#Dialogue", "Value").done()
+                .command("NAME", "#Name", UiEvent.VALUE_CHANGED)
+                    .reads("Name", "#Name", "Value").done()
+                .command("HINT", "#Hint", UiEvent.VALUE_CHANGED)
                     .reads("Hint", "#Hint", "Value").done()
+                .command("BIND", "#BindButton", UiEvent.ACTIVATE).done()
                 .command("UNBIND", "#UnbindButton", UiEvent.ACTIVATE).done()
                 .command("CANCEL", "#CancelButton", UiEvent.ACTIVATE).done()
                 .build();
@@ -74,12 +79,20 @@ public class BindPropPage extends UiPage<BindPropPage.Data> {
     private final LowTalkPlugin plugin;
     private final UUID propId;
     private final String label;
+    /** What the creator has chosen so far. Seeded from the current binding, then owned by the page. */
+    private String dialogue;
+    private String name;
+    private String hint;
 
     private BindPropPage(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef playerRef, @Nonnull UUID propId, @Nonnull String label) {
         super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC, layout());
         this.plugin = plugin;
         this.propId = propId;
         this.label = label;
+        PropBindings.Binding current = plugin.getPropBindings().get(propId);
+        this.dialogue = current == null ? NONE : current.dialogue();
+        this.name = current == null || current.name() == null ? "" : current.name();
+        this.hint = current == null ? DEFAULT_HINT : (current.hint() == null ? NONE : current.hint());
     }
 
     public static void open(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity,
@@ -97,15 +110,21 @@ public class BindPropPage extends UiPage<BindPropPage.Data> {
         dialogues.add(UiOption.of(NONE, "(none)"));
         for (String id : plugin.getRegistry().ids()) dialogues.add(UiOption.same(id));
         model.set("dialogues", dialogues);
-        model.set("dialogue", current == null ? NONE : current.dialogue());
-        model.set("name", current == null || current.name() == null ? "" : current.name());
+        model.set("dialogue", dialogue);
+        model.set("name", name);
         List<UiOption> hints = new ArrayList<>();
         for (String[] h : HINTS) hints.add(UiOption.of(h[1], h[0]));
         hints.add(UiOption.of(NONE, "(no prompt)"));
         model.set("hints", hints);
-        model.set("hint", current == null ? DEFAULT_HINT : (current.hint() == null ? NONE : current.hint()));
+        model.set("hint", hint);
+        model.set("bindDisabled", !isChosen());
         model.set("unbindVisible", current != null);
         model.set("editVisible", current != null && plugin.getRegistry().byId(current.dialogue()) != null);
+    }
+
+    /** A dialogue has to be picked, and still be loaded, before Bind means anything. */
+    private boolean isChosen() {
+        return !NONE.equals(dialogue) && plugin.getRegistry().byId(dialogue) != null;
     }
 
     @Nonnull
@@ -120,17 +139,24 @@ public class BindPropPage extends UiPage<BindPropPage.Data> {
         PropBindings bindings = plugin.getPropBindings();
         Ref<EntityStore> prop = store.getExternalData().getRefFromUUID(propId);
         switch (command) {
+            case "DIALOGUE" -> {
+                dialogue = data.dialogue == null ? NONE : data.dialogue;
+                refresh();
+            }
+            case "NAME" -> name = data.name == null ? "" : data.name;
+            case "HINT" -> hint = data.hint == null ? NONE : data.hint;
             case "BIND" -> {
-                if (data.dialogue == null || NONE.equals(data.dialogue) || plugin.getRegistry().byId(data.dialogue) == null) {
+                // The button is disabled until this holds, but check anyway: the client is not the authority.
+                if (!isChosen()) {
                     playerRef.sendMessage(LowTalkCommand.msg(plugin, "blockPickDialogue"));
                     return;
                 }
-                String hint = data.hint == null || NONE.equals(data.hint) ? null : data.hint;
-                bindings.set(propId, data.dialogue, data.name, hint);
+                String prompt = NONE.equals(hint) ? null : hint;
+                bindings.set(propId, dialogue, name, prompt);
                 bindings.flush();
-                if (prop != null) PropSupport.addInteractions(prop, store, hint);
+                if (prop != null) PropSupport.addInteractions(prop, store, prompt);
                 close();
-                playerRef.sendMessage(LowTalkCommand.msg(plugin, "propBound").param("prop", label).param("dialogue", data.dialogue));
+                playerRef.sendMessage(LowTalkCommand.msg(plugin, "propBound").param("prop", label).param("dialogue", dialogue));
             }
             case "UNBIND" -> {
                 boolean had = bindings.remove(propId);

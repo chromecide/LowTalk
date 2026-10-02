@@ -53,6 +53,7 @@ public class BindNpcPage extends UiPage<BindNpcPage.Data> {
                 .property("scopes", "#Scope", "Entries")
                 .property("scope", "#Scope", "Value")
                 .property("status", "#Status", "Text")
+                .property("bindDisabled", "#BindButton", "Disabled")
                 .container("rows", "#Rows")
                     .template(ROW_BOUND, ROW)
                         .field("id", "#Id", "Text")
@@ -61,9 +62,12 @@ public class BindNpcPage extends UiPage<BindNpcPage.Data> {
                         .command("UNBIND", "#UnbindButton", UiEvent.ACTIVATE, Map.of("Id", "id", "How", "bindKind"))
                         .done()
                     .done()
-                .command("BIND", "#BindButton", UiEvent.ACTIVATE)
-                    .reads("Dialogue", "#Dialogue", "Value")
+                // Each field reports its own change and the page keeps the answer; the button carries nothing.
+                .command("DIALOGUE", "#Dialogue", UiEvent.VALUE_CHANGED)
+                    .reads("Dialogue", "#Dialogue", "Value").done()
+                .command("SCOPE", "#Scope", UiEvent.VALUE_CHANGED)
                     .reads("Scope", "#Scope", "Value").done()
+                .command("BIND", "#BindButton", UiEvent.ACTIVATE).done()
                 .command("NEW", "#NewButton", UiEvent.ACTIVATE).done()
                 .command("CANCEL", "#CancelButton", UiEvent.ACTIVATE).done()
                 .build();
@@ -91,6 +95,9 @@ public class BindNpcPage extends UiPage<BindNpcPage.Data> {
     private final Ref<EntityStore> playerEntity;
     private final NpcInfo npc;
     private String status = "";
+    /** What the creator has chosen so far. Reset after a bind, because the page stays open. */
+    private String dialogue = NONE;
+    private String scope = SCOPE_NPC;
 
     private BindNpcPage(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef playerRef, @Nonnull Ref<EntityStore> playerEntity, @Nonnull NpcInfo npc) {
         super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC, layout());
@@ -124,15 +131,18 @@ public class BindNpcPage extends UiPage<BindNpcPage.Data> {
         dialogues.add(UiOption.of(NONE, "(pick a dialogue)"));
         for (String id : plugin.getRegistry().ids()) dialogues.add(UiOption.same(id));
         model.set("dialogues", dialogues);
-        model.set("dialogue", NONE);
+        model.set("dialogue", dialogue);
         model.set("scopes", List.of(
                 UiOption.of(SCOPE_NPC, "only this NPC"),
                 UiOption.of(SCOPE_ROLE, "every " + npc.role())));
-        model.set("scope", SCOPE_NPC);
-        // Nothing is bound to these two dropdowns changing, so the model cannot know the creator moved them;
-        // put them back to their starting choice on every draw, as this page has always done.
-        model.resend("dialogue").resend("scope");
+        model.set("scope", scope);
+        model.set("bindDisabled", !isChosen());
         model.set("status", status);
+    }
+
+    /** A dialogue has to be picked, and still be loaded, before Bind means anything. */
+    private boolean isChosen() {
+        return !NONE.equals(dialogue) && plugin.getRegistry().byId(dialogue) != null;
     }
 
     @Nonnull
@@ -160,10 +170,16 @@ public class BindNpcPage extends UiPage<BindNpcPage.Data> {
     protected void onCommand(@Nonnull String command, @Nonnull Data data,
                              @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         switch (command) {
+            case "DIALOGUE" -> {
+                dialogue = data.dialogue == null ? NONE : data.dialogue;
+                refresh();
+            }
+            case "SCOPE" -> scope = data.scope == null ? SCOPE_NPC : data.scope;
             case "BIND" -> {
-                Dialogue d = data.dialogue == null || NONE.equals(data.dialogue) ? null : plugin.getRegistry().byId(data.dialogue);
+                // The button is disabled until this holds, but check anyway: the client is not the authority.
+                Dialogue d = isChosen() ? plugin.getRegistry().byId(dialogue) : null;
                 if (d == null) { status = "Pick a dialogue first."; refresh(); return; }
-                if (SCOPE_ROLE.equals(data.scope)) {
+                if (SCOPE_ROLE.equals(scope)) {
                     if (d.bindings().contains(npc.role())) { status = d.id() + " already applies to every " + npc.role() + "."; refresh(); return; }
                     String err = rewriteBindings(d, npc.role(), true);
                     if (err != null) { status = err; refresh(); return; }
@@ -173,6 +189,8 @@ public class BindNpcPage extends UiPage<BindNpcPage.Data> {
                     playerRef.sendMessage(LowTalkCommand.msg(plugin, "npcBoundOne").param("dialogue", d.id()).param("npc", npc.name()));
                 }
                 status = "";
+                dialogue = NONE;
+                scope = SCOPE_NPC;
                 refresh();
             }
             case "UNBIND" -> {

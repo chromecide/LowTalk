@@ -56,12 +56,15 @@ public class NewDialoguePage extends UiPage<NewDialoguePage.Data> {
                 .property("formats", "#Format", "Entries")
                 .property("format", "#Format", "Value")
                 .property("status", "#Status", "Text")
-                .command("CREATE", "#CreateButton", UiEvent.ACTIVATE)
-                    .reads("Id", "#Id", "Value")
-                    .reads("Speaker", "#Speaker", "Value")
-                    .reads("Bind", "#Bind", "Value")
-                    .reads("Where", "#Where", "Value")
-                    .reads("Format", "#Format", "Value").done()
+                .property("createDisabled", "#CreateButton", "Disabled")
+                // Each field reports its own change and the page keeps the answer; the button carries nothing.
+                // Five values could never have come back on one command anyway.
+                .command("ID", "#Id", UiEvent.VALUE_CHANGED).reads("Id", "#Id", "Value").done()
+                .command("SPEAKER", "#Speaker", UiEvent.VALUE_CHANGED).reads("Speaker", "#Speaker", "Value").done()
+                .command("BIND", "#Bind", UiEvent.VALUE_CHANGED).reads("Bind", "#Bind", "Value").done()
+                .command("WHERE", "#Where", UiEvent.VALUE_CHANGED).reads("Where", "#Where", "Value").done()
+                .command("FORMAT", "#Format", UiEvent.VALUE_CHANGED).reads("Format", "#Format", "Value").done()
+                .command("CREATE", "#CreateButton", UiEvent.ACTIVATE).done()
                 .command("CANCEL", "#CancelButton", UiEvent.ACTIVATE).done()
                 .build();
     }
@@ -96,6 +99,12 @@ public class NewDialoguePage extends UiPage<NewDialoguePage.Data> {
     @Nullable
     private final java.util.function.Consumer<Dialogue> onCreated;
     private String status = "";
+    /** What the creator has typed and chosen so far. Seeded in populate, then owned by the page. */
+    private String id;
+    private String speaker;
+    private String bind;
+    private String where;
+    private String format = FORMAT_JSON;
 
     public NewDialoguePage(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef playerRef, @Nonnull Ref<EntityStore> playerEntity, @Nullable NpcInfo npc) {
         this(plugin, playerRef, playerEntity, npc, null, null);
@@ -148,8 +157,10 @@ public class NewDialoguePage extends UiPage<NewDialoguePage.Data> {
         int n = 2;
         String id = suggested;
         while (plugin.getRegistry().byId(id) != null) id = suggested + "_" + n++;
-        model.set("id", id);
-        model.set("speaker", npc == null ? "Narrator" : npc.name());
+        if (this.id == null) this.id = id;
+        if (this.speaker == null) this.speaker = npc == null ? "Narrator" : npc.name();
+        model.set("id", this.id);
+        model.set("speaker", this.speaker);
         List<UiOption> bind = new ArrayList<>();
         if (npc == null) {
             bind.add(UiOption.of(BIND_NONE, onCreated != null
@@ -160,7 +171,8 @@ public class NewDialoguePage extends UiPage<NewDialoguePage.Data> {
             bind.add(UiOption.of(BIND_TAG, "only this NPC (bind by tag)"));
         }
         model.set("bindChoices", bind);
-        model.set("bind", npc == null ? BIND_NONE : BIND_ROLE);
+        if (this.bind == null) this.bind = npc == null ? BIND_NONE : BIND_ROLE;
+        model.set("bind", this.bind);
         List<UiOption> where = new ArrayList<>();
         for (Map.Entry<String, Path> e : targets.entrySet()) {
             boolean server = e.getKey().isEmpty();
@@ -171,15 +183,28 @@ public class NewDialoguePage extends UiPage<NewDialoguePage.Data> {
                             : "part of the pack, so it ships with it and opens in the Asset Editor and the Node Editor too"));
         }
         model.set("whereChoices", where);
-        String preferred = plugin.getRegistry().defaultCreationTarget();
-        model.set("where", preferred.isEmpty() ? "$server" : preferred);
+        if (this.where == null) {
+            String preferred = plugin.getRegistry().defaultCreationTarget();
+            this.where = preferred.isEmpty() ? "$server" : preferred;
+        }
+        model.set("where", this.where);
         model.set("formats", List.of(
                 UiOption.of(FORMAT_JSON, "an asset (.json)")
                         .explain("a form in the Asset Editor, a graph in the Node Editor, and fields in here"),
                 UiOption.of(FORMAT_TALK, "a text file (.talk)")
                         .explain("for writing by hand; the Asset Editor opens it as text")));
-        model.set("format", FORMAT_JSON);
+        model.set("format", format);
+        model.set("createDisabled", problemWithId() != null);
         model.set("status", status);
+    }
+
+    /** Why the id cannot be used, or null when it can. The Create button follows this. */
+    @Nullable
+    private String problemWithId() {
+        String trimmed = id == null ? "" : id.trim();
+        if (!trimmed.matches("[A-Za-z0-9_-]+")) return "The id needs letters, digits, _ or - only.";
+        if (plugin.getRegistry().byId(trimmed) != null) return "A dialogue called " + trimmed + " already exists.";
+        return null;
     }
 
     @Nonnull
@@ -191,19 +216,30 @@ public class NewDialoguePage extends UiPage<NewDialoguePage.Data> {
     @Override
     protected void onCommand(@Nonnull String command, @Nonnull Data data,
                              @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
-        if ("CANCEL".equals(command)) { close(); return; }
-        if (!"CREATE".equals(command)) return;
-        String id = data.id == null ? "" : data.id.trim();
-        if (!id.matches("[A-Za-z0-9_-]+")) { fail("The id needs letters, digits, _ or - only."); return; }
-        if (plugin.getRegistry().byId(id) != null) { fail("A dialogue called " + id + " already exists."); return; }
+        switch (command) {
+            case "CANCEL" -> { close(); return; }
+            case "ID" -> {
+                id = data.id == null ? "" : data.id;
+                refresh();   // the Create button follows whether the id can be used
+                return;
+            }
+            case "SPEAKER" -> { speaker = data.speaker == null ? "" : data.speaker; return; }
+            case "BIND" -> { bind = data.bind == null ? "" : data.bind; return; }
+            case "WHERE" -> { where = data.where == null ? "$server" : data.where; return; }
+            case "FORMAT" -> { format = data.format == null ? FORMAT_JSON : data.format; return; }
+            case "CREATE" -> { }
+            default -> { return; }
+        }
+        // The button is disabled until this holds, but check anyway: the client is not the authority.
+        String problem = problemWithId();
+        if (problem != null) { fail(problem); return; }
+        String newId = id.trim();
         // Making a pack registers it with the asset module and loading an asset touches the asset stores, so the
         // whole of it runs on the world thread rather than on the thread the button's event arrived on.
-        String where = data.where == null || data.where.equals("$server") ? "" : data.where;
-        String format = data.format == null ? "" : data.format;
-        String bind = data.bind == null ? "" : data.bind;
-        String speaker = data.speaker == null || data.speaker.isBlank()
-                ? (npc == null ? "Narrator" : npc.name()) : data.speaker.trim();
-        store.getExternalData().getWorld().execute(() -> create(id, where, format, bind, speaker, store));
+        String target = "$server".equals(where) ? "" : where;
+        String voice = speaker == null || speaker.isBlank()
+                ? (npc == null ? "Narrator" : npc.name()) : speaker.trim();
+        store.getExternalData().getWorld().execute(() -> create(newId, target, format, bind, voice, store));
     }
 
     /** Write the new dialogue, making its pack first when that is what was asked for. World thread. */

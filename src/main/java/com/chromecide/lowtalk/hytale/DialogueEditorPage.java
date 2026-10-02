@@ -104,7 +104,8 @@ public class DialogueEditorPage extends UiPage<DialogueEditorPage.Data> {
         LINE_TEXT, LINE_SPEAKER, LINE_BUTTON,
         OPT_TEXT, OPT_TARGET, OPT_GO, OPT_MORE, OPT_IF, OPT_SHOW, OPT_ONCE, OPT_BODY,
         COND_KIND, COND_ARG, COND_ARG_PICK, COND_ARG_FIND, COND_OP, COND_VAL, COND_VAL_PICK, COND_VAL_FIND, COND_RAW,
-        CMD_ARGS, CMD_SLOT, CMD_SLOT_PICK, CMD_SLOT_FIND, CMD_PICK, SET, JUMP_NODE, JUMP_GO, INPUT, INPUT_KIND, WAIT,
+        CMD_ARGS, CMD_SLOT, CMD_SLOT_PICK, CMD_SLOT_FIND, CMD_PICK, SET_VAR, SET_VALUE, JUMP_NODE, JUMP_GO,
+        INPUT_VAR, INPUT_PROMPT, INPUT_KIND, WAIT,
         BRANCH_BODY, BRANCH_ADD, BRANCH_DEL, BLOCK_BODY, ALT_ADD, ALT_DEL,
         UP, DOWN, DEL, ADD_KIND, ADD, ADD_NODE, RENAME, JUMP, BACK, HEADER, DELETE_NODE,
         H_BINDINGS, H_NPC_PICK, H_SPEAKER, H_TITLE, H_START, H_ON, H_PORTRAIT, H_SCOPE, H_LAYOUT, H_HISTORY,
@@ -117,13 +118,11 @@ public class DialogueEditorPage extends UiPage<DialogueEditorPage.Data> {
                 .append(new KeyedCodec<>("Row", Codec.STRING, false), (d, s) -> d.row = s, d -> d.row).add()
                 .append(new KeyedCodec<>("Slot", Codec.STRING, false), (d, s) -> d.slot = s, d -> d.slot).add()
                 .append(new KeyedCodec<>("@Value", Codec.STRING, false), (d, s) -> d.value = s, d -> d.value).add()
-                .append(new KeyedCodec<>("@Value2", Codec.STRING, false), (d, s) -> d.value2 = s, d -> d.value2).add()
                 .build();
         private String action;
         private String row;
         private String slot;
         private String value;
-        private String value2;
     }
 
     /** What a rendered row refers to: a statement in the current scope and, for options/branches/alternatives, which one. */
@@ -591,6 +590,29 @@ public class DialogueEditorPage extends UiPage<DialogueEditorPage.Data> {
         };
     }
 
+
+    // The other half of a two-field row, taken from the draft rather than carried back from the client.
+
+    @Nonnull
+    private String setTargetOf(@Nonnull RowRef r) {
+        return draft.view(scope).get(r.statement()) instanceof Statement.Set st ? Printer.expr(st.target()) : "";
+    }
+
+    @Nonnull
+    private String setValueOf(@Nonnull RowRef r) {
+        return draft.view(scope).get(r.statement()) instanceof Statement.Set st ? Printer.expr(st.value()) : "";
+    }
+
+    @Nonnull
+    private String inputTargetOf(@Nonnull RowRef r) {
+        return draft.view(scope).get(r.statement()) instanceof Statement.Input in ? Printer.expr(in.target()) : "";
+    }
+
+    @Nonnull
+    private String inputPromptOf(@Nonnull RowRef r) {
+        return draft.view(scope).get(r.statement()) instanceof Statement.Input in ? Printer.text(in.prompt()) : "";
+    }
+
     /** The condition a row's events are about. */
     @Nullable
     private com.chromecide.lowtalk.model.Expr conditionAt(RowRef r, int slot) {
@@ -785,9 +807,8 @@ public class DialogueEditorPage extends UiPage<DialogueEditorPage.Data> {
         int row = number(data.row);
         int slot = number(data.slot);
         String value = data.value == null ? "" : data.value;
-        String value2 = data.value2 == null ? "" : data.value2;
         try {
-            boolean redraw = handle(action, r, row, slot, value, value2, ref, store);
+            boolean redraw = handle(action, r, row, slot, value, ref, store);
             if (redraw) refresh();
         } catch (RuntimeException e) {
             plugin.getLogger().at(Level.WARNING).withCause(e).log("dialogue editor: %s failed", action);
@@ -806,7 +827,7 @@ public class DialogueEditorPage extends UiPage<DialogueEditorPage.Data> {
     }
 
     /** Apply one event; returns true when the window must be redrawn. */
-    private boolean handle(Action action, @Nullable RowRef r, int row, int slot, String value, String value2,
+    private boolean handle(Action action, @Nullable RowRef r, int row, int slot, String value,
                            Ref<EntityStore> ref, Store<EntityStore> store) {
         switch (action) {
             // typing into fields changes the draft without redrawing, so the caret stays where it is
@@ -924,8 +945,11 @@ public class DialogueEditorPage extends UiPage<DialogueEditorPage.Data> {
                 if (failed != null) status = failed;
                 return true;
             }
-            case SET -> { if (r != null) return problem(draft.setSet(scope, r.statement(), value, value2)); return false; }
-            case INPUT -> { if (r != null) return problem(draft.setInput(scope, r.statement(), value, value2)); return false; }
+            // Only the box that changed is sent; the other half of the pair is read back out of the draft.
+            case SET_VAR -> { if (r != null) return problem(draft.setSet(scope, r.statement(), value, setValueOf(r))); return false; }
+            case SET_VALUE -> { if (r != null) return problem(draft.setSet(scope, r.statement(), setTargetOf(r), value)); return false; }
+            case INPUT_VAR -> { if (r != null) return problem(draft.setInput(scope, r.statement(), value, inputPromptOf(r))); return false; }
+            case INPUT_PROMPT -> { if (r != null) return problem(draft.setInput(scope, r.statement(), inputTargetOf(r), value)); return false; }
             case INPUT_KIND -> { if (r != null) return problem(draft.setInputKind(scope, r.statement(), value)); return false; }
             case WAIT -> { if (r != null) return problem(draft.setWait(scope, r.statement(), value)); return false; }
             case H_BINDINGS -> { draft.setBindings(value); return false; }

@@ -270,15 +270,15 @@ final class EditorLayout {
     }
 
     private static void set(PageLayout.ContainerBuilder rows) {
-        // Either box sends both values, because a set is only meaningful as a pair.
+        // Each box sends only itself. A set is a pair, but the other half is already in the draft, so there
+        // is no need to carry it back — and a command that carries one value is the only kind some backends
+        // can deliver.
         upDownDelete(rows.template(SET, ROW_SET)
                 .field("bad", "#Bad", "Text")
                 .field("var", "#Var", "Value")
                 .field("value", "#Value", "Value")
-                .rowCommand("SET", "#Var", UiEvent.VALUE_CHANGED).row("Row")
-                    .reads("Value", "#Var", "Value").reads("Value2", "#Value", "Value").done()
-                .rowCommand("SET", "#Value", UiEvent.VALUE_CHANGED).row("Row")
-                    .reads("Value", "#Var", "Value").reads("Value2", "#Value", "Value").done(),
+                .rowCommand("SET_VAR", "#Var", UiEvent.VALUE_CHANGED).row("Row").readsSelf("Value", "Value").done()
+                .rowCommand("SET_VALUE", "#Value", UiEvent.VALUE_CHANGED).row("Row").readsSelf("Value", "Value").done(),
                 "DEL").done();
     }
 
@@ -300,10 +300,8 @@ final class EditorLayout {
                 .field("kindVisible", "#Kind", "Visible")
                 .field("kindEntries", "#Kind", "Entries")
                 .field("kind", "#Kind", "Value")
-                .rowCommand("INPUT", "#Var", UiEvent.VALUE_CHANGED).row("Row")
-                    .reads("Value", "#Var", "Value").reads("Value2", "#Prompt", "Value").done()
-                .rowCommand("INPUT", "#Prompt", UiEvent.VALUE_CHANGED).row("Row")
-                    .reads("Value", "#Var", "Value").reads("Value2", "#Prompt", "Value").done()
+                .rowCommand("INPUT_VAR", "#Var", UiEvent.VALUE_CHANGED).row("Row").readsSelf("Value", "Value").done()
+                .rowCommand("INPUT_PROMPT", "#Prompt", UiEvent.VALUE_CHANGED).row("Row").readsSelf("Value", "Value").done()
                 .rowCommand("INPUT_KIND", "#Kind", UiEvent.VALUE_CHANGED).row("Row").readsSelf("Value", "Value").done(),
                 "DEL").done();
     }

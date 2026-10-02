@@ -38,11 +38,17 @@ public class BindBlockPage extends UiPage<BindBlockPage.Data> {
                 .property("mode", "#Mode", "Value")
                 .property("unbindVisible", "#UnbindButton", "Visible")
                 .property("editVisible", "#EditButton", "Visible")
+                .property("bindDisabled", "#BindButton", "Disabled")
                 .command("EDIT", "#EditButton", UiEvent.ACTIVATE).done()
                 .command("NEW", "#NewButton", UiEvent.ACTIVATE).done()
-                .command("BIND", "#BindButton", UiEvent.ACTIVATE)
-                    .reads("Dialogue", "#Dialogue", "Value")
-                    .reads("Mode", "#Mode", "Value").done()
+                // Each field reports its own change and the page keeps the answer; the button acts on what
+                // the page already holds and carries nothing. That is how the game's own forms work, and it
+                // is the only shape that survives a backend where a command carries a single value.
+                .command("DIALOGUE", "#Dialogue", UiEvent.VALUE_CHANGED)
+                    .reads("Value", "#Dialogue", "Value").done()
+                .command("MODE", "#Mode", UiEvent.VALUE_CHANGED)
+                    .reads("Value", "#Mode", "Value").done()
+                .command("BIND", "#BindButton", UiEvent.ACTIVATE).done()
                 .command("UNBIND", "#UnbindButton", UiEvent.ACTIVATE).done()
                 .command("CANCEL", "#CancelButton", UiEvent.ACTIVATE).done()
                 .build();
@@ -63,6 +69,9 @@ public class BindBlockPage extends UiPage<BindBlockPage.Data> {
     private final String worldName;
     private final Vector3i pos;
     private final String blockId;
+    /** What the creator has chosen so far. Seeded from the current binding, then owned by the page. */
+    private String dialogue;
+    private String mode;
 
     private BindBlockPage(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef playerRef, @Nonnull String worldName, @Nonnull Vector3i pos, @Nonnull String blockId) {
         super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC, layout());
@@ -70,6 +79,9 @@ public class BindBlockPage extends UiPage<BindBlockPage.Data> {
         this.worldName = worldName;
         this.pos = pos;
         this.blockId = blockId;
+        BlockBindings.Binding current = plugin.getBlockBindings().get(worldName, pos.x, pos.y, pos.z);
+        this.dialogue = current == null ? NONE : current.dialogue();
+        this.mode = current == null ? BlockBindings.MODE_INSTEAD : current.mode();
     }
 
     public static void open(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef player, @Nonnull Ref<EntityStore> playerEntity,
@@ -87,13 +99,19 @@ public class BindBlockPage extends UiPage<BindBlockPage.Data> {
         dialogues.add(UiOption.of(NONE, "(none)"));
         for (String id : plugin.getRegistry().ids()) dialogues.add(UiOption.same(id));
         model.set("dialogues", dialogues);
-        model.set("dialogue", current == null ? NONE : current.dialogue());
+        model.set("dialogue", dialogue);
         model.set("modes", List.of(
                 UiOption.of(BlockBindings.MODE_INSTEAD, "talk instead of the block's own action"),
                 UiOption.of(BlockBindings.MODE_ALSO, "talk and let the block act as well")));
-        model.set("mode", current == null ? BlockBindings.MODE_INSTEAD : current.mode());
+        model.set("mode", mode);
+        model.set("bindDisabled", !isChosen());
         model.set("unbindVisible", current != null);
         model.set("editVisible", current != null && plugin.getRegistry().byId(current.dialogue()) != null);
+    }
+
+    /** A dialogue has to be picked, and still be loaded, before Bind means anything. */
+    private boolean isChosen() {
+        return !NONE.equals(dialogue) && plugin.getRegistry().byId(dialogue) != null;
     }
 
     @Nonnull
@@ -107,19 +125,28 @@ public class BindBlockPage extends UiPage<BindBlockPage.Data> {
                              @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         BlockBindings bindings = plugin.getBlockBindings();
         switch (command) {
+            case "DIALOGUE" -> {
+                dialogue = data.dialogue == null ? NONE : data.dialogue;
+                refresh();
+            }
+            case "MODE" -> {
+                mode = data.mode == null ? BlockBindings.MODE_INSTEAD : data.mode;
+                refresh();
+            }
             case "BIND" -> {
-                if (data.dialogue == null || NONE.equals(data.dialogue) || plugin.getRegistry().byId(data.dialogue) == null) {
+                // The button is disabled until this holds, but check anyway: the client is not the authority.
+                if (!isChosen()) {
                     playerRef.sendMessage(LowTalkCommand.msg(plugin, "blockPickDialogue"));
                     return;
                 }
                 // the base block, so a door bound by its top half is the same block the use event reports
                 com.hypixel.hytale.server.core.universe.world.World w = store.getExternalData().getWorld();
                 org.joml.Vector3i at = BlockReads.baseAt(w, pos.x, pos.y, pos.z);
-                bindings.set(worldName, at.x, at.y, at.z, data.dialogue, data.mode == null ? BlockBindings.MODE_INSTEAD : data.mode);
+                bindings.set(worldName, at.x, at.y, at.z, dialogue, mode);
                 bindings.flush();
                 close();
-                playerRef.sendMessage(LowTalkCommand.msg(plugin, "blockBound").param("block", blockId).param("dialogue", data.dialogue)
-                        .param("mode", BlockBindings.MODE_ALSO.equalsIgnoreCase(data.mode) ? BlockBindings.MODE_ALSO : BlockBindings.MODE_INSTEAD));
+                playerRef.sendMessage(LowTalkCommand.msg(plugin, "blockBound").param("block", blockId).param("dialogue", dialogue)
+                        .param("mode", BlockBindings.MODE_ALSO.equalsIgnoreCase(mode) ? BlockBindings.MODE_ALSO : BlockBindings.MODE_INSTEAD));
             }
             case "UNBIND" -> {
                 boolean had = bindings.remove(worldName, pos.x, pos.y, pos.z);
