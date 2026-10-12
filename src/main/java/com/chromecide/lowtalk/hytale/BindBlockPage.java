@@ -45,9 +45,9 @@ public class BindBlockPage extends UiPage<BindBlockPage.Data> {
                 // the page already holds and carries nothing. That is how the game's own forms work, and it
                 // is the only shape that survives a backend where a command carries a single value.
                 .command("DIALOGUE", "#Dialogue", UiEvent.VALUE_CHANGED)
-                    .reads("Value", "#Dialogue", "Value").done()
+                    .reads("Dialogue", "#Dialogue", "Value").done()
                 .command("MODE", "#Mode", UiEvent.VALUE_CHANGED)
-                    .reads("Value", "#Mode", "Value").done()
+                    .reads("Mode", "#Mode", "Value").done()
                 .command("BIND", "#BindButton", UiEvent.ACTIVATE).done()
                 .command("UNBIND", "#UnbindButton", UiEvent.ACTIVATE).done()
                 .command("CANCEL", "#CancelButton", UiEvent.ACTIVATE).done()

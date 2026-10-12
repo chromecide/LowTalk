@@ -210,6 +210,58 @@ class UiBindingTest {
         assertTrue(editor > 150, "only " + editor + " editor bindings found; that file declares far more");
     }
 
+    // ---- what a command carries back ------------------------------------------------------------
+    //
+    // A read is declared by a name -- .reads("Dialogue", "#Dialogue", "Value") -- and reaches the page as
+    // the codec key "@Dialogue". Nothing connects the two: name them differently and the client sends the
+    // value under a key the codec does not know, the field stays null, and the page acts as though the
+    // player chose nothing. No error is raised at either end. That is how picking a dialogue on a block
+    // left the Bind button disabled, and how the "talk as well" mode could never be selected.
+
+    /** {@code .reads("Dialogue", "#Dialogue", "Value")} -- the first argument is the name on the wire. */
+    private static final Pattern DECLARED_READ =
+            Pattern.compile("\\.reads\\(\\s*\\x22(\\w+)\\x22");
+
+    /** {@code new KeyedCodec<>("@Dialogue", Codec.STRING, false)} -- only the read-fed '@' keys. */
+    private static final Pattern CODEC_READ_KEY =
+            Pattern.compile("KeyedCodec<>\\(\\s*\\x22@(\\w+)\\x22");
+
+    private static Set<String> matches(Pattern pattern, String src) {
+        Set<String> out = new LinkedHashSet<>();
+        Matcher m = pattern.matcher(src);
+        while (m.find()) out.add(m.group(1));
+        return out;
+    }
+
+    @Test
+    void everyValueACommandReadsArrivesUnderAKeyItsPageDecodes() throws IOException {
+        Map<String, String> sourceByClass = sourceByClass();
+        List<String> broken = new ArrayList<>();
+        int checked = 0;
+        for (Map.Entry<String, String> e : sourceByClass.entrySet()) {
+            Set<String> reads = matches(DECLARED_READ, e.getValue());
+            if (reads.isEmpty()) continue;
+            // A layout can live in its own file -- the editor's does -- so the keys that count are those of
+            // this file plus of every file that names it, which is the page that handles its commands.
+            Set<String> keys = new LinkedHashSet<>(matches(CODEC_READ_KEY, e.getValue()));
+            for (Map.Entry<String, String> other : sourceByClass.entrySet()) {
+                if (other.getKey().equals(e.getKey())) continue;
+                if (Pattern.compile("\\b" + Pattern.quote(e.getKey()) + "\\b").matcher(other.getValue()).find()) {
+                    keys.addAll(matches(CODEC_READ_KEY, other.getValue()));
+                }
+            }
+            for (String read : reads) {
+                checked++;
+                if (!keys.contains(read)) {
+                    broken.add(e.getKey() + ".java: reads(\"" + read + "\", ...) arrives as \"@" + read
+                            + "\", which no codec there decodes; it has " + keys);
+                }
+            }
+        }
+        assertTrue(broken.isEmpty(), "a command reads a value its page throws away:\n  " + String.join("\n  ", broken));
+        assertTrue(checked >= 12, "only " + checked + " reads found; the pages declare more than that");
+    }
+
     private record Use(String file, String control, String property, Set<String> layouts) {
         @Override
         public String toString() {
@@ -217,7 +269,8 @@ class UiBindingTest {
         }
     }
 
-    private static List<Use> uses() throws IOException {
+    /** Every page source by class name. */
+    private static Map<String, String> sourceByClass() throws IOException {
         Map<String, String> sourceByClass = new LinkedHashMap<>();
         try (Stream<Path> files = Files.walk(PAGES)) {
             for (Path p : files.filter(f -> f.toString().endsWith(".java")).toList()) {
@@ -226,6 +279,11 @@ class UiBindingTest {
                         Files.readString(p, StandardCharsets.UTF_8));
             }
         }
+        return sourceByClass;
+    }
+
+    private static List<Use> uses() throws IOException {
+        Map<String, String> sourceByClass = sourceByClass();
         List<Use> out = new ArrayList<>();
         for (Map.Entry<String, String> e : sourceByClass.entrySet()) {
             String src = e.getValue();
