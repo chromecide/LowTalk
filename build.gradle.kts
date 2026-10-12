@@ -58,17 +58,6 @@ tasks.named<Jar>("jar") {
 //     }
 // }
 
-/**
- * The server-side Noesis renderer only compiles against the pre-release line: the release line has no
- * com.hypixel.hytale.server.core.modules.ui package at all, so leaving it in would break the release build
- * outright rather than merely shipping dead code. Keep it out until the release line catches up, then
- * delete this block.
- */
-val noesisAvailable = property("patchline").toString() != "release"
-if (!noesisAvailable) {
-    sourceSets["main"].java.exclude("com/chromecide/lowtalk/ui/noesis/**")
-}
-
 // Parser and runtime are plain Java; test them without a server.
 dependencies {
     testImplementation(platform("org.junit:junit-bom:5.11.3"))
