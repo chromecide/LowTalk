@@ -26,6 +26,7 @@ import com.hypixel.hytale.server.core.modules.entity.teleport.Teleport;
 import com.hypixel.hytale.server.core.modules.time.WorldTimeResource;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
+import com.hypixel.hytale.server.core.universe.world.SpawnUtil;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.server.core.universe.world.chunk.BlockOperations;
 import com.hypixel.hytale.server.core.universe.world.chunk.WorldChunk;
@@ -358,37 +359,44 @@ public final class TestWorld {
                 out.accept("There is no main world to return to; use /tp world <name>.");
                 return;
             }
-            com.hypixel.hytale.server.core.universe.world.spawn.ISpawnProvider spawns = target.getWorldConfig().getSpawnProvider();
-            // getSpawnPoints() rather than getSpawnPoint(ref, store): the single-point call became
-            // getSpawnPointAsync in 0.7.0-pre.3, and returning a CompletableFuture, while the list has the same
-            // shape on both lines. One source tree builds for both, and for going home to the main world the
-            // world's first spawn point is what we want anyway.
-            com.hypixel.hytale.math.vector.Transform[] points = spawns == null ? null : spawns.getSpawnPoints();
-            com.hypixel.hytale.math.vector.Transform spawn = points == null || points.length == 0 ? null : points[0];
-            if (spawn == null) {
-                out.accept("The main world has no spawn point set; use /tp back instead.");
-                return;
-            }
-            // Give back the mode the player had before go switched them, the same way the game's /gamemode does.
-            VariableStore vs = plugin.getStore();
-            Object saved = vs.get(vs.player(player.getUuid()), WORLD_NAME, "mode");
-            com.hypixel.hytale.protocol.GameMode mode = com.hypixel.hytale.protocol.GameMode.Creative;
-            if (saved instanceof String name) {
-                try {
-                    mode = com.hypixel.hytale.protocol.GameMode.valueOf(name);
-                } catch (IllegalArgumentException ignored) {
-                    // unknown mode name from an older build: fall back to Creative
-                }
-            }
-            Player p = store.getComponent(ref, Player.getComponentType());
-            if (p != null && p.getGameMode() != mode) Player.setGameMode(ref, mode, store);
-            vs.set(vs.player(player.getUuid()), WORLD_NAME, "mode", null);
-            vs.flush();
-            store.addComponent(ref, Teleport.getComponentType(), Teleport.createForPlayer(target, spawn));
-            out.accept("Back to " + target.getName() + " in " + mode.name().toLowerCase(java.util.Locale.ROOT) + " mode.");
-            // Unload the corridor once the teleport has gone through and nobody else is still testing.
-            target.scheduleAfter(() -> unloadIfEmpty(plugin, out), 3, java.util.concurrent.TimeUnit.SECONDS);
+            // SpawnUtil asks the world's spawn provider asynchronously and applies the teleport back on this
+            // world's thread, so the callback below runs where the hand-written version used to. Giving it
+            // `from` as the player world is what puts it there.
+            SpawnUtil.teleportToSpawn(ref, player.getUuid(), target, from, spawn -> {
+                com.hypixel.hytale.protocol.GameMode mode = restoreGameMode(plugin, player, ref, store);
+                out.accept("Back to " + target.getName() + " in " + mode.name().toLowerCase(java.util.Locale.ROOT) + " mode.");
+                // Unload the corridor once the teleport has gone through and nobody else is still testing.
+                target.scheduleAfter(() -> unloadIfEmpty(plugin, out), 3, java.util.concurrent.TimeUnit.SECONDS);
+            }).exceptionally(e -> {
+                out.accept("Could not work out where to put you in " + target.getName() + "; use /tp back instead.");
+                return null;
+            });
         });
+    }
+
+    /**
+     * Give back the mode the player had before {@code go} switched them, the same way the game's /gamemode does,
+     * and forget the saved value. Returns the mode they ended up in, for the message.
+     */
+    private static com.hypixel.hytale.protocol.GameMode restoreGameMode(@Nonnull LowTalkPlugin plugin,
+                                                                        @Nonnull PlayerRef player,
+                                                                        @Nonnull Ref<EntityStore> ref,
+                                                                        @Nonnull Store<EntityStore> store) {
+        VariableStore vs = plugin.getStore();
+        Object saved = vs.get(vs.player(player.getUuid()), WORLD_NAME, "mode");
+        com.hypixel.hytale.protocol.GameMode mode = com.hypixel.hytale.protocol.GameMode.Creative;
+        if (saved instanceof String name) {
+            try {
+                mode = com.hypixel.hytale.protocol.GameMode.valueOf(name);
+            } catch (IllegalArgumentException ignored) {
+                // unknown mode name from an older build: fall back to Creative
+            }
+        }
+        Player p = store.getComponent(ref, Player.getComponentType());
+        if (p != null && p.getGameMode() != mode) Player.setGameMode(ref, mode, store);
+        vs.set(vs.player(player.getUuid()), WORLD_NAME, "mode", null);
+        vs.flush();
+        return mode;
     }
 
     private static void unloadIfEmpty(LowTalkPlugin plugin, Consumer<String> out) {
