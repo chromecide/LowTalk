@@ -10,6 +10,7 @@ run/
 src/main/resources/data/
 src/main/resources/lowtalk.json
 *.bak
+*.bak-*
 *.tmp
 
 # IDEs and OS
