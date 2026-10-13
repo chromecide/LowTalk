@@ -28,9 +28,13 @@ most of the typing. That belongs at the top of this page rather than the bottom 
   stamped with that jar's hash. The harness that drives it and the records it produced are public
   ([LowTalkHarness](https://github.com/chromecide/LowTalkHarness)), and so is the list of what the tests do
   **not** cover ([what the corridor does not reach](https://github.com/chromecide/LowTalk/blob/main/docs/testing.md#what-the-corridor-does-not-reach)).
-  It is not decoration: 0.4.0's fix for a condition that could not see what the command above it had just
-  done, and for an NPC rename that had never once survived a restart, both came out of that walk rather
-  than out of reading the code.
+  It is not decoration, and it is not only the walk. 0.4.0's fix for a condition that could not see what the
+  command above it had just done, and for an NPC rename that had never once survived a restart, both came out
+  of walking the tree rather than out of reading the code. 0.5.0's two fixes came from a player hitting them —
+  a Bind button that would not enable, and a command the editor would build and then refuse to save — and
+  each is now held by a test that compares the two places the underlying fact was written, so that whole shape
+  of bug is closed rather than one instance of it. What the tests still do not reach is published too,
+  including the two editor checks nothing can automate.
 
 If that is not something you want on your server, that is a fair call and no argument will be made. The
 [whole repository](https://github.com/chromecide/LowTalk) is MIT and public, so you can read exactly what you
@@ -105,15 +109,71 @@ their state. It leaves journals and trackers to the mods that do those well.
 `lowtalk.creator`, server operation needs `lowtalk.admin` (give admins
 `lowtalk.*`); players need nothing.
 
-**Requirements:** a Hytale server. **Supported Hytale versions:** release line 0.6.3 to 0.6.8 (`LowTalk-0.4.0.jar`),
-pre-release line 0.7.0-pre.2 to 0.7.0-pre.3.1 (`LowTalk-0.4.0+hytale.0.7.0-pre.3.1.jar`); one jar per line is attached to each GitHub
-release and the server refuses the wrong one. 0.4.0 was walked end to end on 0.6.8 and on 0.7.0-pre.3.1. No dependencies. LowTalk 0.1.1+ also carries a workaround for the 0.7.0-pre.2
-boot failure `Asset 'Rope' of type Beam doesn't exist` (a Hytale asset load-order bug; see the README).
+**Requirements:** a Hytale server. No dependencies.
+
+**Supported Hytale versions:** `LowTalk-0.5.0.jar` needs **0.7.0** (`>=0.7.0 <0.8.0`). `LowTalk-0.4.0.jar` is
+still on this page for servers on **0.6.3 to 0.6.8**. A server refuses the wrong jar rather than misbehaving
+with it, so pick by your server version — and if you install from the in-game Mod Browser, check which file
+you actually got, because it has handed out the wrong one before. The notes on the 0.5.0 file say how to tell
+and what to do.
+
+0.7.0 is now one line: the whole pre-release line landed in 0.7.0 stable, so there is one jar rather than one
+per line, and `>=0.7.0 <0.8.0` covers both channels. 0.5.0 was walked end to end on 0.7.0; 0.4.0 was walked on
+0.6.8 and on 0.7.0-pre.3.1. Every jar is also attached to its
+[GitHub release](https://github.com/chromecide/LowTalk/releases).
 
 **Credits**
 
 The tool icon, a speech bubble being clicked, was drawn by [@Trix8ea](https://x.com/Trix8ea) on X and is used
 with their permission. The mod is MIT; the icon is not, and stays the artist's.
+
+**Upload settings for 0.5.0**
+
+- **Game version tag: `0.7`.** The listing has only ever carried `0.6`, so this tag probably has to be created.
+  Tagging this file `0.6` would offer it to 0.6.8 players whose servers will refuse it.
+- **Release type: Release. Set as Main File.**
+- `LowTalk-0.4.0.jar` stays on the listing for players still on 0.6.8. Read the warning in the version notes
+  below before assuming the tags will route people correctly — they did not last time.
+
+**Version notes for 0.5.0** (the "changelog" box on the file upload)
+
+**Read this first: this file needs Hytale 0.7.0. It will not work on 0.6.8.** If your server is on 0.6.8,
+download `LowTalk-0.4.0.jar` instead — it is still on this page. A 0.7.0 server will refuse the 0.4.0 jar and
+a 0.6.8 server will refuse this one, so the wrong one cannot quietly misbehave; it simply will not load.
+
+**If you installed from the in-game Mod Browser and LowTalk is not loading, you may have been given the wrong
+file.** The Browser has handed out the wrong jar before when a page carries two of them, and it does it
+quietly: the mod installs, the client declines to enable it, and the only trace is
+`Skipping mod Chromecide:LowTalk (Disabled by server config)` in the client log
+(`UserData/Logs/*_client.log`). Check which file landed in `UserData/Mods/` and, if it is the wrong one, take
+the jar you need from the [GitHub release](https://github.com/chromecide/LowTalk/releases) and drop it in your
+server's `mods/` by hand. This is a Hytale Mod Browser bug, not something this mod can fix from its end, and
+it is the only reason both files are still offered here.
+
+**Two bugs in the in-game editor are fixed.**
+
+A dialogue could not be bound to a door. The modal opened, you chose a dialogue, and the Bind button stayed
+greyed out. The same fault silently reset the mode dropdown every time you touched it, so "talk and let the
+block act as well" could never actually be selected — a second bug nobody had reported, because the first one
+hid it.
+
+`<<shop Shop_A>>` would not save. The editor would build the command and then refuse it, telling you it
+expected no arguments, with nothing you could do about it. Typing it by hand was refused the same way, so this
+was never just an editor problem.
+
+**The dialogue window sits in the game's own frame.** The transcript used a texture shipped inside this pack
+and now uses Hytale's own inset panel, so it follows the game's look instead of approximating it. Nothing
+about writing dialogue changes.
+
+**Smaller things.** `/lowtalk testworld` sends you home using the game's own spawn resolution, so a failure
+tells you instead of leaving you somewhere odd. Freezing an NPC survives a restart properly. Every command and
+argument description can now be translated.
+
+**How it was tested.** 56 of 67 checks walked in game, one by one, on the code in this exact jar, on Hytale
+0.7.0 — no failures and nothing reported. The walk was done on the jar carrying the previous version string;
+the two differ in one of their 412 entries and one line of it, which is checkable rather than asserted, and
+the record is published. The eleven checks without a result are listed with reasons, including the two editor
+ones, which are the only part of this mod no test can reach — both bugs above were found by hand.
 
 **Version notes for 0.4.0** (the "changelog" box on the file upload)
 
