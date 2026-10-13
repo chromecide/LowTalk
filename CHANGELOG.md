@@ -1,5 +1,77 @@
 # Changelog
 
+## 0.5.0 (2026-10-13)
+
+### Read this first: this jar will not load on 0.6.8
+
+Hytale 0.7.0 shipped, and the whole pre-release line landed in one sync. The manifest range is now
+`>=0.7.0 <0.8.0`. If your server is still on 0.6.8, stay on 0.4.0 — this jar will be refused rather than
+misbehave, but it will be refused.
+
+Nothing else in this release needs anything from you.
+
+### Two bugs an author would have hit
+
+**A dialogue could not be bound to a door.** The modal opened, you picked a dialogue, and the Bind button
+stayed greyed out. The page declared its dropdown reads under one name while its codec expected another, so
+the value arrived under a key nothing decoded, read as null, and the page concluded nothing had been chosen.
+The same cause silently reset the mode dropdown on every change, which meant "talk and let the block act as
+well" could never be selected at all — a second bug nobody had reported, because the first one hid it.
+
+**`<<shop Shop_A>>` would not save.** The validator had `shop` taking no arguments while the runtime, the
+reference, the JSON round-trip, the asset checker and the editor's own command spec all treat the shop id as
+optional. The editor built the command and then refused to save it, reporting "expects 0 argument(s), got 1"
+with nothing you could do about it. Typing it by hand was refused the same way, so this was never
+editor-only.
+
+Both were one fact written in two places with nothing comparing them. Both now have a test that compares them:
+one pairs every declared UI read against the codec keys its page decodes, the other refuses an editor spec
+offering more arguments than the parser accepts or fewer than it requires.
+
+### The dialogue UI is described rather than drawn
+
+Pages used to build themselves against the game's widget API directly. They are now data — a layout of fields
+and commands — and a separate renderer draws it. Nothing looks different, with one exception: the transcript
+sits in the game's own inset panel instead of a nine-slice texture shipped in this pack, so the two textures
+are gone and one fewer thing of ours has to keep in step with theirs.
+
+There is also a spike that draws the same model as a server-side Noesis page. It is inert — its classes are
+unreferenced from outside their package and nothing calls them. It exists because serverside Noesis UI is
+where the game is going, and this mod is meant to hand off to it gracefully rather than entrench.
+
+### Smaller things
+
+- `/lowtalk testworld` sends you home through the game's own `SpawnUtil` instead of hand-written spawn
+  resolution, so the world-thread hop and reference revalidation are theirs, and a failure reports itself
+  instead of leaving you nowhere.
+- Freeze persistence and cache growth fixed; NPC prompt bookkeeping moved into a per-world resource.
+- The remaining command, argument and argument-type descriptions are keyed for translation.
+- `tools/help-sweep.sh` checks that every command's help actually renders.
+
+### Built against Hytale 0.7.0
+
+One jar this time, not two. The pre-release line's newest build is 0.7.0-pre.5.1, which 0.7.0 stable
+supersedes, and `>=0.7.0 <0.8.0` covers both lines — so there is no second line to owe a jar to. Gate rule 2
+asks for a second walk when a pre-release jar ships; none does.
+
+### About the walk
+
+56 of 67 checks, zero failures, zero complaints, on Hytale 0.7.0.
+
+The walk was done on the jar whose code ships here, carrying the earlier version string. The two jars differ
+in exactly one of their 412 entries — `manifest.json`, CRC `d331ba3d` against `468e1b1f` — and in exactly one
+line of it, `"Version"`. All 411 other entries are CRC-identical. The walked jar was rebuilt from its commit
+to make that comparison and reproduced byte-for-byte, so the comparison is reproducible rather than asserted.
+
+That the gate had to be argued with here is itself a finding, and it has been fixed in the harness: the build
+id now covers the code and not the version string, so a bump no longer discounts a walk, while changed code, a
+changed server-version range, a changed dependency or a changed shipped asset still do. `CONTRIBUTING.md` rule
+7 now says a moved id is evidence rather than a verdict — say what moved before calling a walk stale.
+
+The eleven checks with no result are listed with reasons in the harness's
+[`docs/gaps.md`](https://github.com/chromecide/LowTalkHarness/blob/main/docs/gaps.md). The two editor checks
+are the ones that matter most and the ones nothing can automate — both bugs fixed above were editor bugs.
+
 ## 0.4.0 (2026-09-20)
 
 0.3.1 was built and tested but never published, so its changes are folded in here rather than listed under a
