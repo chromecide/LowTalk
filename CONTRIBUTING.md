@@ -85,14 +85,22 @@ this one — a game-breaking bug turned up seconds after the tag went on.
 2. The same walk on the pre-release line when a pre-release jar ships. A jar that goes out is a jar that was
    walked.
 3. Every result stamped with that jar's build id. A pass carried over from an earlier build does not count. A
-   fault found during the walk means a fix, a new jar, and a new walk.
+   fault found during the walk means a fix, a new jar, and a new walk. **The id covers the code, not the
+   version string** — it is a hash of the jar's entries with the manifest's version blanked, so bumping the
+   version does not invalidate a walk, while changed code, a changed server-version range, a changed
+   dependency or a changed shipped asset all do. That distinction was learned the expensive way: 0.4.0 to
+   0.5.0 once discounted fifty-six results against a jar that differed in one entry and one line of it.
 4. Nothing reported left hanging: every complaint is fixed, failed with a reason, or written down as a known
    gap.
 5. Every known gap written down, with why nothing covers it.
 6. The built jars booted on a plain server, as above.
 7. The documentation pass comes after the walk, and then the jars are rebuilt to confirm the build id has not
    moved. Same id, same jar, so the walk still describes what ships. A moved id means something outside the
-   docs changed and the walk is stale.
+   docs changed and the walk is stale — but say *what* moved before accepting that, because the id is evidence
+   and not a verdict. Comparing the two jars entry by entry takes a minute and answers it: if the only entry
+   that differs is `manifest.json` and the only line in it is the version, the walk stands and the release
+   notes should say so with the CRCs rather than assert it. The builds are reproducible from a commit, so an
+   earlier jar can always be rebuilt to make that comparison.
 
 The walk itself is driven by a separate harness mod,
 [LowTalkHarness](https://github.com/chromecide/LowTalkHarness), so the LowTalk being tested is the jar that
