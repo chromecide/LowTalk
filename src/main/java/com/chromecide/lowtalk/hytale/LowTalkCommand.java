@@ -32,7 +32,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
     static final String CREATOR = "lowtalk.creator";
 
     public LowTalkCommand(@Nonnull LowTalkPlugin plugin) {
-        super("lowtalk", "LowTalk dialogue tools");
+        super("lowtalk", "server.commands.lowtalk.desc");
         this.requireNoPermission();
         this.addSubCommand(new Reload(plugin));
         this.addSubCommand(new ListDialogues(plugin));
@@ -81,7 +81,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         private final LowTalkPlugin plugin;
 
         Reload(LowTalkPlugin plugin) {
-            super("reload", "Re-read all dialogue files");
+            super("reload", "server.commands.lowtalk.reload.desc");
             this.plugin = plugin;
             this.requirePermission(ADMIN);
         }
@@ -101,7 +101,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         private final LowTalkPlugin plugin;
 
         ListDialogues(LowTalkPlugin plugin) {
-            super("list", "List loaded dialogues and their bindings");
+            super("list", "server.commands.lowtalk.list.desc");
             this.plugin = plugin;
             this.requirePermission(CREATOR);
         }
@@ -124,10 +124,10 @@ public class LowTalkCommand extends AbstractCommandCollection {
     /** /lowtalk help [name | commands | functions | keywords]: the format reference, in chat. */
     static class Help extends CommandBase {
         private final LowTalkPlugin plugin;
-        private final OptionalArg<String> topicArg = withOptionalArg("topic", "A command, function or keyword name, or commands / functions / keywords", ArgTypes.GREEDY_STRING);
+        private final OptionalArg<String> topicArg = withOptionalArg("topic", "server.commands.lowtalk.help.topic.desc", ArgTypes.GREEDY_STRING);
 
         Help(LowTalkPlugin plugin) {
-            super("help", "Reference for the dialogue format");
+            super("help", "server.commands.lowtalk.help.desc");
             this.plugin = plugin;
             this.requirePermission(CREATOR);
         }
@@ -179,7 +179,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
      */
     static class Convert extends AbstractCommandCollection {
         Convert(LowTalkPlugin plugin) {
-            super("convert", "Write a dialogue as .json (form editor) or .talk (text)");
+            super("convert", "server.commands.lowtalk.convert.desc");
             this.requirePermission(CREATOR);
             this.addSubCommand(new ConvertTo(plugin, "json"));
             this.addSubCommand(new ConvertTo(plugin, "talk"));
@@ -189,14 +189,14 @@ public class LowTalkCommand extends AbstractCommandCollection {
     static class ConvertTo extends CommandBase {
         private final LowTalkPlugin plugin;
         private final String format;
-        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", dialogueIds());
+        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "server.commands.lowtalk.convert.dialogue.desc", dialogueIds());
         private final RequiredArg<String> packArg;
 
         ConvertTo(LowTalkPlugin plugin, String format) {
-            super(format, format.equals("json") ? "Write a dialogue as a JSON asset into a pack" : "Write a dialogue as .talk text into a pack, or 'server' for the plugin folder");
+            super(format, "server.commands.lowtalk.convert." + format + ".desc");
             this.plugin = plugin;
             this.format = format;
-            this.packArg = withRequiredArg("pack", format.equals("json") ? "Asset pack name, e.g. JP:My Pack" : "Asset pack name, or server", ArgTypes.GREEDY_STRING);
+            this.packArg = withRequiredArg("pack", "server.commands.lowtalk.convert." + format + ".pack.desc", ArgTypes.GREEDY_STRING);
             this.requirePermission(CREATOR);
         }
 
@@ -285,10 +285,10 @@ public class LowTalkCommand extends AbstractCommandCollection {
     /** /lowtalk info <id>: nodes, options, variables and unreachable nodes of a loaded dialogue. */
     static class Info extends CommandBase {
         private final LowTalkPlugin plugin;
-        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", dialogueIds());
+        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "server.commands.lowtalk.info.dialogue.desc", dialogueIds());
 
         Info(LowTalkPlugin plugin) {
-            super("info", "Outline of a loaded dialogue");
+            super("info", "server.commands.lowtalk.info.desc");
             this.plugin = plugin;
             this.requirePermission(CREATOR);
         }
@@ -307,10 +307,10 @@ public class LowTalkCommand extends AbstractCommandCollection {
     /** Open a dialogue by id with the NPC you are looking at (or with no NPC). */
     static class Open extends AbstractPlayerCommand {
         private final LowTalkPlugin plugin;
-        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", dialogueIds());
+        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "server.commands.lowtalk.open.dialogue.desc", dialogueIds());
 
         Open(LowTalkPlugin plugin) {
-            super("open", "Open a dialogue by id");
+            super("open", "server.commands.lowtalk.open.desc");
             this.plugin = plugin;
             this.requirePermission(CREATOR);
         }
@@ -331,7 +331,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
     /** Bind a dialogue to the block you are looking at, or list or remove bindings. */
     static class BlockCommand extends AbstractCommandCollection {
         BlockCommand(LowTalkPlugin plugin) {
-            super("block", "Dialogues bound to placed blocks");
+            super("block", "server.commands.lowtalk.block.desc");
             this.requirePermission(CREATOR);
             this.addSubCommand(new BlockBind(plugin));
             this.addSubCommand(new BlockUnbind(plugin));
@@ -351,11 +351,11 @@ public class LowTalkCommand extends AbstractCommandCollection {
 
     static class BlockBind extends AbstractPlayerCommand {
         private final LowTalkPlugin plugin;
-        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", dialogueIds());
-        private final OptionalArg<String> modeArg = withOptionalArg("mode", "instead (default) or also", ArgTypes.STRING);
+        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "server.commands.lowtalk.block.bind.dialogue.desc", dialogueIds());
+        private final OptionalArg<String> modeArg = withOptionalArg("mode", "server.commands.lowtalk.block.bind.mode.desc", ArgTypes.STRING);
 
         BlockBind(LowTalkPlugin plugin) {
-            super("bind", "Bind a dialogue to the block you are looking at");
+            super("bind", "server.commands.lowtalk.block.bind.desc");
             this.plugin = plugin;
             this.requirePermission(CREATOR);
         }
@@ -397,7 +397,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         private final LowTalkPlugin plugin;
 
         BlockUnbind(LowTalkPlugin plugin) {
-            super("unbind", "Remove the dialogue from the block you are looking at");
+            super("unbind", "server.commands.lowtalk.block.unbind.desc");
             this.plugin = plugin;
             this.requirePermission(CREATOR);
         }
@@ -422,7 +422,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         private final LowTalkPlugin plugin;
 
         BlockList(LowTalkPlugin plugin) {
-            super("list", "List every block binding");
+            super("list", "server.commands.lowtalk.block.list.desc");
             this.plugin = plugin;
             this.requirePermission(CREATOR);
         }
@@ -440,7 +440,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         private final LowTalkPlugin plugin;
 
         Browse(LowTalkPlugin plugin) {
-            super("browse", "Browse, edit and test every loaded dialogue");
+            super("browse", "server.commands.lowtalk.browse.desc");
             this.plugin = plugin;
             this.requirePermission(CREATOR);
         }
@@ -454,7 +454,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
 
     static class PropCommand extends AbstractCommandCollection {
         PropCommand(LowTalkPlugin plugin) {
-            super("prop", "Dialogues bound to props");
+            super("prop", "server.commands.lowtalk.prop.desc");
             this.requirePermission(CREATOR);
             this.addSubCommand(new PropList(plugin));
             this.addSubCommand(new PropUnbind(plugin));
@@ -465,7 +465,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         private final LowTalkPlugin plugin;
 
         PropList(LowTalkPlugin plugin) {
-            super("list", "List every prop binding");
+            super("list", "server.commands.lowtalk.prop.list.desc");
             this.plugin = plugin;
             this.requirePermission(CREATOR);
         }
@@ -481,10 +481,10 @@ public class LowTalkCommand extends AbstractCommandCollection {
     /** Drop a binding by UUID, for props that no longer exist; the tool's Unbind covers props still in the world. */
     static class PropUnbind extends AbstractPlayerCommand {
         private final LowTalkPlugin plugin;
-        private final RequiredArg<String> idArg = withRequiredArg("uuid", "Prop entity UUID, from /lowtalk prop list", ArgTypes.STRING);
+        private final RequiredArg<String> idArg = withRequiredArg("uuid", "server.commands.lowtalk.prop.unbind.uuid.desc", ArgTypes.STRING);
 
         PropUnbind(LowTalkPlugin plugin) {
-            super("unbind", "Remove a prop binding by UUID");
+            super("unbind", "server.commands.lowtalk.prop.unbind.desc");
             this.plugin = plugin;
             this.requirePermission(CREATOR);
         }
@@ -511,10 +511,11 @@ public class LowTalkCommand extends AbstractCommandCollection {
     static class Tag extends AbstractPlayerCommand {
         private final LowTalkPlugin plugin;
         private final boolean add;
-        private final RequiredArg<String> tagArg = withRequiredArg("tag", "Tag name, without the @", ArgTypes.STRING);
+        private final RequiredArg<String> tagArg = withRequiredArg("tag", "server.commands.lowtalk.tag.tag.desc", ArgTypes.STRING);
 
         Tag(LowTalkPlugin plugin, boolean add) {
-            super(add ? "tag" : "untag", add ? "Tag the NPC you are looking at" : "Remove a tag from the NPC you are looking at");
+            super(add ? "tag" : "untag",
+                    add ? "server.commands.lowtalk.tag.desc" : "server.commands.lowtalk.untag.desc");
             this.plugin = plugin;
             this.add = add;
             this.requirePermission(ADMIN);
@@ -546,7 +547,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         private final LowTalkPlugin plugin;
 
         Tags(LowTalkPlugin plugin) {
-            super("tags", "Show the tags and bound dialogues of the NPC you are looking at");
+            super("tags", "server.commands.lowtalk.tags.desc");
             this.plugin = plugin;
             this.requirePermission(CREATOR);
         }
@@ -571,7 +572,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         private final LowTalkPlugin plugin;
 
         Vars(LowTalkPlugin plugin) {
-            super("vars", "Show your saved dialogue variables");
+            super("vars", "server.commands.lowtalk.vars.desc");
             this.plugin = plugin;
             this.requirePermission(CREATOR);
         }
@@ -595,7 +596,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         private final LowTalkPlugin plugin;
 
         Reset(LowTalkPlugin plugin) {
-            super("reset", "Forget everything every dialogue knows about you");
+            super("reset", "server.commands.lowtalk.reset.desc");
             this.plugin = plugin;
             this.requirePermission(CREATOR);
         }
@@ -614,7 +615,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         private final LowTalkPlugin plugin;
 
         Thaw(LowTalkPlugin plugin) {
-            super("thaw", "Unfreeze the NPC you are looking at");
+            super("thaw", "server.commands.lowtalk.thaw.desc");
             this.plugin = plugin;
             this.requirePermission(ADMIN);
         }
@@ -639,11 +640,11 @@ public class LowTalkCommand extends AbstractCommandCollection {
      */
     static class TestDialogue extends AbstractPlayerCommand {
         private final LowTalkPlugin plugin;
-        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "Dialogue id", dialogueIds());
-        private final OptionalArg<String> scriptArg = withOptionalArg("script", "'apply' to run effects for real, then choices: numbers or text prefixes", ArgTypes.GREEDY_STRING);
+        private final RequiredArg<String> idArg = withRequiredArg("dialogue", "server.commands.lowtalk.test.dialogue.desc", dialogueIds());
+        private final OptionalArg<String> scriptArg = withOptionalArg("script", "server.commands.lowtalk.test.script.desc", ArgTypes.GREEDY_STRING);
 
         TestDialogue(LowTalkPlugin plugin) {
-            super("test", "Play a dialogue from the console with scripted choices");
+            super("test", "server.commands.lowtalk.test.desc");
             this.plugin = plugin;
             this.requirePermission(CREATOR);
         }
@@ -676,7 +677,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
     /** /lowtalk testworld build | go */
     static class TestWorldCommand extends AbstractCommandCollection {
         TestWorldCommand(LowTalkPlugin plugin) {
-            super("testworld", "Build or visit the LowTalk test corridor");
+            super("testworld", "server.commands.lowtalk.testworld.desc");
             this.requirePermission(ADMIN);
             this.addSubCommand(new TestWorldBuild(plugin));
             this.addSubCommand(new TestWorldGo(plugin));
@@ -690,7 +691,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         private final LowTalkPlugin plugin;
 
         TestWorldLeave(LowTalkPlugin plugin) {
-            super("leave", "Return to the main world with your old game mode and unload the test world");
+            super("leave", "server.commands.lowtalk.testworld.leave.desc");
             this.plugin = plugin;
             this.requirePermission(ADMIN);
         }
@@ -706,7 +707,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         private final LowTalkPlugin plugin;
 
         TestWorldProbe(LowTalkPlugin plugin) {
-            super("probe", "Report why the nearest NPC does or does not react to you");
+            super("probe", "server.commands.lowtalk.testworld.probe.desc");
             this.plugin = plugin;
             this.requirePermission(ADMIN);
         }
@@ -722,7 +723,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         private final LowTalkPlugin plugin;
 
         TestWorldRespawn(LowTalkPlugin plugin) {
-            super("respawn", "Reset your test state, respawn the corridor's NPCs and return to the entrance");
+            super("respawn", "server.commands.lowtalk.testworld.respawn.desc");
             this.plugin = plugin;
             this.requirePermission(ADMIN);
         }
@@ -749,7 +750,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         private final LowTalkPlugin plugin;
 
         TestWorldBuild(LowTalkPlugin plugin) {
-            super("build", "Create the test world and build the corridor of stations");
+            super("build", "server.commands.lowtalk.testworld.build.desc");
             this.plugin = plugin;
             this.requirePermission(ADMIN);
         }
@@ -768,7 +769,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         private final LowTalkPlugin plugin;
 
         TestWorldGo(LowTalkPlugin plugin) {
-            super("go", "Teleport to the test corridor");
+            super("go", "server.commands.lowtalk.testworld.go.desc");
             this.plugin = plugin;
             this.requirePermission(ADMIN);
         }
@@ -785,7 +786,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         private final LowTalkPlugin plugin;
 
         Tool(LowTalkPlugin plugin) {
-            super("tool", "Get the LowTalk tool: click an NPC with it to edit its dialogue in place");
+            super("tool", "server.commands.lowtalk.tool.desc");
             this.plugin = plugin;
             this.requirePermission(CREATOR);
         }
@@ -808,7 +809,7 @@ public class LowTalkCommand extends AbstractCommandCollection {
         private final LowTalkPlugin plugin;
 
         Stop(LowTalkPlugin plugin) {
-            super("stop", "Leave your current conversation");
+            super("stop", "server.commands.lowtalk.stop.desc");
             this.plugin = plugin;
             this.requireNoPermission();
         }

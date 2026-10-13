@@ -21,7 +21,11 @@ public final class DialogueIdArgument extends SingleArgumentType<String> {
     private final Supplier<List<String>> ids;
 
     public DialogueIdArgument(@Nonnull Supplier<List<String>> ids) {
-        super("dialogue", "a loaded dialogue id (file name without extension)", "village_elder");
+        // Name and usage are translation keys, as the game's own argument types use; the examples are
+        // literal, also as the game does.
+        super("server.commands.lowtalk.argtype.dialogue.name",
+                "server.commands.lowtalk.argtype.dialogue.usage",
+                "village_elder");
         this.ids = ids;
     }
 

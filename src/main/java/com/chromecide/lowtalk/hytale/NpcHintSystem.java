@@ -45,12 +45,7 @@ public final class NpcHintSystem extends EntityTickingSystem<EntityStore> {
 
     private final LowTalkPlugin plugin;
     private final Query<EntityStore> query = Query.and(Player.getComponentType(), TransformComponent.getComponentType());
-    private final Map<UUID, Float> timers = new HashMap<>();
-    /** Player → NPC id → hint text delivered to that player's client, or "" while delivery is still pending. */
-    private final Map<UUID, Map<UUID, String>> marked = new HashMap<>();
     private static final String PENDING = "";
-    /** NPC id → players currently near it, so the component goes when the last one leaves. */
-    private final Map<UUID, Set<UUID>> watchers = new HashMap<>();
 
     public NpcHintSystem(@Nonnull LowTalkPlugin plugin) {
         this.plugin = plugin;
@@ -78,9 +73,12 @@ public final class NpcHintSystem extends EntityTickingSystem<EntityStore> {
         TransformComponent transform = chunk.getComponent(index, TransformComponent.getComponentType());
         if (playerRef == null || transform == null) return;
         UUID playerId = playerRef.getUuid();
-        float t = timers.merge(playerId, dt, Float::sum);
+        // Per world, not per system: the system instance is shared by every world (see NpcHintState).
+        NpcHintState state = store.getResource(plugin.getHintStateType());
+        if (state == null) return;
+        float t = state.timers.merge(playerId, dt, Float::sum);
         if (t < INTERVAL_SECONDS) return;
-        timers.put(playerId, 0.0f);
+        state.timers.put(playerId, 0.0f);
 
         Vector3d pos = transform.getPosition();
         Map<UUID, Ref<EntityStore>> near = new HashMap<>();
@@ -103,23 +101,23 @@ public final class NpcHintSystem extends EntityTickingSystem<EntityStore> {
             near.put(npc.id(), ref);
             hints.put(npc.id(), settings.getHintKey());
         }
-        Map<UUID, String> mine = marked.computeIfAbsent(playerId, k -> new HashMap<>());
+        Map<UUID, String> mine = state.marked.computeIfAbsent(playerId, k -> new HashMap<>());
         List<Ref<EntityStore>> show = new ArrayList<>();
         List<UUID> showIds = new ArrayList<>();
         for (Map.Entry<UUID, Ref<EntityStore>> e : near.entrySet()) {
             if (hints.get(e.getKey()).equals(mine.get(e.getKey()))) continue; // marked and this hint delivered
             show.add(e.getValue());
             showIds.add(e.getKey());
-            watchers.computeIfAbsent(e.getKey(), k -> new HashSet<>()).add(playerId);
+            state.watchers.computeIfAbsent(e.getKey(), k -> new HashSet<>()).add(playerId);
         }
         List<UUID> leftIds = new ArrayList<>();
         for (UUID id : mine.keySet()) if (!near.containsKey(id)) leftIds.add(id);
         for (UUID id : leftIds) {
             mine.remove(id);
-            Set<UUID> w = watchers.get(id);
-            if (w != null) { w.remove(playerId); if (w.isEmpty()) watchers.remove(id); }
+            Set<UUID> w = state.watchers.get(id);
+            if (w != null) { w.remove(playerId); if (w.isEmpty()) state.watchers.remove(id); }
         }
-        if (mine.isEmpty()) marked.remove(playerId);
+        if (mine.isEmpty()) state.marked.remove(playerId);
         if (show.isEmpty() && leftIds.isEmpty()) return;
 
         // Component changes wait for the command buffer, as the game's own systems do while a tick is iterating.
@@ -129,25 +127,29 @@ public final class NpcHintSystem extends EntityTickingSystem<EntityStore> {
             for (int i = 0; i < show.size(); i++) {
                 Ref<EntityStore> npc = show.get(i);
                 if (!npc.isValid()) continue;
+                // Deliberately NOT marked dirty. Interactable has a codec and no NonSerialized, so marking
+                // would write LowTalk's prompt marker into the world save on an NPC it does not own, where
+                // it would outlive the binding and the mod. Leaving it unmarked keeps the mark to this
+                // session. Do not "fix" this the way NpcHold's Frozen was fixed — see EntitySaving.
                 if (!s.getArchetype(npc).contains(Interactable.getComponentType())) s.ensureComponent(npc, Interactable.getComponentType());
                 String hint = hints.get(showIds.get(i));
                 if (viewer != null && viewer.visible.contains(npc)) {
                     viewer.queueUpdate(npc, new InteractableUpdate(hint));
-                    Map<UUID, String> m = marked.get(playerId);
+                    Map<UUID, String> m = state.marked.get(playerId);
                     if (m != null) m.put(showIds.get(i), hint);
                 } else {
-                    marked.computeIfAbsent(playerId, k -> new HashMap<>()).putIfAbsent(showIds.get(i), PENDING); // retry next pass
+                    state.marked.computeIfAbsent(playerId, k -> new HashMap<>()).putIfAbsent(showIds.get(i), PENDING); // retry next pass
                 }
             }
             for (UUID id : leftIds) {
-                if (watchers.containsKey(id)) continue; // someone else is still close
+                if (state.watchers.containsKey(id)) continue; // someone else is still close
                 Ref<EntityStore> npc = findNpc(id, pos, s);
                 if (npc != null && npc.isValid() && s.getArchetype(npc).contains(Interactable.getComponentType())) {
                     s.removeComponent(npc, Interactable.getComponentType());
                 }
             }
         });
-        prune();
+        prune(state);
     }
 
     /** The NPC with this id, if it is still around the player. */
@@ -161,16 +163,16 @@ public final class NpcHintSystem extends EntityTickingSystem<EntityStore> {
     }
 
     /** Forget players who are gone. */
-    private void prune() {
+    private static void prune(@Nonnull NpcHintState state) {
         Set<UUID> online = new HashSet<>();
         for (PlayerRef p : Universe.get().getPlayers()) online.add(p.getUuid());
-        for (Iterator<UUID> it = timers.keySet().iterator(); it.hasNext(); ) if (!online.contains(it.next())) it.remove();
-        for (Iterator<Map.Entry<UUID, Map<UUID, String>>> it = marked.entrySet().iterator(); it.hasNext(); ) {
+        for (Iterator<UUID> it = state.timers.keySet().iterator(); it.hasNext(); ) if (!online.contains(it.next())) it.remove();
+        for (Iterator<Map.Entry<UUID, Map<UUID, String>>> it = state.marked.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<UUID, Map<UUID, String>> e = it.next();
             if (online.contains(e.getKey())) continue;
             for (UUID npc : e.getValue().keySet()) {
-                Set<UUID> w = watchers.get(npc);
-                if (w != null) { w.remove(e.getKey()); if (w.isEmpty()) watchers.remove(npc); }
+                Set<UUID> w = state.watchers.get(npc);
+                if (w != null) { w.remove(e.getKey()); if (w.isEmpty()) state.watchers.remove(npc); }
             }
             it.remove();
         }

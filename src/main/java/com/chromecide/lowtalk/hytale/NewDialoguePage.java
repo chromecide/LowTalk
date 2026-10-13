@@ -2,20 +2,18 @@ package com.chromecide.lowtalk.hytale;
 
 import com.chromecide.lowtalk.LowTalkPlugin;
 import com.chromecide.lowtalk.model.Dialogue;
+import com.chromecide.lowtalk.ui.PageLayout;
+import com.chromecide.lowtalk.ui.UiEvent;
+import com.chromecide.lowtalk.ui.UiModel;
+import com.chromecide.lowtalk.ui.UiOption;
+import com.chromecide.lowtalk.ui.UiPage;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
-import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.server.core.entity.entities.Player;
-import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
-import com.hypixel.hytale.server.core.ui.DropdownEntryInfo;
-import com.hypixel.hytale.server.core.ui.LocalizableString;
-import com.hypixel.hytale.server.core.ui.builder.EventData;
-import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
-import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
@@ -35,13 +33,41 @@ import java.util.Map;
  * NPC's role (every NPC of that kind) or to this one NPC (a tag), and where the file goes. Creates a small starter
  * file, loads it and opens the editor on it.
  */
-public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Data> {
+public class NewDialoguePage extends UiPage<NewDialoguePage.Data> {
     private static final String LAYOUT = "Pages/LowTalk/NewDialoguePage.ui";
     private static final String BIND_ROLE = "role";
     private static final String BIND_TAG = "tag";
     private static final String BIND_NONE = "none";
     private static final String FORMAT_JSON = "json";
     private static final String FORMAT_TALK = "talk";
+
+    /** Which control carries which value. The only place this page names anything on screen. */
+    @Nonnull
+    private static PageLayout layout() {
+        return PageLayout.of(LAYOUT)
+                .property("intro", "#Intro", "Text")
+                // Seeded once: these are boxes the creator types into.
+                .seedProperty("id", "#Id", "Value")
+                .seedProperty("speaker", "#Speaker", "Value")
+                .property("bindChoices", "#Bind", "Entries")
+                .property("bind", "#Bind", "Value")
+                .property("whereChoices", "#Where", "Entries")
+                .property("where", "#Where", "Value")
+                .property("formats", "#Format", "Entries")
+                .property("format", "#Format", "Value")
+                .property("status", "#Status", "Text")
+                .property("createDisabled", "#CreateButton", "Disabled")
+                // Each field reports its own change and the page keeps the answer; the button carries nothing.
+                // Five values could never have come back on one command anyway.
+                .command("ID", "#Id", UiEvent.VALUE_CHANGED).reads("Id", "#Id", "Value").done()
+                .command("SPEAKER", "#Speaker", UiEvent.VALUE_CHANGED).reads("Speaker", "#Speaker", "Value").done()
+                .command("BIND", "#Bind", UiEvent.VALUE_CHANGED).reads("Bind", "#Bind", "Value").done()
+                .command("WHERE", "#Where", UiEvent.VALUE_CHANGED).reads("Where", "#Where", "Value").done()
+                .command("FORMAT", "#Format", UiEvent.VALUE_CHANGED).reads("Format", "#Format", "Value").done()
+                .command("CREATE", "#CreateButton", UiEvent.ACTIVATE).done()
+                .command("CANCEL", "#CancelButton", UiEvent.ACTIVATE).done()
+                .build();
+    }
 
     public static class Data {
         public static final BuilderCodec<Data> CODEC = BuilderCodec.builder(Data.class, Data::new)
@@ -73,6 +99,12 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
     @Nullable
     private final java.util.function.Consumer<Dialogue> onCreated;
     private String status = "";
+    /** What the creator has typed and chosen so far. Seeded in populate, then owned by the page. */
+    private String id;
+    private String speaker;
+    private String bind;
+    private String where;
+    private String format = FORMAT_JSON;
 
     public NewDialoguePage(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef playerRef, @Nonnull Ref<EntityStore> playerEntity, @Nullable NpcInfo npc) {
         this(plugin, playerRef, playerEntity, npc, null, null);
@@ -80,7 +112,7 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
 
     private NewDialoguePage(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef playerRef, @Nonnull Ref<EntityStore> playerEntity, @Nullable NpcInfo npc,
                             @Nullable String intro, @Nullable java.util.function.Consumer<Dialogue> onCreated) {
-        super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC);
+        super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC, layout());
         this.plugin = plugin;
         this.npc = npc;
         this.playerEntity = playerEntity;
@@ -116,69 +148,98 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
     }
 
     @Override
-    public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder cmd, @Nonnull UIEventBuilder evt, @Nonnull Store<EntityStore> store) {
-        cmd.append(LAYOUT);
-        if (npc == null && intro != null) cmd.set("#Intro.Text", intro);
-        else if (npc == null) cmd.set("#Intro.Text", LowTalkCommand.msg(plugin, "newUnattachedIntro"));
-        else cmd.set("#Intro.Text", npc.name() + " (" + npc.role() + ") has no dialogue yet. Create one and it opens in the editor.");
+    protected void populate(@Nonnull UiModel model) {
+        if (npc == null && intro != null) model.set("intro", intro);
+        else if (npc == null) model.set("intro", com.chromecide.lowtalk.ui.UiText.key("server.lowtalk.msg.newUnattachedIntro")
+                .color(plugin.getSettings().getInfoColor()));
+        else model.set("intro", npc.name() + " (" + npc.role() + ") has no dialogue yet. Create one and it opens in the editor.");
         String suggested = npc == null || npc.role() == null ? "new_dialogue" : npc.role().toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9_-]", "_");
         int n = 2;
         String id = suggested;
         while (plugin.getRegistry().byId(id) != null) id = suggested + "_" + n++;
-        cmd.set("#Id.Value", id);
-        cmd.set("#Speaker.Value", npc == null ? "Narrator" : npc.name());
-        List<DropdownEntryInfo> bind = new ArrayList<>();
+        if (this.id == null) this.id = id;
+        if (this.speaker == null) this.speaker = npc == null ? "Narrator" : npc.name();
+        model.set("id", this.id);
+        model.set("speaker", this.speaker);
+        List<UiOption> bind = new ArrayList<>();
         if (npc == null) {
-            bind.add(new DropdownEntryInfo(LocalizableString.fromString(onCreated != null
-                    ? "this prop or block (npc: none in the file)" : "nothing yet (npc: none); bind it to a prop, block, trigger or role later"), BIND_NONE));
+            bind.add(UiOption.of(BIND_NONE, onCreated != null
+                    ? "this prop or block (npc: none in the file)"
+                    : "nothing yet (npc: none); bind it to a prop, block, trigger or role later"));
         } else {
-            bind.add(new DropdownEntryInfo(LocalizableString.fromString("every " + npc.role() + " (bind by role)"), BIND_ROLE));
-            bind.add(new DropdownEntryInfo(LocalizableString.fromString("only this NPC (bind by tag)"), BIND_TAG));
+            bind.add(UiOption.of(BIND_ROLE, "every " + npc.role() + " (bind by role)"));
+            bind.add(UiOption.of(BIND_TAG, "only this NPC (bind by tag)"));
         }
-        cmd.set("#Bind.Entries", bind);
-        cmd.set("#Bind.Value", npc == null ? BIND_NONE : BIND_ROLE);
-        List<DropdownEntryInfo> where = new ArrayList<>();
+        model.set("bindChoices", bind);
+        if (this.bind == null) this.bind = npc == null ? BIND_NONE : BIND_ROLE;
+        model.set("bind", this.bind);
+        List<UiOption> where = new ArrayList<>();
         for (Map.Entry<String, Path> e : targets.entrySet()) {
             boolean server = e.getKey().isEmpty();
-            where.add(new DropdownEntryInfo(
-                    LocalizableString.fromString(server ? "the server's dialogues folder" : "asset pack " + e.getKey()),
-                    server ? "$server" : e.getKey(),
-                    LocalizableString.fromString(server
+            where.add(UiOption.of(server ? "$server" : e.getKey(),
+                    server ? "the server's dialogues folder" : "asset pack " + e.getKey())
+                    .explain(server
                             ? "this server only: the Asset Editor and the Node Editor cannot see it, and it does not travel with a pack"
-                            : "part of the pack, so it ships with it and opens in the Asset Editor and the Node Editor too")));
+                            : "part of the pack, so it ships with it and opens in the Asset Editor and the Node Editor too"));
         }
-        cmd.set("#Where.Entries", where);
-        String preferred = plugin.getRegistry().defaultCreationTarget();
-        cmd.set("#Where.Value", preferred.isEmpty() ? "$server" : preferred);
-        List<DropdownEntryInfo> formats = new ArrayList<>();
-        formats.add(new DropdownEntryInfo(LocalizableString.fromString("an asset (.json)"), FORMAT_JSON,
-                LocalizableString.fromString("a form in the Asset Editor, a graph in the Node Editor, and fields in here")));
-        formats.add(new DropdownEntryInfo(LocalizableString.fromString("a text file (.talk)"), FORMAT_TALK,
-                LocalizableString.fromString("for writing by hand; the Asset Editor opens it as text")));
-        cmd.set("#Format.Entries", formats);
-        cmd.set("#Format.Value", FORMAT_JSON);
-        cmd.set("#Status.Text", status);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#CreateButton", new EventData().append("Action", "CREATE")
-                .append("@Id", "#Id.Value").append("@Speaker", "#Speaker.Value").append("@Bind", "#Bind.Value")
-                .append("@Where", "#Where.Value").append("@Format", "#Format.Value"), false);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#CancelButton", new EventData().append("Action", "CANCEL"), false);
+        model.set("whereChoices", where);
+        if (this.where == null) {
+            String preferred = plugin.getRegistry().defaultCreationTarget();
+            this.where = preferred.isEmpty() ? "$server" : preferred;
+        }
+        model.set("where", this.where);
+        model.set("formats", List.of(
+                UiOption.of(FORMAT_JSON, "an asset (.json)")
+                        .explain("a form in the Asset Editor, a graph in the Node Editor, and fields in here"),
+                UiOption.of(FORMAT_TALK, "a text file (.talk)")
+                        .explain("for writing by hand; the Asset Editor opens it as text")));
+        model.set("format", format);
+        model.set("createDisabled", problemWithId() != null);
+        model.set("status", status);
+    }
+
+    /** Why the id cannot be used, or null when it can. The Create button follows this. */
+    @Nullable
+    private String problemWithId() {
+        String trimmed = id == null ? "" : id.trim();
+        if (!trimmed.matches("[A-Za-z0-9_-]+")) return "The id needs letters, digits, _ or - only.";
+        if (plugin.getRegistry().byId(trimmed) != null) return "A dialogue called " + trimmed + " already exists.";
+        return null;
+    }
+
+    @Nonnull
+    @Override
+    protected String commandOf(@Nonnull Data data) {
+        return data.action == null ? "" : data.action;
     }
 
     @Override
-    public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Data data) {
-        if ("CANCEL".equals(data.action)) { close(); return; }
-        if (!"CREATE".equals(data.action)) return;
-        String id = data.id == null ? "" : data.id.trim();
-        if (!id.matches("[A-Za-z0-9_-]+")) { fail("The id needs letters, digits, _ or - only."); return; }
-        if (plugin.getRegistry().byId(id) != null) { fail("A dialogue called " + id + " already exists."); return; }
+    protected void onCommand(@Nonnull String command, @Nonnull Data data,
+                             @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
+        switch (command) {
+            case "CANCEL" -> { close(); return; }
+            case "ID" -> {
+                id = data.id == null ? "" : data.id;
+                refresh();   // the Create button follows whether the id can be used
+                return;
+            }
+            case "SPEAKER" -> { speaker = data.speaker == null ? "" : data.speaker; return; }
+            case "BIND" -> { bind = data.bind == null ? "" : data.bind; return; }
+            case "WHERE" -> { where = data.where == null ? "$server" : data.where; return; }
+            case "FORMAT" -> { format = data.format == null ? FORMAT_JSON : data.format; return; }
+            case "CREATE" -> { }
+            default -> { return; }
+        }
+        // The button is disabled until this holds, but check anyway: the client is not the authority.
+        String problem = problemWithId();
+        if (problem != null) { fail(problem); return; }
+        String newId = id.trim();
         // Making a pack registers it with the asset module and loading an asset touches the asset stores, so the
         // whole of it runs on the world thread rather than on the thread the button's event arrived on.
-        String where = data.where == null || data.where.equals("$server") ? "" : data.where;
-        String format = data.format == null ? "" : data.format;
-        String bind = data.bind == null ? "" : data.bind;
-        String speaker = data.speaker == null || data.speaker.isBlank()
-                ? (npc == null ? "Narrator" : npc.name()) : data.speaker.trim();
-        store.getExternalData().getWorld().execute(() -> create(id, where, format, bind, speaker, store));
+        String target = "$server".equals(where) ? "" : where;
+        String voice = speaker == null || speaker.isBlank()
+                ? (npc == null ? "Narrator" : npc.name()) : speaker.trim();
+        store.getExternalData().getWorld().execute(() -> create(newId, target, format, bind, voice, store));
     }
 
     /** Write the new dialogue, making its pack first when that is what was asked for. World thread. */
@@ -242,8 +303,6 @@ public class NewDialoguePage extends InteractiveCustomUIPage<NewDialoguePage.Dat
 
     private void fail(String message) {
         status = message;
-        UICommandBuilder cmd = new UICommandBuilder();
-        cmd.set("#Status.Text", status);
-        sendUpdate(cmd, null, false);
+        refresh();
     }
 }

@@ -21,6 +21,29 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.logging.Level;
+import com.hypixel.hytale.builtin.adventure.objectives.config.ObjectiveAsset;
+import com.hypixel.hytale.builtin.adventure.objectives.config.ObjectiveLineAsset;
+import com.hypixel.hytale.builtin.adventure.objectives.config.task.CountObjectiveTaskAsset;
+import com.hypixel.hytale.builtin.adventure.objectives.config.task.CraftObjectiveTaskAsset;
+import com.hypixel.hytale.builtin.adventure.objectives.config.task.GatherObjectiveTaskAsset;
+import com.hypixel.hytale.builtin.adventure.objectives.config.task.ObjectiveTaskAsset;
+import com.hypixel.hytale.builtin.adventure.objectives.config.task.TaskSet;
+import com.hypixel.hytale.builtin.adventure.objectives.config.task.UseBlockObjectiveTaskAsset;
+import com.hypixel.hytale.builtin.adventure.reputation.assets.ReputationGroup;
+import com.hypixel.hytale.builtin.adventure.shop.barter.BarterShopAsset;
+import com.hypixel.hytale.builtin.asseteditor.event.AssetEditorFetchAutoCompleteDataEvent;
+import com.hypixel.hytale.builtin.teleport.TeleportPlugin;
+import com.hypixel.hytale.server.core.asset.type.camera.CameraEffect;
+import com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect;
+import com.hypixel.hytale.server.core.asset.type.item.config.CraftingRecipe;
+import com.hypixel.hytale.server.core.asset.type.item.config.Item;
+import com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset;
+import com.hypixel.hytale.server.core.asset.type.musiccontainer.config.MusicContainer;
+import com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem;
+import com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent;
+import com.hypixel.hytale.server.core.asset.type.weather.config.Weather;
+import com.hypixel.hytale.server.core.modules.entitystats.asset.EntityStatType;
+import com.hypixel.hytale.server.npc.NPCPlugin;
 
 /**
  * The JSON dialogue asset type: registered as a normal game asset store, so it appears in the Asset Editor with the
@@ -86,16 +109,16 @@ public final class JsonDialogues {
         plugin.getEventRegistry().<Class<LowTalkJson>, RemovedAssetsEvent<String, LowTalkJson, DefaultAssetMap<String, LowTalkJson>>>register(
                 RemovedAssetsEvent.class, LowTalkJson.class, e -> onRemoved(plugin, e));
         plugin.getEventRegistry().register(AssetEditorSelectAssetEvent.class, e -> onSelect(plugin, e));
-        plugin.getEventRegistry().register(com.hypixel.hytale.builtin.asseteditor.event.AssetEditorFetchAutoCompleteDataEvent.class, DATASET_NPCS,
+        plugin.getEventRegistry().register(AssetEditorFetchAutoCompleteDataEvent.class, DATASET_NPCS,
                 e -> e.setResults(npcSuggestions(plugin, e.getQuery())));
-        plugin.getEventRegistry().register(com.hypixel.hytale.builtin.asseteditor.event.AssetEditorFetchAutoCompleteDataEvent.class, DATASET_WEATHERS,
+        plugin.getEventRegistry().register(AssetEditorFetchAutoCompleteDataEvent.class, DATASET_WEATHERS,
                 e -> e.setResults(weatherSuggestions(e.getQuery())));
-        plugin.getEventRegistry().register(com.hypixel.hytale.builtin.asseteditor.event.AssetEditorFetchAutoCompleteDataEvent.class, DATASET_COMMANDS,
+        plugin.getEventRegistry().register(AssetEditorFetchAutoCompleteDataEvent.class, DATASET_COMMANDS,
                 e -> e.setResults(commandSuggestions(plugin, e.getQuery())));
         DATASETS.put(DATASET_NPCS, () -> java.util.Arrays.asList(npcSuggestions(plugin, "")));
         DATASETS.put(DATASET_WEATHERS, () -> java.util.Arrays.asList(weatherSuggestions("")));
         DATASETS.put(DATASET_COMMANDS, () -> java.util.Arrays.asList(commandSuggestions(plugin, "")));
-        dataset(plugin, DATASET_ROLES, () -> new java.util.ArrayList<>(com.hypixel.hytale.server.npc.NPCPlugin.get().getRoleTemplateNames(false)));
+        dataset(plugin, DATASET_ROLES, () -> new java.util.ArrayList<>(NPCPlugin.get().getRoleTemplateNames(false)));
         dataset(plugin, DATASET_DIALOGUES, () -> plugin.getRegistry().ids());
         dataset(plugin, DATASET_NODES, () -> {
             java.util.Set<String> names = new java.util.TreeSet<>();
@@ -108,44 +131,44 @@ public final class JsonDialogues {
         dataset(plugin, DATASET_TIMES, () -> java.util.List.of("dawn", "noon", "dusk", "midnight", "pause", "resume", "6", "12", "18", "0"));
         dataset(plugin, DATASET_ANIMATIONS, () -> {
             java.util.Set<String> names = new java.util.TreeSet<>();
-            for (com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset m
-                    : com.hypixel.hytale.server.core.asset.type.model.config.ModelAsset.getAssetMap().getAssetMap().values()) {
+            for (ModelAsset m
+                    : ModelAsset.getAssetMap().getAssetMap().values()) {
                 if (m.getAnimationSetMap() != null) names.addAll(m.getAnimationSetMap().keySet());
             }
             return new java.util.ArrayList<>(names);
         });
         dataset(plugin, DATASET_STATS, () -> new java.util.ArrayList<>(
-                com.hypixel.hytale.server.core.modules.entitystats.asset.EntityStatType.getAssetMap().getAssetMap().keySet()));
+                EntityStatType.getAssetMap().getAssetMap().keySet()));
         dataset(plugin, DATASET_RECIPES, () -> new java.util.ArrayList<>(
-                com.hypixel.hytale.server.core.asset.type.item.config.CraftingRecipe.getAssetMap().getAssetMap().keySet()));
+                CraftingRecipe.getAssetMap().getAssetMap().keySet()));
         dataset(plugin, DATASET_WARPS, () -> {
-            com.hypixel.hytale.builtin.teleport.TeleportPlugin tp = com.hypixel.hytale.builtin.teleport.TeleportPlugin.get();
+            TeleportPlugin tp = TeleportPlugin.get();
             return tp == null || !tp.isWarpsLoaded() ? java.util.List.<String>of() : new java.util.ArrayList<>(tp.getWarps().keySet());
         });
         dataset(plugin, DATASET_REPUTATION_GROUPS, () -> new java.util.ArrayList<>(
-                com.hypixel.hytale.builtin.adventure.reputation.assets.ReputationGroup.getAssetMap().getAssetMap().keySet()));
+                ReputationGroup.getAssetMap().getAssetMap().keySet()));
         dataset(plugin, DATASET_MUSIC, () -> {
             java.util.List<String> out = new java.util.ArrayList<>(
-                    com.hypixel.hytale.server.core.asset.type.musiccontainer.config.MusicContainer.getAssetMap().getAssetMap().keySet());
+                    MusicContainer.getAssetMap().getAssetMap().keySet());
             out.add("clear");
             return out;
         });
         dataset(plugin, DATASET_PARTICLES, () -> new java.util.ArrayList<>(
-                com.hypixel.hytale.server.core.asset.type.particle.config.ParticleSystem.getAssetMap().getAssetMap().keySet()));
+                ParticleSystem.getAssetMap().getAssetMap().keySet()));
         dataset(plugin, DATASET_CAMERA_EFFECTS, () -> new java.util.ArrayList<>(
-                com.hypixel.hytale.server.core.asset.type.camera.CameraEffect.getAssetMap().getAssetMap().keySet()));
+                CameraEffect.getAssetMap().getAssetMap().keySet()));
         dataset(plugin, DATASET_SHOPS, () -> new java.util.ArrayList<>(
-                com.hypixel.hytale.builtin.adventure.shop.barter.BarterShopAsset.getAssetMap().getAssetMap().keySet()));
+                BarterShopAsset.getAssetMap().getAssetMap().keySet()));
         dataset(plugin, DATASET_ITEMS, () -> new java.util.ArrayList<>(
-                com.hypixel.hytale.server.core.asset.type.item.config.Item.getAssetMap().getAssetMap().keySet()));
+                Item.getAssetMap().getAssetMap().keySet()));
         dataset(plugin, DATASET_SOUNDS, () -> new java.util.ArrayList<>(
-                com.hypixel.hytale.server.core.asset.type.soundevent.config.SoundEvent.getAssetMap().getAssetMap().keySet()));
+                SoundEvent.getAssetMap().getAssetMap().keySet()));
         dataset(plugin, DATASET_ENTITY_EFFECTS, () -> new java.util.ArrayList<>(
-                com.hypixel.hytale.server.core.asset.type.entityeffect.config.EntityEffect.getAssetMap().getAssetMap().keySet()));
+                EntityEffect.getAssetMap().getAssetMap().keySet()));
         dataset(plugin, DATASET_OBJECTIVES, () -> new java.util.ArrayList<>(
-                com.hypixel.hytale.builtin.adventure.objectives.config.ObjectiveAsset.getAssetMap().getAssetMap().keySet()));
+                ObjectiveAsset.getAssetMap().getAssetMap().keySet()));
         dataset(plugin, DATASET_OBJECTIVE_LINES, () -> new java.util.ArrayList<>(
-                com.hypixel.hytale.builtin.adventure.objectives.config.ObjectiveLineAsset.getAssetMap().getAssetMap().keySet()));
+                ObjectiveLineAsset.getAssetMap().getAssetMap().keySet()));
     }
 
     /** Register an autocomplete data set: the supplier's names, filtered by the typed prefix or fragment, sorted. */
@@ -218,17 +241,17 @@ public final class JsonDialogues {
 
     /** What an objective asks for: "Gather 3 Soil_Dirt", "Craft 1 Tool_Hatchet_Crude, Kill 3". */
     private static String objectiveNote(String id) {
-        com.hypixel.hytale.builtin.adventure.objectives.config.ObjectiveAsset o =
-                com.hypixel.hytale.builtin.adventure.objectives.config.ObjectiveAsset.getAssetMap().getAsset(id);
+        ObjectiveAsset o =
+                ObjectiveAsset.getAssetMap().getAsset(id);
         if (o == null || o.getTaskSets() == null) return "";
         java.util.List<String> parts = new java.util.ArrayList<>();
-        for (com.hypixel.hytale.builtin.adventure.objectives.config.task.TaskSet set : o.getTaskSets()) {
+        for (TaskSet set : o.getTaskSets()) {
             if (set == null || set.getTasks() == null) continue;
-            for (com.hypixel.hytale.builtin.adventure.objectives.config.task.ObjectiveTaskAsset t : set.getTasks()) {
+            for (ObjectiveTaskAsset t : set.getTasks()) {
                 if (t == null) continue;
                 StringBuilder sb = new StringBuilder(t.getClass().getSimpleName()
                         .replace("ObjectiveTaskAsset", "").replace("TaskAsset", ""));
-                if (t instanceof com.hypixel.hytale.builtin.adventure.objectives.config.task.CountObjectiveTaskAsset c
+                if (t instanceof CountObjectiveTaskAsset c
                         && c.getCount() > 0) {
                     sb.append(' ').append(c.getCount());
                 }
@@ -245,14 +268,14 @@ public final class JsonDialogues {
     }
 
     /** The item or block a task is about, when it names one. */
-    private static String taskTarget(com.hypixel.hytale.builtin.adventure.objectives.config.task.ObjectiveTaskAsset t) {
-        if (t instanceof com.hypixel.hytale.builtin.adventure.objectives.config.task.GatherObjectiveTaskAsset g) {
+    private static String taskTarget(ObjectiveTaskAsset t) {
+        if (t instanceof GatherObjectiveTaskAsset g) {
             return g.getBlockTagOrItemIdField() == null ? "" : nz(g.getBlockTagOrItemIdField().getItemId());
         }
-        if (t instanceof com.hypixel.hytale.builtin.adventure.objectives.config.task.UseBlockObjectiveTaskAsset u) {
+        if (t instanceof UseBlockObjectiveTaskAsset u) {
             return u.getBlockTagOrItemIdField() == null ? "" : nz(u.getBlockTagOrItemIdField().getItemId());
         }
-        if (t instanceof com.hypixel.hytale.builtin.adventure.objectives.config.task.CraftObjectiveTaskAsset c) {
+        if (t instanceof CraftObjectiveTaskAsset c) {
             return nz(c.getItemId());
         }
         return "";
@@ -260,8 +283,8 @@ public final class JsonDialogues {
 
     /** How many objectives an objective line strings together. */
     private static String objectiveLineNote(String id) {
-        com.hypixel.hytale.builtin.adventure.objectives.config.ObjectiveLineAsset line =
-                com.hypixel.hytale.builtin.adventure.objectives.config.ObjectiveLineAsset.getAssetMap().getAsset(id);
+        ObjectiveLineAsset line =
+                ObjectiveLineAsset.getAssetMap().getAsset(id);
         if (line == null || line.getObjectiveIds() == null || line.getObjectiveIds().length == 0) return "";
         String[] ids = line.getObjectiveIds();
         return ids.length + " objective(s), starting " + ids[0];
@@ -283,7 +306,7 @@ public final class JsonDialogues {
 
     private static void dataset(LowTalkPlugin plugin, String id, java.util.function.Supplier<java.util.List<String>> names) {
         DATASETS.put(id, names);
-        plugin.getEventRegistry().register(com.hypixel.hytale.builtin.asseteditor.event.AssetEditorFetchAutoCompleteDataEvent.class, id, e -> {
+        plugin.getEventRegistry().register(AssetEditorFetchAutoCompleteDataEvent.class, id, e -> {
             String q = e.getQuery() == null ? "" : e.getQuery().trim().toLowerCase(java.util.Locale.ROOT);
             java.util.List<String> out = new java.util.ArrayList<>();
             try {
@@ -315,7 +338,7 @@ public final class JsonDialogues {
         }
         if (!q.startsWith("@")) {
             try {
-                java.util.List<String> roles = new java.util.ArrayList<>(com.hypixel.hytale.server.npc.NPCPlugin.get().getRoleTemplateNames(false));
+                java.util.List<String> roles = new java.util.ArrayList<>(NPCPlugin.get().getRoleTemplateNames(false));
                 java.util.Collections.sort(roles);
                 for (String r : roles) {
                     if (q.isEmpty() || r.toLowerCase(java.util.Locale.ROOT).contains(q)) out.add(r);
@@ -334,7 +357,7 @@ public final class JsonDialogues {
         if (q.isEmpty() || "clear".contains(q)) out.add("clear");
         try {
             java.util.List<String> ids = new java.util.ArrayList<>(
-                    com.hypixel.hytale.server.core.asset.type.weather.config.Weather.getAssetMap().getAssetMap().keySet());
+                    Weather.getAssetMap().getAssetMap().keySet());
             java.util.Collections.sort(ids);
             for (String id : ids) {
                 if (id.equals("Unknown")) continue;

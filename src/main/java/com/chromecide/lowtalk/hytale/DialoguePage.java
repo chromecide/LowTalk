@@ -3,19 +3,19 @@ package com.chromecide.lowtalk.hytale;
 import com.chromecide.lowtalk.hytale.presentation.DialogueLayout;
 import com.chromecide.lowtalk.hytale.presentation.History;
 import com.chromecide.lowtalk.runtime.Step;
+import com.chromecide.lowtalk.ui.PageLayout;
+import com.chromecide.lowtalk.ui.UiBox;
+import com.chromecide.lowtalk.ui.UiEvent;
+import com.chromecide.lowtalk.ui.UiItem;
+import com.chromecide.lowtalk.ui.UiModel;
+import com.chromecide.lowtalk.ui.UiPage;
+import com.chromecide.lowtalk.ui.UiText;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
-import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
-import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
-import com.hypixel.hytale.server.core.ui.Anchor;
-import com.hypixel.hytale.server.core.ui.Value;
-import com.hypixel.hytale.server.core.ui.builder.EventData;
-import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
-import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
@@ -27,15 +27,18 @@ import java.util.List;
  * The conversation window. Shows one {@link Step} at a time: a speaker, a line, and either a
  * Continue button, option buttons, or a text box.
  *
- * The layout has a fixed pool of option buttons and every event is bound once when the page
- * opens; each step only changes text and visibility. Events carry a generation number so a click
- * that belongs to a previous step is ignored.
+ * <p>The page says what should be on screen and nothing about how; which control carries which value
+ * is in {@link #layoutFor}. Each step re-describes the whole window and only the difference is sent.
  */
-public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
+public class DialoguePage extends UiPage<DialoguePage.Data> {
 
     private static final String LINE_NPC = "Pages/LowTalk/LineNpc.ui";
     private static final String LINE_PLAYER = "Pages/LowTalk/LinePlayer.ui";
     private static final String LINE_SYSTEM = "Pages/LowTalk/LineSystem.ui";
+    /** Template names in the model; the layout maps each to the document above that draws it. */
+    private static final String SAID_NPC = "npc";
+    private static final String SAID_PLAYER = "player";
+    private static final String SAID_SYSTEM = "system";
     public static final int OPTION_SLOTS = 8;
     private static final int KEY_RETURN = 13;
     private static final int KEY_KP_ENTER = 1073741912;
@@ -62,29 +65,78 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
         private Boolean repeat;
     }
 
+    /** Which control carries which value. The only place this page names anything on screen. */
+    @Nonnull
+    static PageLayout layoutFor(@Nonnull DialogueLayout dialogueLayout) {
+        return PageLayout.of(dialogueLayout.uiFile())
+                .property("title", "#NpcTitle", "Text")
+                .property("portrait", "#Portrait", "Background")
+                .property("portraitVisible", "#PortraitBox", "Visible")
+                .property("continueVisible", "#ContinueRow", "Visible")
+                .property("continueText", "#ContinueButton", "Text")
+                .property("inputVisible", "#InputRow", "Visible")
+                .property("inputValue", "#Input", "Value")
+                .property("closeVisible", "#CloseRow", "Visible")
+                .box("bar", "#Bar", "Anchor")
+                .container("transcript", "#Transcript")
+                    .template(SAID_NPC, LINE_NPC)
+                        .field("speaker", "#Speaker", "Text")
+                        .field("text", "#Text", "Text")
+                        .done()
+                    .template(SAID_PLAYER, LINE_PLAYER)
+                        .field("speaker", "#Speaker", "Text")
+                        .field("text", "#Text", "Text")
+                        .done()
+                    .template(SAID_SYSTEM, LINE_SYSTEM)
+                        .field("text", "#Text", "Text")
+                        .done()
+                    .revealsLatestWith("ScrollChildIndexIntoView")
+                    .done()
+                .pool("options", "#Opt", OPTION_SLOTS)
+                    .field("text", "", "Text")
+                    .field("disabled", "", "Disabled")
+                    .done()
+                .command(Action.CLOSE.name(), "#CloseButton", UiEvent.ACTIVATE).done()
+                .command(Action.CONTINUE.name(), "#ContinueButton", UiEvent.ACTIVATE).done()
+                .command(Action.OK.name(), "#OkButton", UiEvent.ACTIVATE)
+                    .reads("Text", "#Input", "Value").done()
+                .command(Action.KEY.name(), "#Input", UiEvent.KEY_DOWN)
+                    .reads("Text", "#Input", "Value").done()
+                // The client only delivers KeyDown for text fields ("Target element in CustomUI event binding
+                // has no compatible KeyDown event" for a Group or a TextButton), so the bar layouts number
+                // their options as a visual cue only. HOTKEY stays wired for the day a focusable element exists.
+                .poolCommand(Action.CHOOSE.name(), "#Opt", OPTION_SLOTS, UiEvent.ACTIVATE, "Slot")
+                .build();
+    }
+
     private final DialogueSession session;
     private final String title;
     private final String portrait;
-    private final DialogueLayout layout;
+    private final DialogueLayout dialogueLayout;
     private final History historyMode;
     private Step current;
     /** For the current Choose step: slot number -> option index, or -1 for a disabled slot. */
     private final List<Integer> slotToOption = new ArrayList<>();
-    /** Transcript entries waiting to be appended on the next render. */
-    private final List<String[]> pendingLines = new ArrayList<>();
-    /** Everything shown so far, so the transcript survives the window being rebuilt (after a shop, say). */
-    private final List<String[]> history = new ArrayList<>();
-    private int transcriptCount = 0;
+    /** Everything said so far, as rows, so the transcript survives the window being rebuilt. */
+    private final List<UiItem> said = new ArrayList<>();
+    /**
+     * Set when a new question is put to the player, so the box is emptied for it.
+     *
+     * <p>The model cannot see this for itself: what the player typed only ever exists on the client, so the
+     * model still holds the empty string it sent for the previous question and a plain set() looks like no
+     * change at all. Without this the second question arrives with the first answer still in the box.
+     */
+    private boolean clearInput = false;
     private volatile boolean open = true;
     private volatile long openedAt = System.currentTimeMillis();
 
     public DialoguePage(@Nonnull PlayerRef playerRef, @Nonnull DialogueSession session, @Nonnull String title, String portrait,
                         @Nonnull DialogueLayout layout, @Nonnull History historyMode) {
-        super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC);
+        super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC, layoutFor(layout));
         this.session = session;
         this.title = title;
         this.portrait = portrait == null || portrait.isBlank() ? null : portrait.trim();
-        this.layout = layout;
+        this.dialogueLayout = layout;
         this.historyMode = historyMode;
     }
 
@@ -93,7 +145,7 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
     }
 
     public DialogueLayout getLayout() {
-        return layout;
+        return dialogueLayout;
     }
 
     /** A portrait path as the client resolves it: relative to Common/UI/Custom/, base file name without a size suffix. */
@@ -109,19 +161,20 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
     public void show(@Nonnull Step step) {
         this.current = step;
         if (historyMode == History.LATEST) {
-            // Only what the NPC says now stays on screen: forget earlier lines and start this step's afresh.
-            history.clear();
-            pendingLines.clear();
-            clearOnRender = true;
+            // Only what the NPC says now stays on screen: forget earlier lines.
+            said.clear();
         }
         switch (step) {
-            case Step.Say say -> queueLine(LINE_NPC, say.speaker(), say.text());
+            case Step.Say say -> say(SAID_NPC, say.speaker(), say.text());
             case Step.Choose choose -> {
-                if (choose.line() != null) queueLine(LINE_NPC, choose.line().speaker(), choose.line().text());
+                if (choose.line() != null) say(SAID_NPC, choose.line().speaker(), choose.line().text());
             }
-            case Step.Ask ask -> queueLine(LINE_NPC, null, ask.prompt());
+            case Step.Ask ask -> {
+                say(SAID_NPC, null, ask.prompt());
+                clearInput = true;
+            }
             case Step.Wait wait -> {
-                if (wait.line() != null) queueLine(LINE_NPC, wait.line().speaker(), wait.line().text());
+                if (wait.line() != null) say(SAID_NPC, wait.line().speaker(), wait.line().text());
             }
             case Step.Finish f -> {}
         }
@@ -130,81 +183,84 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
     /** The player chose an option or typed an answer; echo it into the transcript (full history only). */
     public void playerSaid(@Nonnull String text) {
         if (historyMode == History.LATEST) return;
-        queueLine(LINE_PLAYER, playerRef.getUsername(), text);
+        say(SAID_PLAYER, playerRef.getUsername(), text);
     }
-
-    /** Set when the next render should empty the transcript first (latest-only history). */
-    private boolean clearOnRender = false;
 
     public void showNarration(@Nonnull String text) {
         if (!open) return;
-        UICommandBuilder cmd = new UICommandBuilder();
-        queueLine(LINE_SYSTEM, null, text);
-        flushLines(cmd);
-        sendUpdate(cmd, null, false);
+        say(SAID_SYSTEM, null, text);
+        refresh();
     }
 
-    private void queueLine(String layout, String speaker, String text) {
-        String[] line = {layout, speaker == null ? "" : speaker, text == null ? "" : text};
-        pendingLines.add(line);
-        history.add(line);
-    }
-
-    private void flushLines(UICommandBuilder cmd) {
-        for (String[] line : pendingLines) {
-            cmd.append("#Transcript", line[0]);
-            String sel = "#Transcript[" + transcriptCount + "]";
-            if (!line[0].equals(LINE_SYSTEM)) {
-                cmd.set(sel + " #Speaker.Text", line[1]);
-            }
-            cmd.set(sel + " #Text.Text", line[2]);
-            transcriptCount++;
-        }
-        pendingLines.clear();
-        if (transcriptCount > 0) {
-            cmd.set("#Transcript.ScrollChildIndexIntoView", transcriptCount - 1);
-        }
+    private void say(String template, String speaker, String text) {
+        said.add(UiItem.of(template)
+                .with("speaker", speaker == null ? "" : speaker)
+                .with("text", text == null ? "" : text));
     }
 
     @Override
-    public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder cmd, @Nonnull UIEventBuilder evt, @Nonnull Store<EntityStore> store) {
-        cmd.append(layout.uiFile());
-        cmd.set("#NpcTitle.Text", title);
-        cmd.clear("#Transcript");
-        transcriptCount = 0;
-        // A rebuilt window starts empty on the client; replay what was said so far, then whatever is pending.
-        pendingLines.clear();
-        pendingLines.addAll(history);
-        clearOnRender = false;
+    protected void populate(@Nonnull UiModel model) {
+        model.set("title", title);
         if (portrait != null) {
-            // Verified against the client: a plain path string, relative to Common/UI/Custom/, naming the base file
-            // (the client picks its @2x variant itself). PatchStyle objects and "UI/Custom/..." forms do not resolve.
-            cmd.set("#Portrait.Background", texturePath(portrait));
-            cmd.set("#PortraitBox.Visible", true);
+            // A plain path relative to Common/UI/Custom/, naming the base file; the client picks its @2x
+            // variant itself. PatchStyle objects and "UI/Custom/..." forms do not resolve.
+            model.set("portrait", texturePath(portrait));
+            model.set("portraitVisible", true);
+        } else {
+            model.set("portraitVisible", false);
         }
-        // Bind everything once; later steps only change text and visibility.
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#CloseButton", new EventData().append("Action", Action.CLOSE), false);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#ContinueButton", new EventData().append("Action", Action.CONTINUE), false);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#OkButton",
-                new EventData().append("Action", Action.OK).append("@Text", "#Input.Value"), false);
-        evt.addEventBinding(CustomUIEventBindingType.KeyDown, "#Input",
-                new EventData().append("Action", Action.KEY).append("@Text", "#Input.Value"), false);
-        for (int i = 0; i < OPTION_SLOTS; i++) {
-            evt.addEventBinding(CustomUIEventBindingType.Activating, "#Opt" + i,
-                    new EventData().append("Action", Action.CHOOSE).append("Slot", String.valueOf(i)), false);
+        model.setItems("transcript", said);
+        model.set("closeVisible", true);
+        model.set("continueVisible", false);
+        model.set("inputVisible", false);
+
+        List<UiItem> options = List.of();
+        slotToOption.clear();
+        boolean wantsContinue = false;
+        boolean wantsInput = false;
+        switch (current) {
+            case Step.Say say -> {
+                wantsContinue = !say.last();
+                model.set("continueVisible", wantsContinue);
+                model.set("continueText", say.button() != null && !say.button().isBlank()
+                        ? UiText.of(say.button().trim())
+                        : UiText.key("server.lowtalk.ui.continue"));
+            }
+            case Step.Choose choose -> options = optionRows(choose);
+            case Step.Ask ask -> {
+                wantsInput = true;
+                model.set("inputValue", "");
+                // Only for a newly asked question: emptying it on every draw would wipe what is being typed
+                // if a narration line arrived mid-answer.
+                if (clearInput) {
+                    model.resend("inputValue");
+                    clearInput = false;
+                }
+                model.set("inputVisible", true);
+            }
+            case Step.Wait wait -> {} // only Leave while the pause runs
+            case Step.Finish f -> {}
+            case null -> {}
         }
-        // Number keys for options: the client only delivers KeyDown for text fields ("Target element in CustomUI
-        // event binding has no compatible KeyDown event" for a Group or a TextButton), so the bar layouts number
-        // their options as a visual cue only. The HOTKEY action stays wired for the day a focusable element exists.
-        render(cmd);
+        model.setItems("options", options);
+        if (dialogueLayout.isBar()) model.set("bar", bar(options.size(), wantsInput, wantsContinue));
     }
 
-    /** Push the current step to an already-open window. */
-    public void refresh() {
-        if (!open) return;
-        UICommandBuilder cmd = new UICommandBuilder();
-        render(cmd);
-        sendUpdate(cmd, null, false);
+    private List<UiItem> optionRows(@Nonnull Step.Choose choose) {
+        List<UiItem> rows = new ArrayList<>();
+        for (Step.Shown o : choose.options()) {
+            if (rows.size() >= OPTION_SLOTS) break;
+            // Bar layouts number every visible option, disabled ones included, so the numbers stay contiguous;
+            // a disabled option is greyed by the button itself rather than by a blank prefix.
+            String prefix = dialogueLayout.isBar()
+                    ? (rows.size() + 1) + ".  "
+                    : (o.enabled() ? OPTION_PREFIX : DISABLED_PREFIX);
+            rows.add(UiItem.of("option")
+                    .with("text", prefix + o.text())
+                    .with("disabled", (Object) Boolean.valueOf(!o.enabled())));
+            slotToOption.add(o.enabled() ? o.index() : -1);
+        }
+        return rows;
     }
 
     /** Bar layout geometry: the bar grows with the step so the transcript always keeps room for a few lines. */
@@ -216,77 +272,26 @@ public class DialoguePage extends InteractiveCustomUIPage<DialoguePage.Data> {
     private static final int BAR_INPUT = 40;
     private static final int BAR_CONTINUE = 36;
 
-    private void sizeBar(UICommandBuilder cmd, int optionRows, boolean input, boolean cont) {
-        if (!layout.isBar()) return;
-        int height = BAR_FIXED + BAR_TRANSCRIPT + optionRows * BAR_OPTION + (input ? BAR_INPUT : 0) + (cont ? BAR_CONTINUE : 0);
-        Anchor a = new Anchor();
-        a.setHeight(Value.of(height));
-        a.setLeft(Value.of(BAR_SIDE));
-        a.setRight(Value.of(BAR_SIDE));
-        if (layout == DialogueLayout.TOP) a.setTop(Value.of(BAR_EDGE));
-        else a.setBottom(Value.of(BAR_EDGE));
-        cmd.setObject("#Bar.Anchor", a);
+    private UiBox bar(int optionRows, boolean input, boolean cont) {
+        int height = BAR_FIXED + BAR_TRANSCRIPT + optionRows * BAR_OPTION
+                + (input ? BAR_INPUT : 0) + (cont ? BAR_CONTINUE : 0);
+        UiBox box = UiBox.height(height).sides(BAR_SIDE, BAR_SIDE);
+        return dialogueLayout == DialogueLayout.TOP ? box.fromTop(BAR_EDGE) : box.fromBottom(BAR_EDGE);
     }
 
-    private void render(UICommandBuilder cmd) {
-        if (clearOnRender) {
-            cmd.clear("#Transcript");
-            transcriptCount = 0;
-            clearOnRender = false;
-        }
-        slotToOption.clear();
-        for (int i = 0; i < OPTION_SLOTS; i++) {
-            cmd.set("#Opt" + i + ".Visible", false);
-        }
-        cmd.set("#InputRow.Visible", false);
-        cmd.set("#ContinueRow.Visible", false);
-        cmd.set("#CloseRow.Visible", true);
-        flushLines(cmd);
-
-        switch (current) {
-            case Step.Say say -> {
-                cmd.set("#ContinueRow.Visible", !say.last());
-                if (say.button() != null && !say.button().isBlank()) {
-                    cmd.set("#ContinueButton.Text", say.button().trim());
-                } else {
-                    cmd.set("#ContinueButton.Text", com.hypixel.hytale.server.core.Message.translation("server.lowtalk.ui.continue"));
-                }
-                sizeBar(cmd, 0, false, !say.last());
-            }
-            case Step.Choose choose -> {
-                sizeBar(cmd, Math.min(choose.options().size(), OPTION_SLOTS), false, false);
-                int slot = 0;
-                for (Step.Shown o : choose.options()) {
-                    if (slot >= OPTION_SLOTS) break;
-                    // Bar layouts number every visible option, disabled ones included, so the numbers stay contiguous;
-                    // a disabled option is greyed by the button itself rather than by a blank prefix.
-                    String prefix = layout.isBar()
-                            ? (slot + 1) + ".  "
-                            : (o.enabled() ? OPTION_PREFIX : DISABLED_PREFIX);
-                    cmd.set("#Opt" + slot + ".Text", prefix + o.text());
-                    cmd.set("#Opt" + slot + ".Disabled", !o.enabled());
-                    cmd.set("#Opt" + slot + ".Visible", true);
-                    slotToOption.add(o.enabled() ? o.index() : -1);
-                    slot++;
-                }
-            }
-            case Step.Ask ask -> {
-                cmd.set("#Input.Value", "");
-                cmd.set("#InputRow.Visible", true);
-                sizeBar(cmd, 0, true, false);
-            }
-            case Step.Wait wait -> sizeBar(cmd, 0, false, false); // only Leave while the pause runs
-            case Step.Finish f -> sizeBar(cmd, 0, false, false);
-        }
+    @Nonnull
+    @Override
+    protected String commandOf(@Nonnull Data data) {
+        return data.action == null ? "" : data.action;
     }
 
     @Override
-    public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Data data) {
+    protected void onCommand(@Nonnull String command, @Nonnull Data data,
+                             @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         open = true; // receiving an event proves the window is on screen
-        if (data.action == null) return;
         Action action;
         try {
-            action = Action.valueOf(data.action);
+            action = Action.valueOf(command);
         } catch (IllegalArgumentException e) {
             return;
         }

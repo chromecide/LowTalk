@@ -3,20 +3,19 @@ package com.chromecide.lowtalk.hytale;
 import com.chromecide.lowtalk.LowTalkPlugin;
 import com.chromecide.lowtalk.model.Dialogue;
 import com.chromecide.lowtalk.parser.Printer;
+import com.chromecide.lowtalk.ui.PageLayout;
+import com.chromecide.lowtalk.ui.UiEvent;
+import com.chromecide.lowtalk.ui.UiItem;
+import com.chromecide.lowtalk.ui.UiModel;
+import com.chromecide.lowtalk.ui.UiOption;
+import com.chromecide.lowtalk.ui.UiPage;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
-import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.server.core.entity.entities.Player;
-import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
-import com.hypixel.hytale.server.core.ui.DropdownEntryInfo;
-import com.hypixel.hytale.server.core.ui.LocalizableString;
-import com.hypixel.hytale.server.core.ui.builder.EventData;
-import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
-import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
@@ -35,12 +34,44 @@ import java.util.Map;
  * bind another, either to this one NPC or to every NPC of its role. "This NPC" is a run-time tag on the NPC and
  * touches no file; "every role" is written into the dialogue file's npc: line, so it needs a writable file.
  */
-public class BindNpcPage extends InteractiveCustomUIPage<BindNpcPage.Data> {
+public class BindNpcPage extends UiPage<BindNpcPage.Data> {
     private static final String LAYOUT = "Pages/LowTalk/BindNpcPage.ui";
     private static final String ROW = "Pages/LowTalk/BindNpcRow.ui";
     private static final String NONE = "$none";
     private static final String SCOPE_NPC = "npc";
     private static final String SCOPE_ROLE = "role";
+    private static final String ROW_BOUND = "bound";
+
+    /** Which control carries which value. The only place this page names anything on screen. */
+    @Nonnull
+    private static PageLayout layout() {
+        return PageLayout.of(LAYOUT)
+                .property("who", "#Who", "Text")
+                .property("emptyVisible", "#Empty", "Visible")
+                .property("dialogues", "#Dialogue", "Entries")
+                .property("dialogue", "#Dialogue", "Value")
+                .property("scopes", "#Scope", "Entries")
+                .property("scope", "#Scope", "Value")
+                .property("status", "#Status", "Text")
+                .property("bindDisabled", "#BindButton", "Disabled")
+                .container("rows", "#Rows")
+                    .template(ROW_BOUND, ROW)
+                        .field("id", "#Id", "Text")
+                        .field("how", "#How", "Text")
+                        .command("EDIT", "#EditButton", UiEvent.ACTIVATE, Map.of("Id", "id"))
+                        .command("UNBIND", "#UnbindButton", UiEvent.ACTIVATE, Map.of("Id", "id", "How", "bindKind"))
+                        .done()
+                    .done()
+                // Each field reports its own change and the page keeps the answer; the button carries nothing.
+                .command("DIALOGUE", "#Dialogue", UiEvent.VALUE_CHANGED)
+                    .reads("Dialogue", "#Dialogue", "Value").done()
+                .command("SCOPE", "#Scope", UiEvent.VALUE_CHANGED)
+                    .reads("Scope", "#Scope", "Value").done()
+                .command("BIND", "#BindButton", UiEvent.ACTIVATE).done()
+                .command("NEW", "#NewButton", UiEvent.ACTIVATE).done()
+                .command("CANCEL", "#CancelButton", UiEvent.ACTIVATE).done()
+                .build();
+    }
 
     public static class Data {
         public static final BuilderCodec<Data> CODEC = BuilderCodec.builder(Data.class, Data::new)
@@ -64,9 +95,12 @@ public class BindNpcPage extends InteractiveCustomUIPage<BindNpcPage.Data> {
     private final Ref<EntityStore> playerEntity;
     private final NpcInfo npc;
     private String status = "";
+    /** What the creator has chosen so far. Reset after a bind, because the page stays open. */
+    private String dialogue = NONE;
+    private String scope = SCOPE_NPC;
 
     private BindNpcPage(@Nonnull LowTalkPlugin plugin, @Nonnull PlayerRef playerRef, @Nonnull Ref<EntityStore> playerEntity, @Nonnull NpcInfo npc) {
-        super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC);
+        super(playerRef, CustomPageLifetime.CanDismiss, Data.CODEC, layout());
         this.plugin = plugin;
         this.playerEntity = playerEntity;
         this.npc = npc;
@@ -81,42 +115,40 @@ public class BindNpcPage extends InteractiveCustomUIPage<BindNpcPage.Data> {
     }
 
     @Override
-    public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder cmd, @Nonnull UIEventBuilder evt, @Nonnull Store<EntityStore> store) {
-        cmd.append(LAYOUT);
-        render(cmd, evt);
+    protected void populate(@Nonnull UiModel model) {
+        model.set("who", npc.name() + "  (" + npc.role() + ")");
+        List<Bound> bound = current();
+        List<UiItem> rows = new ArrayList<>();
+        for (Bound b : bound) {
+            rows.add(UiItem.of(ROW_BOUND)
+                    .with("id", b.dialogue().id())
+                    .with("how", b.label())
+                    .with("bindKind", b.how()));
+        }
+        model.setItems("rows", rows);
+        model.set("emptyVisible", bound.isEmpty());
+        List<UiOption> dialogues = new ArrayList<>();
+        dialogues.add(UiOption.of(NONE, "(pick a dialogue)"));
+        for (String id : plugin.getRegistry().ids()) dialogues.add(UiOption.same(id));
+        model.set("dialogues", dialogues);
+        model.set("dialogue", dialogue);
+        model.set("scopes", List.of(
+                UiOption.of(SCOPE_NPC, "only this NPC"),
+                UiOption.of(SCOPE_ROLE, "every " + npc.role())));
+        model.set("scope", scope);
+        model.set("bindDisabled", !isChosen());
+        model.set("status", status);
     }
 
-    private void render(UICommandBuilder cmd, UIEventBuilder evt) {
-        cmd.set("#Who.Text", npc.name() + "  (" + npc.role() + ")");
-        List<Bound> bound = current();
-        int i = 0;
-        for (Bound b : bound) {
-            cmd.append("#Rows", ROW);
-            String sel = "#Rows[" + i + "]";
-            cmd.set(sel + " #Id.Text", b.dialogue().id());
-            cmd.set(sel + " #How.Text", b.label());
-            evt.addEventBinding(CustomUIEventBindingType.Activating, sel + " #EditButton",
-                    new EventData().append("Action", "EDIT").append("Id", b.dialogue().id()), false);
-            evt.addEventBinding(CustomUIEventBindingType.Activating, sel + " #UnbindButton",
-                    new EventData().append("Action", "UNBIND").append("Id", b.dialogue().id()).append("How", b.how()), false);
-            i++;
-        }
-        cmd.set("#Empty.Visible", bound.isEmpty());
-        List<DropdownEntryInfo> dialogues = new ArrayList<>();
-        dialogues.add(new DropdownEntryInfo(LocalizableString.fromString("(pick a dialogue)"), NONE));
-        for (String id : plugin.getRegistry().ids()) dialogues.add(new DropdownEntryInfo(LocalizableString.fromString(id), id));
-        cmd.set("#Dialogue.Entries", dialogues);
-        cmd.set("#Dialogue.Value", NONE);
-        List<DropdownEntryInfo> scopes = new ArrayList<>();
-        scopes.add(new DropdownEntryInfo(LocalizableString.fromString("only this NPC"), SCOPE_NPC));
-        scopes.add(new DropdownEntryInfo(LocalizableString.fromString("every " + npc.role()), SCOPE_ROLE));
-        cmd.set("#Scope.Entries", scopes);
-        cmd.set("#Scope.Value", SCOPE_NPC);
-        cmd.set("#Status.Text", status);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#BindButton",
-                new EventData().append("Action", "BIND").append("@Dialogue", "#Dialogue.Value").append("@Scope", "#Scope.Value"), false);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#NewButton", new EventData().append("Action", "NEW"), false);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#CancelButton", new EventData().append("Action", "CANCEL"), false);
+    /** A dialogue has to be picked, and still be loaded, before Bind means anything. */
+    private boolean isChosen() {
+        return !NONE.equals(dialogue) && plugin.getRegistry().byId(dialogue) != null;
+    }
+
+    @Nonnull
+    @Override
+    protected String commandOf(@Nonnull Data data) {
+        return data.action == null ? "" : data.action;
     }
 
     /** Every dialogue this NPC would answer with, most specific first, each with the reason it applies. */
@@ -135,13 +167,19 @@ public class BindNpcPage extends InteractiveCustomUIPage<BindNpcPage.Data> {
     }
 
     @Override
-    public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Data data) {
-        if (data.action == null) return;
-        switch (data.action) {
+    protected void onCommand(@Nonnull String command, @Nonnull Data data,
+                             @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
+        switch (command) {
+            case "DIALOGUE" -> {
+                dialogue = data.dialogue == null ? NONE : data.dialogue;
+                refresh();
+            }
+            case "SCOPE" -> scope = data.scope == null ? SCOPE_NPC : data.scope;
             case "BIND" -> {
-                Dialogue d = data.dialogue == null || NONE.equals(data.dialogue) ? null : plugin.getRegistry().byId(data.dialogue);
+                // The button is disabled until this holds, but check anyway: the client is not the authority.
+                Dialogue d = isChosen() ? plugin.getRegistry().byId(dialogue) : null;
                 if (d == null) { status = "Pick a dialogue first."; refresh(); return; }
-                if (SCOPE_ROLE.equals(data.scope)) {
+                if (SCOPE_ROLE.equals(scope)) {
                     if (d.bindings().contains(npc.role())) { status = d.id() + " already applies to every " + npc.role() + "."; refresh(); return; }
                     String err = rewriteBindings(d, npc.role(), true);
                     if (err != null) { status = err; refresh(); return; }
@@ -151,6 +189,8 @@ public class BindNpcPage extends InteractiveCustomUIPage<BindNpcPage.Data> {
                     playerRef.sendMessage(LowTalkCommand.msg(plugin, "npcBoundOne").param("dialogue", d.id()).param("npc", npc.name()));
                 }
                 status = "";
+                dialogue = NONE;
+                scope = SCOPE_NPC;
                 refresh();
             }
             case "UNBIND" -> {
@@ -218,11 +258,4 @@ public class BindNpcPage extends InteractiveCustomUIPage<BindNpcPage.Data> {
         return null;
     }
 
-    private void refresh() {
-        UICommandBuilder cmd = new UICommandBuilder();
-        UIEventBuilder evt = new UIEventBuilder();
-        cmd.clear("#Rows");
-        render(cmd, evt);
-        sendUpdate(cmd, evt, false);
-    }
 }

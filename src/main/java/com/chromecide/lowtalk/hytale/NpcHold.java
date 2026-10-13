@@ -19,6 +19,10 @@ import java.util.UUID;
  * The Frozen component is saved with the entity, so a crash mid-conversation could leave an NPC
  * frozen. The world record keeps a list of NPCs LowTalk is holding; they are thawed the next
  * time anyone interacts with them, and /lowtalk thaw frees one by hand.
+ *
+ * <p>Both edges mark the entity for saving. Without that the add and the remove are only written when
+ * something else happens to dirty the NPC inside the save cooldown, which can persist a freeze while
+ * losing the matching thaw — an NPC frozen on disk with nothing holding it. See {@link EntitySaving}.
  */
 public final class NpcHold {
 
@@ -35,6 +39,7 @@ public final class NpcHold {
 
             if (!store.getArchetype(npc).contains(Frozen.getComponentType())) {
                 store.addComponent(npc, Frozen.getComponentType(), Frozen.get());
+                EntitySaving.markForSaving(npc, store);
                 variables.addHeld(npcId);
                 variables.flush();
             }
@@ -51,7 +56,9 @@ public final class NpcHold {
             EntityStore entities = world.getEntityStore();
             Ref<EntityStore> npc = entities.getRefFromUUID(npcId);
             if (npc != null && npc.isValid()) {
-                entities.getStore().tryRemoveComponent(npc, Frozen.getComponentType());
+                Store<EntityStore> store = entities.getStore();
+                store.tryRemoveComponent(npc, Frozen.getComponentType());
+                EntitySaving.markForSaving(npc, store);
             }
             variables.removeHeld(npcId);
             variables.flush();
@@ -61,7 +68,10 @@ public final class NpcHold {
     /** Thaw right now, on the world thread, regardless of who froze it. */
     public static boolean thawNow(@Nonnull Store<EntityStore> store, @Nonnull Ref<EntityStore> npc, @Nonnull UUID npcId, @Nonnull VariableStore variables) {
         boolean was = store.getArchetype(npc).contains(Frozen.getComponentType());
-        if (was) store.tryRemoveComponent(npc, Frozen.getComponentType());
+        if (was) {
+            store.tryRemoveComponent(npc, Frozen.getComponentType());
+            EntitySaving.markForSaving(npc, store);
+        }
         variables.removeHeld(npcId);
         variables.flush();
         return was;

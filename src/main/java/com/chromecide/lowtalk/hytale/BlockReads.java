@@ -1,10 +1,8 @@
 package com.chromecide.lowtalk.hytale;
 
-import com.hypixel.hytale.math.util.ChunkUtil;
 import com.hypixel.hytale.server.core.asset.type.blocktype.config.BlockType;
 import com.hypixel.hytale.server.core.universe.world.World;
 import com.hypixel.hytale.component.Ref;
-import com.hypixel.hytale.server.core.universe.world.chunk.BlockChunk;
 import com.hypixel.hytale.server.core.universe.world.chunk.section.BlockSection;
 import com.hypixel.hytale.server.core.universe.world.storage.ChunkStore;
 import com.hypixel.hytale.server.core.util.FillerBlockUtil;
@@ -21,12 +19,11 @@ import javax.annotation.Nullable;
  * that whole family: every chunk lookup returning a {@code WorldChunk} is marked for removal, blocks having moved
  * onto chunk sections held as components.
  *
- * <p>So the chunk's blocks are read through the component that owns them. {@code BlockChunk} is the column-level
- * component, above the sections, and it does the section lookup and the index arithmetic itself; the block comes
- * back as an id, which the block type asset map turns into a {@link BlockType}. That is what the game's own code
- * does — {@code SpawningContext}, {@code PrefabPreviewSystems}, {@code WorldNotificationHandler} and the trigger
- * volume inspector all read blocks this way — and every call in it is current on 0.6.7 and 0.7.0-pre.3 alike,
- * so one source tree still builds for both lines.
+ * <p>So blocks are read from the section that owns them: {@code getChunkSectionReferenceAtBlock} finds the section
+ * holding a world position, and its {@link BlockSection} component answers for the block and its filler. The block
+ * type was first read through the column-level {@code BlockChunk.getBlock}; 0.7.0-pre.4 deprecated that in favour of
+ * this route, which is what the game's own block readers use ({@code BlockLorePageSupplier} on pre.4, for one).
+ * Every call here is current on 0.6.8 and 0.7.0-pre.4 alike, so one source tree still builds for both lines.
  */
 public final class BlockReads {
 
@@ -48,10 +45,7 @@ public final class BlockReads {
     @Nonnull
     public static Vector3i baseAt(@Nonnull World world, int x, int y, int z) {
         try {
-            ChunkStore chunks = world.getChunkStore();
-            Ref<ChunkStore> section = chunks.getChunkSectionReferenceAtBlock(x, y, z);
-            if (section == null || !section.isValid()) return new Vector3i(x, y, z);
-            BlockSection blocks = chunks.getStore().getComponent(section, BlockSection.getComponentType());
+            BlockSection blocks = sectionAt(world, x, y, z);
             if (blocks == null) return new Vector3i(x, y, z);
             int filler = blocks.getFiller(x, y, z);
             if (filler == FillerBlockUtil.NO_FILLER) return new Vector3i(x, y, z);
@@ -64,20 +58,28 @@ public final class BlockReads {
     }
 
     /**
-     * The type of the block at a world position, or null when there is none to read: the chunk is not loaded, the
+     * The type of the block at a world position, or null when there is none to read: the section is not loaded, the
      * position is outside the world, or nothing is there.
      *
-     * <p>Does not load anything. {@code getChunkComponent} looks the column up among those already in memory and
-     * answers null otherwise, which is what the old {@code getChunkIfLoaded} did, and what a creator pointing a
-     * tool at the far edge of their view needs: an answer now, not a chunk load.
+     * <p>Does not load anything. The section lookup answers null for a section not already in memory, which is what
+     * the old {@code getChunkIfLoaded} did, and what a creator pointing a tool at the far edge of their view needs:
+     * an answer now, not a chunk load.
      *
      * <p>World thread.
      */
     @Nullable
     public static BlockType typeAt(@Nonnull World world, int x, int y, int z) {
-        BlockChunk chunk = world.getChunkStore()
-                .getChunkComponent(ChunkUtil.indexChunkFromBlock(x, z), BlockChunk.getComponentType());
-        if (chunk == null) return null;
-        return BlockType.getAssetMap().getAsset(chunk.getBlock(x, y, z));
+        BlockSection blocks = sectionAt(world, x, y, z);
+        if (blocks == null) return null;
+        return BlockType.getAssetMap().getAsset(blocks.get(x, y, z));
+    }
+
+    /** The loaded section holding a world position, or null. Never loads. */
+    @Nullable
+    private static BlockSection sectionAt(@Nonnull World world, int x, int y, int z) {
+        ChunkStore chunks = world.getChunkStore();
+        Ref<ChunkStore> section = chunks.getChunkSectionReferenceAtBlock(x, y, z);
+        if (section == null || !section.isValid()) return null;
+        return chunks.getStore().getComponent(section, BlockSection.getComponentType());
     }
 }

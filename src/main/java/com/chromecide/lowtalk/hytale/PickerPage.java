@@ -2,25 +2,27 @@ package com.chromecide.lowtalk.hytale;
 
 import com.chromecide.lowtalk.LowTalkPlugin;
 import com.chromecide.lowtalk.hytale.json.JsonDialogues;
+import com.chromecide.lowtalk.ui.PageLayout;
+import com.chromecide.lowtalk.ui.UiEvent;
+import com.chromecide.lowtalk.ui.UiItem;
+import com.chromecide.lowtalk.ui.UiModel;
+import com.chromecide.lowtalk.ui.UiPage;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
 import com.hypixel.hytale.component.Ref;
 import com.hypixel.hytale.component.Store;
 import com.hypixel.hytale.protocol.packets.interface_.CustomPageLifetime;
-import com.hypixel.hytale.protocol.packets.interface_.CustomUIEventBindingType;
 import com.hypixel.hytale.server.core.entity.entities.Player;
 import com.hypixel.hytale.server.core.entity.entities.player.pages.CustomUIPage;
-import com.hypixel.hytale.server.core.entity.entities.player.pages.InteractiveCustomUIPage;
-import com.hypixel.hytale.server.core.ui.builder.EventData;
-import com.hypixel.hytale.server.core.ui.builder.UICommandBuilder;
-import com.hypixel.hytale.server.core.ui.builder.UIEventBuilder;
 import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.world.storage.EntityStore;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.logging.Level;
 
@@ -33,13 +35,37 @@ import java.util.logging.Level;
  * <p>It replaces the page that opened it and puts that page back when it closes, so the dialogue being edited, its
  * unsaved draft and the passage on screen all survive the trip.
  */
-public class PickerPage extends InteractiveCustomUIPage<PickerPage.Data> {
+public class PickerPage extends UiPage<PickerPage.Data> {
     private static final String LAYOUT = "Pages/LowTalk/PickerPage.ui";
     private static final String ROW = "Pages/LowTalk/PickerRow.ui";
     /** How many matches to show at once. Enough to scroll, small enough to send on every keystroke. */
     private static final int SHOWN = 60;
 
     public enum Action { SEARCH, PICK, CLEAR, CANCEL }
+
+    private static final String ROW_MATCH = "match";
+
+    /** Which control carries which value. The only place this page names anything on screen. */
+    @Nonnull
+    private static PageLayout layout() {
+        return PageLayout.of(LAYOUT)
+                .property("title", "#PageTitle", "Text")
+                // Seeded once: rewriting the box while the creator is typing in it would move the caret.
+                .seedProperty("search", "#Search", "Value")
+                .property("status", "#Status", "Text")
+                .container("rows", "#Rows")
+                    .template(ROW_MATCH, ROW)
+                        .field("current", "#Current", "Text")
+                        .field("choose", "#Choose", "Text")
+                        .command(Action.PICK.name(), "#Choose", UiEvent.ACTIVATE, Map.of("Row", "row"))
+                        .done()
+                    .done()
+                .command(Action.SEARCH.name(), "#Search", UiEvent.VALUE_CHANGED)
+                    .reads("Value", "#Search", "Value").done()
+                .command(Action.CLEAR.name(), "#ClearButton", UiEvent.ACTIVATE).done()
+                .command(Action.CANCEL.name(), "#CancelButton", UiEvent.ACTIVATE).done()
+                .build();
+    }
 
     public static class Data {
         public static final BuilderCodec<Data> CODEC = BuilderCodec.builder(Data.class, Data::new)
@@ -63,7 +89,7 @@ public class PickerPage extends InteractiveCustomUIPage<PickerPage.Data> {
 
     private PickerPage(LowTalkPlugin plugin, PlayerRef player, String title, String dataset, String current,
                        Consumer<String> chosen, CustomUIPage back) {
-        super(player, CustomPageLifetime.CanDismiss, Data.CODEC);
+        super(player, CustomPageLifetime.CanDismiss, Data.CODEC, layout());
         this.plugin = plugin;
         this.title = title;
         this.dataset = dataset;
@@ -86,52 +112,37 @@ public class PickerPage extends InteractiveCustomUIPage<PickerPage.Data> {
     }
 
     @Override
-    public void build(@Nonnull Ref<EntityStore> ref, @Nonnull UICommandBuilder cmd, @Nonnull UIEventBuilder evt,
-                      @Nonnull Store<EntityStore> store) {
-        cmd.append(LAYOUT);
-        cmd.set("#PageTitle.Text", title);
-        cmd.set("#Search.Value", query);
-        evt.addEventBinding(CustomUIEventBindingType.ValueChanged, "#Search",
-                new EventData().append("Action", Action.SEARCH.name()).append("@Value", "#Search.Value"), false);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#ClearButton",
-                new EventData().append("Action", Action.CLEAR.name()), false);
-        evt.addEventBinding(CustomUIEventBindingType.Activating, "#CancelButton",
-                new EventData().append("Action", Action.CANCEL.name()), false);
-        render(cmd, evt);
-    }
-
-    /** The matches for what has been typed. The search box itself is never rewritten, so the caret stays put. */
-    private void render(UICommandBuilder cmd, UIEventBuilder evt) {
+    protected void populate(@Nonnull UiModel model) {
+        model.set("title", title);
+        model.set("search", query);
         shown = JsonDialogues.names(dataset, query, SHOWN);
         int total = JsonDialogues.size(dataset);
-        cmd.clear("#Rows");
+        List<UiItem> rows = new ArrayList<>();
         for (int i = 0; i < shown.size(); i++) {
-            String sel = "#Rows[" + i + "]";
-            cmd.append("#Rows", ROW);
-            cmd.set(sel + " #Current.Text", shown.get(i).equals(current) ? ">" : "");
-            cmd.set(sel + " #Choose.Text", shown.get(i));
-            evt.addEventBinding(CustomUIEventBindingType.Activating, sel + " #Choose",
-                    new EventData().append("Action", Action.PICK.name()).append("Row", String.valueOf(i)), false);
+            rows.add(UiItem.of(ROW_MATCH)
+                    .with("current", shown.get(i).equals(current) ? ">" : "")
+                    .with("choose", shown.get(i))
+                    .with("row", String.valueOf(i)));
         }
-        cmd.set("#Status.Text", shown.isEmpty()
+        model.setItems("rows", rows);
+        model.set("status", shown.isEmpty()
                 ? "Nothing matches \"" + query + "\"; " + total + " to choose from."
                 : query.isBlank() ? "The first " + shown.size() + " of " + total + ". Type to find the rest."
                 : shown.size() + " of " + total + " match \"" + query + "\".");
     }
 
-    private void refresh() {
-        UICommandBuilder cmd = new UICommandBuilder();
-        UIEventBuilder evt = new UIEventBuilder();
-        render(cmd, evt);
-        sendUpdate(cmd, evt, false);
+    @Nonnull
+    @Override
+    protected String commandOf(@Nonnull Data data) {
+        return data.action == null ? "" : data.action;
     }
 
     @Override
-    public void handleDataEvent(@Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store, @Nonnull Data data) {
-        if (data.action == null) return;
+    protected void onCommand(@Nonnull String command, @Nonnull Data data,
+                             @Nonnull Ref<EntityStore> ref, @Nonnull Store<EntityStore> store) {
         Action action;
         try {
-            action = Action.valueOf(data.action);
+            action = Action.valueOf(command);
         } catch (IllegalArgumentException e) {
             return;
         }

@@ -59,6 +59,9 @@ com.chromecide.lowtalk
                 effect implementations (give, take, shop, attitude, ...),
                 function implementations (has, objective, attitude, ...),
                 the dialogue window, commands.
+  ui/         How a page says what it is showing, and how that gets drawn:
+                a view model of named properties and lists, a layout that maps
+                those names onto controls, and a renderer per backend.
   api/        LowTalkApi: register functions, commands, and listeners.
   LowTalkPlugin  wires it together.
 ```
@@ -147,6 +150,46 @@ Continue. Text input uses a text field and an OK button, with Enter handled.
 The same page is reused across steps to avoid flicker; only the changed
 elements are updated. Movement is frozen while a page is open, which is the
 right feel for a conversation.
+
+### How a page is drawn
+
+Pages do not name controls. A page answers one question — given where it is,
+what should be on screen? — by filling in a view model of named properties and
+lists. A layout, one per page, is the only place that says which control
+carries which value. A renderer walks the two and draws the result.
+
+The model remembers what changed since the last draw, so a step sends only the
+difference. That is also the one way a page can be wrong without anything
+noticing, so the rules are pinned down by tests: an unchanged value is not
+re-sent; text and choices compare by value; values that cannot be compared are
+refused outright. Two of the server's own types — its message type and its
+dropdown entry type — have no equality, so holding either would quietly re-send
+everything on every draw. The model refuses them and the renderer builds them at
+the last moment instead.
+
+Three things the model has to be told, because it cannot see them:
+
+- A box the player is typing in is seeded once and then left alone; rewriting
+  its value moves the caret.
+- A control the player can change with nothing bound to its change event drifts
+  away from the model, so a page that wants it back at a known value has to say
+  so.
+- A single field of a single row can be changed without redrawing the list, for
+  the editor's argument lists, which narrow on every keystroke.
+
+Why the indirection: the client's interface is moving to a different UI stack,
+and a server-driven form of it is coming. Everything above this line — the
+model, the page logic, the commands — is the same shape in both. Keeping the
+control names in one place per page means that move is a second renderer and a
+second set of layouts, not a rewrite of every page. A spike of the second
+renderer exists and compiles; it is not shipped, and is excluded from builds
+for server versions that do not have the feature.
+
+One test reads every layout and checks each control it names against the
+documents that declare it, and that each property belongs to that kind of
+control. Addressing a control that is not there drops the client with no
+message, so this is the difference between a typo caught in CI and a crash
+reported by a player.
 
 ### Reloading
 

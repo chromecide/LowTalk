@@ -56,11 +56,10 @@ $Sounds = "../../Sounds.ui";
       }
     }
 
-    // The history sits in its own rounded frame (a 9-slice texture shipped with the pack) so it reads apart from
-    // the options below it.
-    Group #TranscriptBox {
+    // The history sits in the game's own inset frame (Common.ui's @SimpleContainer) so it reads apart from the
+    // options below it.
+    $C.@SimpleContainer #TranscriptBox {
       FlexWeight: 1;
-      Background: (TexturePath: "TranscriptFrame.png", Border: 8);
       Padding: (Horizontal: 12, Vertical: 8);
 
       Group #Transcript {
