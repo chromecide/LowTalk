@@ -46,7 +46,7 @@ public final class Validator {
     public static final Map<String, int[]> BUILTIN_COMMANDS = Map.ofEntries(
             Map.entry("give", new int[] {1, 2}),
             Map.entry("take", new int[] {1, 2}),
-            Map.entry("shop", new int[] {0, 0}),
+            Map.entry("shop", new int[] {0, 1}),
             Map.entry("attitude", new int[] {1, 1}),
             Map.entry("calm", new int[] {0, 0}),
             Map.entry("objective", new int[] {1, 2}),

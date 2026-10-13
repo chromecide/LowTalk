@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -19,6 +20,38 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * command was added. This place did not, and was missed. That is the whole argument for the test.
  */
 class CommandSpecCoverageTest {
+
+    /**
+     * The editor must not offer an argument the parser will refuse, nor let a required one be left out.
+     * Both sides describe the same command and nothing compares them, so they drift: {@code <<shop>>} was
+     * registered as taking none while the runtime, the reference and the JSON round-trip all read an
+     * optional shop id, and the editor duly offered a picker for it. Filling it in produced
+     * "<<shop>> expects 0 argument(s), got 1" and the dialogue could not be saved at all.
+     *
+     * <p>The editor is allowed to be narrower than the language — several commands offer fewer arguments
+     * than the parser accepts, which limits what can be authored but saves cleanly. It is the other
+     * direction that produces a file the editor itself cannot save.
+     */
+    @Test
+    void noEditorSpecOffersArgumentsTheParserWouldRefuse() {
+        List<String> wrong = new ArrayList<>();
+        for (Map.Entry<String, int[]> e : Validator.BUILTIN_COMMANDS.entrySet()) {
+            CommandSpecs.Spec spec = CommandSpecs.of(e.getKey());
+            if (spec == null) continue;                 // covered by the test above
+            int max = spec.args().size();
+            int min = (int) spec.args().stream().filter(a -> !a.optional()).count();
+            int[] arity = e.getValue();
+            if (arity[1] >= 0 && max > arity[1]) {
+                wrong.add(e.getKey() + ": the editor offers " + max + " argument(s) but the parser accepts at most "
+                        + arity[1] + ", so filling the last one makes the dialogue unsaveable");
+            }
+            if (min < arity[0]) {
+                wrong.add(e.getKey() + ": the editor can leave " + min + " argument(s) filled but the parser requires "
+                        + arity[0]);
+            }
+        }
+        assertTrue(wrong.isEmpty(), "editor specs and parser arities disagree:\n  " + String.join("\n  ", wrong));
+    }
 
     @Test
     void everyBuiltInCommandHasAnEditorSpec() {

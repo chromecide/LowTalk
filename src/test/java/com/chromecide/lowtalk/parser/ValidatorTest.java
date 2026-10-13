@@ -65,13 +65,30 @@ class ValidatorTest {
                 == a
                 <<attitude grumpy>>
                 <<give Food_Bread lots>>
-                <<shop now>>
+                <<shop Shop_A Shop_B>>
                 <<objective>>
                 """);
         assertTrue(hasError(ps, "<<attitude>> must be one of"));
         assertTrue(hasError(ps, "count must be a whole number"));
-        assertTrue(hasError(ps, "<<shop>> expects 0"));
+        // The shop id is optional, not forbidden: one is fine, two is not.
+        assertTrue(hasError(ps, "<<shop>> expects 0 to 1"));
         assertTrue(hasError(ps, "<<objective>> expects 1"));
+    }
+
+    @Test
+    void shopTakesAnOptionalShopId() {
+        // <<shop>> was registered as taking none while the runtime, the reference and the JSON round-trip
+        // all read an optional id, so the editor offered a picker whose value could never be saved.
+        assertTrue(check("""
+                npc: X
+                == a
+                <<shop>>
+                """).stream().noneMatch(p -> p.message().contains("expects")));
+        assertTrue(check("""
+                npc: X
+                == a
+                <<shop Dungeon_Klops_Scrap>>
+                """).stream().noneMatch(p -> p.message().contains("expects")));
     }
 
     @Test
